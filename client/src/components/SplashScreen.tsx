@@ -51,11 +51,12 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             <img 
               src={pinAuthLogo}
               alt="W.A.L.T. Logo" 
-              className="w-64 h-64 object-contain"
+              className="object-contain"
               style={{
-                width: '256px',
-                height: '256px',
-                objectFit: 'contain'
+                width: '307px',
+                height: '307px',
+                objectFit: 'contain',
+                marginTop: '15px'
               }}
             />
           </motion.div>

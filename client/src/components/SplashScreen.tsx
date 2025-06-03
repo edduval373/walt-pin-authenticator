@@ -46,7 +46,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-            style={{ marginTop: '20px', marginBottom: '-34px' }}
+            className="mb-2"
+            style={{ marginTop: '20px' }}
           >
             <img 
               src={pinAuthLogo}

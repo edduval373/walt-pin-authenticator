@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -54,3 +54,19 @@ export const insertAnalysisSchema = createInsertSchema(analyses)
 
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 export type Analysis = typeof analyses.$inferSelect;
+
+// User Feedback model for storing agreement/disagreement with AI results
+export const userFeedback = pgTable("user_feedback", {
+  id: serial("id").primaryKey(),
+  analysisId: integer("analysis_id").references(() => analyses.id).notNull(),
+  pinId: text("pin_id").notNull(),
+  userAgreement: text("user_agreement").notNull(), // "agree" or "disagree"
+  feedbackComment: text("feedback_comment"), // optional user comment
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+});
+
+export const insertUserFeedbackSchema = createInsertSchema(userFeedback)
+  .pick({ analysisId: true, pinId: true, userAgreement: true, feedbackComment: true });
+
+export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
+export type UserFeedback = typeof userFeedback.$inferSelect;

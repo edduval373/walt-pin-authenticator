@@ -1,7 +1,7 @@
 import { 
-  users, pins, analyses,
-  type User, type Pin, type Analysis,
-  type InsertUser, type InsertPin, type InsertAnalysis
+  users, pins, analyses, userFeedback,
+  type User, type Pin, type Analysis, type UserFeedback,
+  type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback
 } from "@shared/schema";
 import { pinDatabase } from "@/lib/pin-database";
 
@@ -22,6 +22,11 @@ export interface IStorage {
   getAllAnalyses(): Promise<Analysis[]>;
   getAnalysisById(id: number): Promise<Analysis | undefined>;
   createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
+  
+  // User Feedback methods
+  createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
+  getFeedbackByAnalysisId(analysisId: number): Promise<UserFeedback[]>;
+  getAllUserFeedback(): Promise<UserFeedback[]>;
 }
 
 // In-memory storage implementation

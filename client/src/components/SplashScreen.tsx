@@ -59,7 +59,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </motion.div>
         
         {/* Text content */}
-        <div className="flex-1 flex flex-col justify-start">
+        <div className="flex-1 flex flex-col justify-start" style={{ transform: 'translateY(-108px)' }}>
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

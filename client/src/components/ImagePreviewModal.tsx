@@ -40,15 +40,21 @@ export default function ImagePreviewModal({
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4" 
+      className="fixed inset-0 flex items-end justify-center p-4 pb-20" 
       style={{ 
         zIndex: 99999,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        pointerEvents: 'auto'
       }}
+      onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[80vh] overflow-y-auto"
-        style={{ zIndex: 100000 }}
+        className="bg-white rounded-lg shadow-xl max-w-sm w-full max-h-[60vh] overflow-y-auto transform translate-y-0"
+        style={{ 
+          zIndex: 100000,
+          position: 'relative',
+          marginBottom: '60px'
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4">

@@ -53,10 +53,10 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               alt="W.A.L.T. Logo" 
               className="object-contain"
               style={{
-                width: '307px',
-                height: '307px',
+                width: '353px',
+                height: '353px',
                 objectFit: 'contain',
-                marginTop: '15px'
+                marginBottom: '8px'
               }}
             />
           </motion.div>

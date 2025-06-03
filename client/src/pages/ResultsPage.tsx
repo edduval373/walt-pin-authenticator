@@ -37,70 +37,80 @@ export default function ResultsPage() {
   const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
   const [serverResponse, setServerResponse] = useState<any>(null);
 
-  // Extract color-coded insights from analysis
-  const getAnalysisInsights = (analysisText: string) => {
+  // Extract color-coded insights from analysis and identification
+  const getAnalysisInsights = (analysisText: string, identificationText: string = '') => {
     const insights = [];
+    const combinedText = (analysisText + ' ' + identificationText).toLowerCase();
     
-    if (analysisText.toLowerCase().includes('authentic') || analysisText.toLowerCase().includes('genuine')) {
+    // Skip insights if no pin is found
+    if (combinedText.includes('no disney pin') || 
+        combinedText.includes("don't see any disney pin") ||
+        combinedText.includes('no pin visible') ||
+        combinedText.includes('unable to provide an authenticity verification')) {
+      return [];
+    }
+    
+    if (combinedText.includes('authentic') || combinedText.includes('genuine')) {
       insights.push({ text: 'Likely Authentic', emoji: '✅', color: 'text-green-600', bg: 'bg-green-50' });
     }
     
-    if (analysisText.toLowerCase().includes('high quality') || analysisText.toLowerCase().includes('professional')) {
+    if (combinedText.includes('high quality') || combinedText.includes('professional')) {
       insights.push({ text: 'High Quality', emoji: '💎', color: 'text-blue-600', bg: 'bg-blue-50' });
     }
     
-    if (analysisText.toLowerCase().includes('limited edition') || analysisText.toLowerCase().includes('le ')) {
+    if (combinedText.includes('limited edition') || combinedText.includes('le ')) {
       insights.push({ text: 'Limited Edition', emoji: '🎯', color: 'text-purple-600', bg: 'bg-purple-50' });
     }
     
-    if (analysisText.toLowerCase().includes('wdi') || analysisText.toLowerCase().includes('imagineering')) {
+    if (combinedText.includes('wdi') || combinedText.includes('imagineering')) {
       insights.push({ text: 'WDI Design', emoji: '🏰', color: 'text-indigo-600', bg: 'bg-indigo-50' });
     }
     
-    if (analysisText.toLowerCase().includes('vintage') || analysisText.toLowerCase().includes('classic')) {
+    if (combinedText.includes('vintage') || combinedText.includes('classic')) {
       insights.push({ text: 'Vintage/Classic', emoji: '⭐', color: 'text-yellow-600', bg: 'bg-yellow-50' });
     }
     
-    if (analysisText.toLowerCase().includes('rare') || analysisText.toLowerCase().includes('collector')) {
+    if (combinedText.includes('rare') || combinedText.includes('collector')) {
       insights.push({ text: 'Collectible', emoji: '🏆', color: 'text-orange-600', bg: 'bg-orange-50' });
     }
     
-    if (analysisText.toLowerCase().includes('concern') || analysisText.toLowerCase().includes('suspicious')) {
+    if (combinedText.includes('concern') || combinedText.includes('suspicious')) {
       insights.push({ text: 'Needs Review', emoji: '⚠️', color: 'text-red-600', bg: 'bg-red-50' });
     }
     
-    if (analysisText.toLowerCase().includes('disney') || analysisText.toLowerCase().includes('character')) {
+    if (combinedText.includes('disney') || combinedText.includes('character')) {
       insights.push({ text: 'Disney Character', emoji: '🐭', color: 'text-pink-600', bg: 'bg-pink-50' });
     }
     
-    if (analysisText.toLowerCase().includes('manufacturing') || analysisText.toLowerCase().includes('craftsmanship')) {
+    if (combinedText.includes('manufacturing') || combinedText.includes('craftsmanship')) {
       insights.push({ text: 'Good Craftsmanship', emoji: '🔨', color: 'text-blue-600', bg: 'bg-blue-50' });
     }
     
-    if (analysisText.toLowerCase().includes('metal') || analysisText.toLowerCase().includes('enamel')) {
+    if (combinedText.includes('metal') || combinedText.includes('enamel')) {
       insights.push({ text: 'Quality Materials', emoji: '🪙', color: 'text-gray-600', bg: 'bg-gray-50' });
     }
     
-    if (analysisText.toLowerCase().includes('backer card') || analysisText.toLowerCase().includes('backing')) {
+    if (combinedText.includes('backer card') || combinedText.includes('backing')) {
       insights.push({ text: 'Has Backer Card', emoji: '📋', color: 'text-indigo-600', bg: 'bg-indigo-50' });
     }
     
-    if (analysisText.toLowerCase().includes('paint') || analysisText.toLowerCase().includes('color')) {
+    if (combinedText.includes('paint') || combinedText.includes('color')) {
       insights.push({ text: 'Good Paint Quality', emoji: '🎨', color: 'text-purple-600', bg: 'bg-purple-50' });
     }
     
-    if (analysisText.toLowerCase().includes('detailed') || analysisText.toLowerCase().includes('intricate')) {
+    if (combinedText.includes('detailed') || combinedText.includes('intricate')) {
       insights.push({ text: 'Detailed Design', emoji: '🔍', color: 'text-green-600', bg: 'bg-green-50' });
     }
     
-    if (analysisText.toLowerCase().includes('theme park') || analysisText.toLowerCase().includes('park exclusive')) {
+    if (combinedText.includes('theme park') || combinedText.includes('park exclusive')) {
       insights.push({ text: 'Park Exclusive', emoji: '🎢', color: 'text-red-600', bg: 'bg-red-50' });
     }
     
     return insights.slice(0, 10); // Limit to 10 insights for mobile (5 per column)
   };
 
-  const analysisInsights = serverResponse?.analysis ? getAnalysisInsights(serverResponse.analysis) : [];
+  const analysisInsights = (serverResponse?.analysis || serverResponse?.identification) ? 
+    getAnalysisInsights(serverResponse?.analysis || '', serverResponse?.identification || '') : [];
 
   // Function to handle user feedback
   const handleFeedback = (feedback: 'positive' | 'negative') => {
@@ -447,9 +457,9 @@ export default function ResultsPage() {
             </div>
 
             {/* Color-coded Analysis Insights */}
-            {analysisInsights.length > 0 && (
-              <div className="border-t border-indigo-200 pt-4">
-                <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">Quick Insights</h3>
+            <div className="border-t border-indigo-200 pt-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">Quick Insights</h3>
+              {analysisInsights.length > 0 ? (
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                   {analysisInsights.map((insight, index) => (
                     <div
@@ -461,8 +471,12 @@ export default function ResultsPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center text-gray-500 text-sm py-2">
+                  No Features Found
+                </div>
+              )}
+            </div>
           </div>
         </div>
       

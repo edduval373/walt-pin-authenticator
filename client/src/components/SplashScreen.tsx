@@ -77,7 +77,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             className="mb-8"
           >
             <h1 className="text-3xl font-bold text-indigo-700 tracking-tight mb-2">
-              PinAuth Mobile App
+              W.A.L.T. Mobile App
             </h1>
             <div className="text-indigo-600 text-opacity-90 text-base">
               Beta Version

@@ -4,8 +4,11 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
 
-// Version configuration
-const APP_VERSION = "1.2.0";
+// Automatic version management based on recent changes
+// Recent changes: Enhanced feedback modal, fixed rating logic, improved insights
+// Change impact: MINOR (new features and enhancements)
+// Suggested version: 1.3.0 (was 1.2.0)
+const APP_VERSION = "1.3.0";
 
 interface SplashScreenProps {
   onComplete: () => void;

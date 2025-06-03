@@ -41,38 +41,32 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         
         {/* Main Content - Centered */}
         <div className="flex flex-col items-center">
+          {/* Logo */}
+          <motion.div
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+            className="mb-4"
+          >
+            <img 
+              src={pinAuthLogo}
+              alt="W.A.L.T. Logo" 
+              className="object-contain"
+              style={{
+                width: '300px',
+                height: '300px',
+                objectFit: 'contain'
+              }}
+            />
+          </motion.div>
+          
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mb-6 text-center"
-            style={{ position: 'relative' }}
           >
-            {/* Logo positioned just above this text */}
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-              style={{ 
-                position: 'absolute',
-                top: '-320px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 1
-              }}
-            >
-              <img 
-                src={pinAuthLogo}
-                alt="W.A.L.T. Logo" 
-                className="object-contain"
-                style={{
-                  width: '300px',
-                  height: '300px',
-                  objectFit: 'contain'
-                }}
-              />
-            </motion.div>
             <p className="text-indigo-600 text-3xl font-medium mb-3">
               Meet W.A.L.T.
             </p>

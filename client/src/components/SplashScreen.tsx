@@ -37,36 +37,35 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="text-center px-4 max-w-sm w-full py-6 min-h-screen flex flex-col justify-center" style={{ transform: 'translateY(20px)' }}>
+      <div className="text-center px-4 max-w-sm w-full py-6 min-h-screen flex flex-col" style={{ paddingTop: '40px' }}>
         
-        {/* Main Content - Centered */}
-        <div className="flex flex-col items-center">
-          {/* Logo */}
-          <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-            className="mb-4"
-          >
-            <img 
-              src={pinAuthLogo}
-              alt="W.A.L.T. Logo" 
-              className="object-contain"
-              style={{
-                width: '300px',
-                height: '300px',
-                objectFit: 'contain'
-              }}
-            />
-          </motion.div>
-          
+        {/* Logo at top */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+          className="mb-6"
+        >
+          <img 
+            src={pinAuthLogo}
+            alt="W.A.L.T. Logo" 
+            className="object-contain mx-auto"
+            style={{
+              width: '300px',
+              height: '300px',
+              objectFit: 'contain'
+            }}
+          />
+        </motion.div>
+        
+        {/* Text content */}
+        <div className="flex-1 flex flex-col justify-center">
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="mb-4 text-center"
-            style={{ transform: 'translateY(-96px)' }}
+            className="mb-6 text-center"
           >
             <p className="text-indigo-600 text-3xl font-medium mb-3">
               Meet W.A.L.T.
@@ -81,8 +80,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mb-6 text-center"
-            style={{ transform: 'translateY(-96px)' }}
+            className="mb-8 text-center"
           >
             <h1 className="text-3xl font-bold text-indigo-700 tracking-tight mb-2">
               W.A.L.T. Mobile App
@@ -94,7 +92,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="mt-8" style={{ transform: 'translateY(-96px)' }}>
+        <div className="flex-shrink-0">
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

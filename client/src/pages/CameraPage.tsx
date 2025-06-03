@@ -1073,6 +1073,24 @@ export default function CameraPage() {
           </div>
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        open={previewModalOpen}
+        onClose={() => setPreviewModalOpen(false)}
+        onConfirm={handleConfirm}
+        onRetake={handleRetake}
+        onSkip={handleSkip}
+        imageData={capturedImages[activeView]}
+        viewType={activeView}
+        allowSkip={activeView !== 'front'}
+      />
+
+      {/* Info Modal */}
+      <InfoModal 
+        isOpen={isInfoModalOpen} 
+        onClose={() => setIsInfoModalOpen(false)} 
+      />
     </div>
   );
 }

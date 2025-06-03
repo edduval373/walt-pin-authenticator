@@ -1,5 +1,6 @@
 // Production server - standalone version with no Vite dependencies
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 import path from "path";
 import fs from "fs";
 
@@ -86,7 +87,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 
 // Use Railway's PORT environment variable in production
 const port = process.env.PORT || 5000;
-const server = require('http').createServer(app);
+const server = createServer(app);
 
 server.listen(port, "0.0.0.0", () => {
   console.log(`Production server running on port ${port}`);

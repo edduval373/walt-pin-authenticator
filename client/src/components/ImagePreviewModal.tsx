@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RiArrowRightLine } from "react-icons/ri";
@@ -38,25 +39,29 @@ export default function ImagePreviewModal({
 
   if (!open) return null;
 
-  return (
+  const modalElement = (
     <div 
-      className="fixed inset-0 flex items-center justify-center p-4" 
+      className="modal-overlay"
       style={{ 
-        zIndex: 999999,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
-        bottom: 0
+        bottom: 0,
+        zIndex: 2147483647, // Maximum z-index value
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px'
       }}
       onClick={onClose}
     >
       <div 
         className="bg-white rounded-lg shadow-2xl max-w-sm w-full max-h-[70vh] overflow-y-auto"
         style={{ 
-          zIndex: 1000000,
-          position: 'relative'
+          position: 'relative',
+          zIndex: 2147483647
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -117,4 +122,7 @@ export default function ImagePreviewModal({
       </div>
     </div>
   );
+
+  // Use portal to render modal at document root level
+  return createPortal(modalElement, document.body);
 }

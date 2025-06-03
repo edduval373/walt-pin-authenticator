@@ -44,8 +44,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-          className="mb-6"
-          style={{ transform: 'translateY(-48px)' }}
+          className="mb-4"
         >
           <img 
             src={pinAuthLogo}
@@ -60,7 +59,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </motion.div>
         
         {/* Text content */}
-        <div className="flex-1 flex flex-col justify-center" style={{ transform: 'translateY(-96px)' }}>
+        <div className="flex-1 flex flex-col justify-start">
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -93,7 +92,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0" style={{ transform: 'translateY(-96px)' }}>
+        <div className="flex-shrink-0">
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

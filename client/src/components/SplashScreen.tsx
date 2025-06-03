@@ -67,7 +67,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
             className="mb-6"
-            style={{ marginTop: '-15px' }}
+            style={{ marginTop: '-35px' }}
           >
             <p className="text-indigo-600 text-3xl font-medium mb-2">
               Meet W.A.L.T.
@@ -83,7 +83,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
             className="mb-8"
-            style={{ marginTop: '-15px' }}
+            style={{ marginTop: '-35px' }}
           >
             <h1 className="text-3xl font-bold text-indigo-700 tracking-tight mb-2">
               W.A.L.T. Mobile App
@@ -95,7 +95,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0" style={{ marginTop: '-15px' }}>
+        <div className="flex-shrink-0" style={{ marginTop: '-35px' }}>
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

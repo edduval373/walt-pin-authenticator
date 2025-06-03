@@ -9,7 +9,7 @@ import TransmissionLogViewer from "@/components/TransmissionLogViewer";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { NavigationContext } from "../App";
-import pinAuthLogo from "@assets/PinAuthLogo.png";
+
 import { transmissionLogger } from "@/lib/transmission-logger";
 import StepProgress from "@/components/StepProgress";
 import { 
@@ -422,12 +422,11 @@ export default function CameraPage() {
             >
               <RiArrowLeftLine className="text-2xl" />
             </button>
-            <img 
-              src={pinAuthLogo} 
-              alt="PinAuth Logo" 
-              className="mr-0"
-              style={{ height: '60px', objectFit: 'contain', objectPosition: 'left' }}
-            />
+            <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mr-2 shadow-lg">
+              <div className="text-white text-lg font-bold">
+                W.A.L.T.
+              </div>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
 

@@ -1,6 +1,5 @@
 import React, { useContext, useState, useRef } from "react";
 import { RiInformationLine, RiArrowLeftLine, RiHome4Line, RiUpload2Line, RiCameraLine } from "react-icons/ri";
-import PinAuthLogo from "../assets/PinAuthLogo.png";
 import { useLocation } from "wouter";
 import { NavigationContext } from "../App";
 import TransmissionLogViewer from "./TransmissionLogViewer";
@@ -80,12 +79,11 @@ export default function Header({ onInfoClick }: HeaderProps) {
               <RiHome4Line className="text-2xl" />
             </button>
           )}
-          <img 
-            src={PinAuthLogo} 
-            alt="PinAuth Logo" 
-            className="mr-2"
-            style={{ height: '60px', objectFit: 'contain', objectPosition: 'left' }}
-          />
+          <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mr-2 shadow-lg">
+            <div className="text-white text-lg font-bold">
+              W.A.L.T.
+            </div>
+          </div>
         </div>
         
         {/* Centered Results text */}

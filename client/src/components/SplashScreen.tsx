@@ -37,7 +37,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="text-center px-4 max-w-sm w-full py-6 min-h-screen flex flex-col justify-center" style={{ transform: 'translateY(-100px)' }}>
+      <div className="text-center px-4 max-w-sm w-full py-6 min-h-screen flex flex-col justify-center" style={{ transform: 'translateY(20px)' }}>
         
         {/* Main Content - Centered */}
         <div className="flex flex-col items-center">

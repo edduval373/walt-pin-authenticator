@@ -569,6 +569,7 @@ export default function ResultsPage() {
           pinId={result.pinId || serverResponse.sessionId || 'unknown'}
           analysisRating={rating.value}
           analysisText={serverResponse.analysis || 'No analysis text available'}
+          initialFeedback={userFeedback ?? undefined}
         />
       )}
     </div>

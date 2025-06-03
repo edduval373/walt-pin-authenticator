@@ -21,6 +21,7 @@ interface FeedbackModalProps {
   pinId: string;
   analysisRating: number;
   analysisText: string;
+  initialFeedback?: 'positive' | 'negative';
 }
 
 export default function FeedbackModal({ 
@@ -29,9 +30,21 @@ export default function FeedbackModal({
   analysisId, 
   pinId, 
   analysisRating, 
-  analysisText 
+  analysisText,
+  initialFeedback
 }: FeedbackModalProps) {
   const [agreement, setAgreement] = useState<string>('');
+  
+  // Update agreement when modal opens with initial feedback
+  React.useEffect(() => {
+    if (isOpen && initialFeedback) {
+      setAgreement(initialFeedback === 'positive' ? 'agree' : 'disagree');
+    } else if (!isOpen) {
+      // Reset when modal closes
+      setAgreement('');
+      setComment('');
+    }
+  }, [isOpen, initialFeedback]);
   const [comment, setComment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -129,13 +142,30 @@ export default function FeedbackModal({
             {/* Show analysis summary */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold mb-2">Analysis Summary</h4>
-              <p className="text-sm text-gray-600">
-                Authenticity Rating: {analysisRating}/5
-              </p>
-              <div className="text-sm text-gray-600 mt-2 max-h-32 overflow-y-auto">
-                {analysisText.length > 200 
-                  ? `${analysisText.substring(0, 200)}...` 
-                  : analysisText}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm font-medium">Authenticity Rating:</span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <div
+                      key={star}
+                      className={`w-4 h-4 rounded-full ${
+                        star <= analysisRating 
+                          ? analysisRating >= 4 ? 'bg-green-500' : analysisRating >= 3 ? 'bg-yellow-500' : 'bg-red-500'
+                          : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-sm font-semibold">{analysisRating}/5</span>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 max-h-40 overflow-y-auto">
+                <div 
+                  dangerouslySetInnerHTML={{ 
+                    __html: analysisText.length > 400 
+                      ? `${analysisText.substring(0, 400)}...` 
+                      : analysisText 
+                  }} 
+                />
               </div>
             </div>
 

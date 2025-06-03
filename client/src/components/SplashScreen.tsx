@@ -47,15 +47,15 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
             className="mb-2"
-            style={{ marginTop: '20px' }}
+            style={{ marginTop: '116px' }}
           >
             <img 
               src={pinAuthLogo}
               alt="W.A.L.T. Logo" 
               className="object-contain"
               style={{
-                width: '364px',
-                height: '364px',
+                width: '437px',
+                height: '437px',
                 objectFit: 'contain'
               }}
             />

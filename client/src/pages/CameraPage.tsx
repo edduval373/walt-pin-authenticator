@@ -773,24 +773,11 @@ export default function CameraPage() {
 
   return (
     <div className="flex-grow flex flex-col h-full fade-in">
-      {/* Step Progress */}
+      {/* Step Progress with Camera Controls on Same Row */}
       <div className="bg-white shadow-sm">
-        <StepProgress 
-          currentStep={2} 
-          totalSteps={4} 
-          stepNames={stepNames}
-        />
-      </div>
-      
-      {/* We don't need the InfoModal here as it's in App.tsx */}
-      
-
-      
-      <div className="p-4 bg-blue-50 shadow-sm">
-        {/* Camera Selection and Navigation Row */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center px-4 py-2">
           {/* Left side - Camera Selection */}
-          <div className="flex items-center gap-2 mr-auto">
+          <div className="flex items-center gap-2">
             {availableCameras.length > 1 && (
               <div className="flex items-center gap-2">
                 <RiCameraLine className="text-lg text-gray-700" />
@@ -809,6 +796,15 @@ export default function CameraPage() {
               </div>
             )}
           </div>
+
+          {/* Center - Step Progress */}
+          <div className="flex-1 flex justify-center">
+            <StepProgress 
+              currentStep={2} 
+              totalSteps={4} 
+              stepNames={stepNames}
+            />
+          </div>
           
           {/* Right side - Next Step Arrow */}
           <div className="flex items-center gap-2">
@@ -823,6 +819,9 @@ export default function CameraPage() {
             )}
           </div>
         </div>
+      </div>
+      
+      <div className="p-4 bg-blue-50 shadow-sm">
         
         {/* View buttons row */}
         <div className="flex justify-between items-center mb-3">

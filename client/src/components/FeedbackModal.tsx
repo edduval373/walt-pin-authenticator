@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -88,81 +89,110 @@ export default function FeedbackModal({
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Do you agree with this analysis?</DialogTitle>
-          <DialogDescription>
-            Your feedback helps us improve the accuracy of our AI analysis.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* Show analysis summary */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold mb-2">Analysis Summary</h4>
+  if (!isOpen) return null;
+
+  const modalElement = (
+    <div 
+      className="feedback-modal-overlay"
+      style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 2147483647,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px'
+      }}
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+        style={{ 
+          position: 'relative',
+          zIndex: 2147483647
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2">Do you agree with this analysis?</h2>
             <p className="text-sm text-gray-600">
-              Authenticity Rating: {analysisRating}/5
+              Your feedback helps us improve the accuracy of our AI analysis.
             </p>
-            <div className="text-sm text-gray-600 mt-2 max-h-32 overflow-y-auto">
-              {analysisText.length > 200 
-                ? `${analysisText.substring(0, 200)}...` 
-                : analysisText}
+          </div>
+          
+          <div className="space-y-4">
+            {/* Show analysis summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold mb-2">Analysis Summary</h4>
+              <p className="text-sm text-gray-600">
+                Authenticity Rating: {analysisRating}/5
+              </p>
+              <div className="text-sm text-gray-600 mt-2 max-h-32 overflow-y-auto">
+                {analysisText.length > 200 
+                  ? `${analysisText.substring(0, 200)}...` 
+                  : analysisText}
+              </div>
+            </div>
+
+            {/* Agreement selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Your feedback:</Label>
+              <RadioGroup value={agreement} onValueChange={setAgreement}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="agree" id="agree" />
+                  <Label htmlFor="agree" className="cursor-pointer">
+                    I agree with this analysis
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="disagree" id="disagree" />
+                  <Label htmlFor="disagree" className="cursor-pointer">
+                    I disagree with this analysis
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Optional comment */}
+            <div className="space-y-2">
+              <Label htmlFor="comment" className="text-base font-medium">
+                Additional comments (optional):
+              </Label>
+              <Textarea
+                id="comment"
+                placeholder="Tell us more about your feedback, what you think could be improved, or any additional insights..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-xs text-gray-500">
+                Your comments help us understand what to improve in our analysis.
+              </p>
             </div>
           </div>
 
-          {/* Agreement selection */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Your feedback:</Label>
-            <RadioGroup value={agreement} onValueChange={setAgreement}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="agree" id="agree" />
-                <Label htmlFor="agree" className="cursor-pointer">
-                  I agree with this analysis
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="disagree" id="disagree" />
-                <Label htmlFor="disagree" className="cursor-pointer">
-                  I disagree with this analysis
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Optional comment */}
-          <div className="space-y-2">
-            <Label htmlFor="comment" className="text-base font-medium">
-              Additional comments (optional):
-            </Label>
-            <Textarea
-              id="comment"
-              placeholder="Tell us more about your feedback, what you think could be improved, or any additional insights..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={4}
-              className="resize-none"
-            />
-            <p className="text-xs text-gray-500">
-              Your comments help us understand what to improve in our analysis.
-            </p>
+          <div className="flex gap-3 mt-6">
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || !agreement}
+              className="bg-indigo-600 hover:bg-indigo-700 flex-1"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Feedback"}
+            </Button>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Skip
-          </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSubmitting || !agreement}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            {isSubmitting ? "Submitting..." : "Submit Feedback"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
+
+  return createPortal(modalElement, document.body);
 }

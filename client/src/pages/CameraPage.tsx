@@ -817,17 +817,9 @@ export default function CameraPage() {
             />
           </div>
           
-          {/* Right side - Next Step Arrow */}
+          {/* Right side - Empty for balance */}
           <div className="flex items-center gap-2">
-            {capturedImages.front && (
-              <Button
-                onClick={handleEvaluate}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 font-semibold"
-              >
-                <span>Next</span>
-                <RiArrowRightLine className="text-xl" />
-              </Button>
-            )}
+            {/* Process button moved to modal */}
           </div>
         </div>
       </div>
@@ -1092,9 +1084,11 @@ export default function CameraPage() {
         onConfirm={handleConfirm}
         onRetake={handleRetake}
         onSkip={handleSkip}
+        onProcess={handleEvaluate}
         imageData={previewImageData}
         viewType={activeView}
         allowSkip={activeView !== 'front'}
+        showProcessButton={!!capturedImages.front}
       />
 
       {/* Info Modal */}

@@ -539,7 +539,7 @@ export default function CameraPage() {
       // Navigate to processing page
       setLocation('/processing');
     } else {
-      // Move to the next view
+      // Move to the next view and automatically advance dropdown selection
       if (activeView === 'front') {
         setActiveView('back');
       } else if (activeView === 'back') {

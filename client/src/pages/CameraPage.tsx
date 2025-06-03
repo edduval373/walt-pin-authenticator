@@ -475,21 +475,30 @@ export default function CameraPage() {
   };
   
   const handleCapture = (imageData: string) => {
+    console.log("handleCapture called with activeView:", activeView);
+    console.log("Preview modal state before:", previewModalOpen);
+    
     // Get the next image number for naming
     const imageNumber = transmissionLogger.getNextImageNumber();
     
     // Update the captured images state with the new image
-    setCapturedImages(prev => ({
-      ...prev,
-      [activeView]: imageData
-    }));
+    setCapturedImages(prev => {
+      const newImages = {
+        ...prev,
+        [activeView]: imageData
+      };
+      console.log("Updated captured images:", newImages);
+      return newImages;
+    });
     
     // Store the image with proper numbering in session storage
     const imageKey = `Image #${imageNumber} - ${activeView}`;
     sessionStorage.setItem(imageKey, imageData);
     
     // Show the preview modal
+    console.log("Setting preview modal to true");
     setPreviewModalOpen(true);
+    console.log("Preview modal state after:", true);
   };
   
   // Function to handle retaking a photo

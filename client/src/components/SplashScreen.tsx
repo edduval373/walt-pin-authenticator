@@ -47,8 +47,27 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
             className="mx-auto mb-4 flex items-center justify-center"
           >
-            <div className="w-64 h-64 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-              <div className="text-white text-6xl font-bold">
+            <div 
+              className="w-64 h-64 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg"
+              style={{
+                width: '256px',
+                height: '256px',
+                backgroundColor: '#4f46e5',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <div 
+                className="text-white text-6xl font-bold"
+                style={{
+                  color: 'white',
+                  fontSize: '3.75rem',
+                  fontWeight: 'bold'
+                }}
+              >
                 W.A.L.T.
               </div>
             </div>

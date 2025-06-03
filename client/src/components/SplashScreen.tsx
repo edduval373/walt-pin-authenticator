@@ -37,22 +37,22 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="text-center px-4 max-w-sm w-full py-6 min-h-screen flex flex-col" style={{ paddingTop: '0px' }}>
+      <div className="text-center px-4 max-w-sm w-full py-2 min-h-screen flex flex-col" style={{ paddingTop: '0px' }}>
         
         {/* Logo at top */}
         <motion.div
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-          className="mb-4"
+          className="mb-2"
         >
           <img 
             src={pinAuthLogo}
             alt="W.A.L.T. Logo" 
             className="object-contain mx-auto"
             style={{
-              width: '345px',
-              height: '345px',
+              width: '280px',
+              height: '280px',
               objectFit: 'contain'
             }}
           />
@@ -65,7 +65,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="mb-6 text-center"
+            className="mb-3 text-center"
           >
             <p className="text-indigo-600 text-3xl font-medium mb-3">
               Meet W.A.L.T.
@@ -80,7 +80,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mb-8 text-center"
+            className="mb-4 text-center"
           >
             <h1 className="text-3xl font-bold text-indigo-700 tracking-tight mb-2">
               W.A.L.T. Mobile App
@@ -98,11 +98,11 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="mb-4 bg-indigo-50 border border-indigo-200 rounded-lg p-2"
+            className="mb-3 bg-indigo-50 border border-indigo-200 rounded-lg p-2"
           >
             <div className="text-xs text-gray-600 leading-tight">
               <p className="font-semibold text-indigo-700 mb-1 text-center">⚠️ IMPORTANT LEGAL NOTICE</p>
-              <div className="max-h-16 overflow-y-auto">
+              <div className="max-h-12 overflow-y-auto">
                 <p className="mb-1">
                   <strong>FOR ENTERTAINMENT PURPOSES ONLY.</strong> This application utilizes artificial intelligence (AI) technology which is inherently unreliable and subject to errors, biases, and limitations.
                 </p>

@@ -210,9 +210,21 @@ export default function ResultsPage() {
   
   // Extract rating from analysis field
   const getRating = (): { value: number, text: string, description: string } => {
-    // Try to extract from serverResponse analysis field first
+    // Check if no pin was found in the analysis
     if (serverResponse?.analysis) {
       const analysisText = serverResponse.analysis;
+      
+      // Check for "no pin" indicators
+      if (analysisText.toLowerCase().includes("no disney pin") || 
+          analysisText.toLowerCase().includes("don't see any disney pin") ||
+          analysisText.toLowerCase().includes("no pin visible") ||
+          analysisText.toLowerCase().includes("unable to provide an authenticity verification")) {
+        return {
+          value: 0,
+          text: '0/5',
+          description: 'No Pin Found in the image'
+        };
+      }
       
       // Look for "Final Rating:" pattern in the analysis
       const ratingMatch = analysisText.match(/Final Rating:\s*(\d+)\/5\s*-\s*([^<]+)/i);
@@ -239,7 +251,21 @@ export default function ResultsPage() {
       }
     }
     
-    // Fallback to authenticityRating from serverResponse
+    // Check identification field for "no pin" indicators
+    if (serverResponse?.identification) {
+      const identificationText = serverResponse.identification;
+      if (identificationText.toLowerCase().includes("no disney pin") || 
+          identificationText.toLowerCase().includes("don't see any disney pin") ||
+          identificationText.toLowerCase().includes("no pin visible")) {
+        return {
+          value: 0,
+          text: '0/5',
+          description: 'No Pin Found in the image'
+        };
+      }
+    }
+    
+    // Fallback to authenticityRating from serverResponse only if no "no pin" indicators
     if (serverResponse?.authenticityRating !== undefined) {
       const rating = Math.round(serverResponse.authenticityRating / 20); // Convert 0-100 to 0-5 scale
       return {
@@ -249,11 +275,11 @@ export default function ResultsPage() {
       };
     }
     
-    // Default if no rating available - set to 0 indicating not a recognizable pin
+    // Default if no rating available
     return {
       value: 0,
       text: '0/5',
-      description: 'Not a recognizable pin'
+      description: 'No Pin Found in the image'
     };
   };
   

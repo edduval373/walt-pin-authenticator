@@ -130,19 +130,19 @@ export default function FeedbackModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold mb-2">Do you agree with this analysis?</h2>
+        <div className="p-4">
+          <div className="mb-3">
+            <h2 className="text-lg font-semibold mb-1">Do you agree with this analysis?</h2>
             <p className="text-sm text-gray-600">
               Your feedback helps us improve the accuracy of our AI analysis.
             </p>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Show analysis summary */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-semibold mb-2">Analysis Summary</h4>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-medium">Authenticity Rating:</span>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -170,7 +170,7 @@ export default function FeedbackModal({
             </div>
 
             {/* Agreement selection */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label className="text-base font-medium">Your feedback:</Label>
               <RadioGroup value={agreement} onValueChange={setAgreement}>
                 <div className="flex items-center space-x-2">

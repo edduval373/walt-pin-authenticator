@@ -51,8 +51,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             alt="W.A.L.T. Logo" 
             className="object-contain mx-auto"
             style={{
-              width: '280px',
-              height: '280px',
+              width: '364px',
+              height: '364px',
               objectFit: 'contain'
             }}
           />

@@ -1,8 +1,5 @@
-// Production server - simplified version without Vite dependencies
+// Production server - standalone version with no Vite dependencies
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import mobileApiRouter from "./mobile-api";
-import { generateMobileApiDocs } from "./mobile-docs";
 import path from "path";
 import fs from "fs";
 
@@ -34,74 +31,63 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  // Add health check endpoint for Railway deployment
-  app.get('/health', (req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      service: 'walt-pin-authenticator',
-      timestamp: new Date().toISOString(),
-      port: process.env.PORT || 5000
-    });
+// Add health check endpoint for Railway deployment
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'walt-pin-authenticator',
+    timestamp: new Date().toISOString(),
+    port: process.env.PORT || 5000
   });
+});
 
-  // Mobile API routes
-  app.use('/mobile', mobileApiRouter);
+// Simple API routes without external dependencies
+app.get('/api/verify', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: "W.A.L.T. verification service ready",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Add API info endpoint
+app.get('/api/info', (req, res) => {
+  res.json({
+    version: "1.0.0",
+    service: "W.A.L.T. Authentication Service",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Serve static files in production
+const distPath = path.resolve(process.cwd(), "dist", "public");
+
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
   
-  // Add mobile documentation endpoint
-  app.get('/api/mobile/docs', (req, res) => {
-    res.setHeader('Content-Type', 'text/html');
-    res.send(generateMobileApiDocs());
+  // Fallback to index.html for SPA routing
+  app.use("*", (_req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
   });
-
-  // Register API routes
-  const server = await registerRoutes(app);
-
-  // Add API info endpoint
-  app.get('/api/info', (req, res) => {
-    res.json({
-      version: "1.0.0",
-      endpoints: {
-        verify: "/api/mobile/simple-verify",
-        status: "/api/status"
-      },
-      apiKeyHeader: "X-API-Key",
-      requiredApiKey: "mobile-test-key",
-      timestamp: new Date().toISOString()
-    });
+} else {
+  console.error(`Build directory not found: ${distPath}`);
+  app.use("*", (_req, res) => {
+    res.status(500).json({ error: "Application not built properly" });
   });
+}
 
-  // Serve static files in production
-  const distPath = path.resolve(process.cwd(), "dist", "public");
-  
-  if (fs.existsSync(distPath)) {
-    app.use(express.static(distPath));
-    
-    // Fallback to index.html for SPA routing
-    app.use("*", (_req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
-    });
-  } else {
-    console.error(`Build directory not found: ${distPath}`);
-    app.use("*", (_req, res) => {
-      res.status(500).json({ error: "Application not built properly" });
-    });
-  }
+// Global error handler
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).json({ message });
+  console.error(err);
+});
 
-  // Global error handler
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    console.error(err);
-  });
+// Use Railway's PORT environment variable in production
+const port = process.env.PORT || 5000;
+const server = require('http').createServer(app);
 
-  // Use Railway's PORT environment variable in production
-  const port = process.env.PORT || 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-  }, () => {
-    console.log(`Production server running on port ${port}`);
-  });
-})();
+server.listen(port, "0.0.0.0", () => {
+  console.log(`Production server running on port ${port}`);
+});

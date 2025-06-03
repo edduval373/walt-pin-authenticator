@@ -71,13 +71,13 @@ app.use((req, res, next) => {
 
 
 
-  // Add health check endpoint for mobile connectivity testing
+  // Add health check endpoint for Railway deployment
   app.get('/health', (req, res) => {
-    res.json({
+    res.status(200).json({
       status: 'ok',
-      port: 5000,
+      service: 'walt-pin-authenticator',
       timestamp: new Date().toISOString(),
-      endpoint: '/mobile-upload'
+      port: process.env.PORT || 5000
     });
   });
 

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { RiCheckLine, RiShieldCheckLine, RiArrowRightLine } from "react-icons/ri";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import pinAuthLogo from "@assets/PinAuthLogo.png";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -48,11 +47,11 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
             className="mx-auto mb-4 flex items-center justify-center"
           >
-            <img 
-              src={pinAuthLogo} 
-              alt="PinAuth Logo" 
-              className="h-64 w-auto" 
-            />
+            <div className="w-64 h-64 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+              <div className="text-white text-6xl font-bold">
+                W.A.L.T.
+              </div>
+            </div>
           </motion.div>
           
           {/* Tagline */}

@@ -46,3 +46,6 @@ coverage/
 
 # Railway
 .railway/
+
+# Remove attached assets from clean deployment
+attached_assets/

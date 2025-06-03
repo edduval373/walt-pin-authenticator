@@ -446,6 +446,7 @@ export default function CameraPage() {
   
   // Track if the preview modal is open
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewImageData, setPreviewImageData] = useState<string>('');
   
   // Handle file upload from local storage
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -495,7 +496,8 @@ export default function CameraPage() {
     const imageKey = `Image #${imageNumber} - ${activeView}`;
     sessionStorage.setItem(imageKey, imageData);
     
-    // Show the preview modal
+    // Set the preview image data and show the preview modal
+    setPreviewImageData(imageData);
     console.log("Setting preview modal to true");
     setPreviewModalOpen(true);
     console.log("Preview modal state after:", true);
@@ -1090,7 +1092,7 @@ export default function CameraPage() {
         onConfirm={handleConfirm}
         onRetake={handleRetake}
         onSkip={handleSkip}
-        imageData={capturedImages[activeView]}
+        imageData={previewImageData}
         viewType={activeView}
         allowSkip={activeView !== 'front'}
       />

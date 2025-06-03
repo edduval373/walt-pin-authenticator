@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { RiCheckLine, RiShieldCheckLine, RiArrowRightLine } from "react-icons/ri";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import pinAuthLogo from "@assets/PinAuthLogo_1748957062189.png";
+import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
 
 interface SplashScreenProps {
   onComplete: () => void;

@@ -86,13 +86,13 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               W.A.L.T. Mobile App
             </h1>
             <div className="text-indigo-600 text-opacity-90 text-base">
-              v1.0.0
+              BETA
             </div>
           </motion.div>
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0" style={{ transform: 'translateY(-144px)' }}>
+        <div className="flex-shrink-0" style={{ transform: 'translateY(-108px)' }}>
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

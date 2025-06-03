@@ -34,17 +34,21 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private pins: Map<string, Pin>;
   private analyses: Map<number, Analysis>;
+  private userFeedbacks: Map<number, UserFeedback>;
   private currentUserId: number;
   private currentPinId: number;
   private currentAnalysisId: number;
+  private currentFeedbackId: number;
   
   constructor() {
     this.users = new Map();
     this.pins = new Map();
     this.analyses = new Map();
+    this.userFeedbacks = new Map();
     this.currentUserId = 1;
     this.currentPinId = 1;
     this.currentAnalysisId = 1;
+    this.currentFeedbackId = 1;
     
     // Initialize with sample pin data
     this.initializePins();
@@ -176,6 +180,30 @@ export class MemStorage implements IStorage {
     return analysis;
   }
   
+  // User Feedback methods
+  async createUserFeedback(insertFeedback: InsertUserFeedback): Promise<UserFeedback> {
+    const id = this.currentFeedbackId++;
+    const feedback: UserFeedback = {
+      id,
+      analysisId: insertFeedback.analysisId,
+      pinId: insertFeedback.pinId,
+      userAgreement: insertFeedback.userAgreement,
+      feedbackComment: insertFeedback.feedbackComment || null,
+      submittedAt: new Date()
+    };
+    this.userFeedbacks.set(id, feedback);
+    return feedback;
+  }
+
+  async getFeedbackByAnalysisId(analysisId: number): Promise<UserFeedback[]> {
+    return Array.from(this.userFeedbacks.values())
+      .filter(feedback => feedback.analysisId === analysisId);
+  }
+
+  async getAllUserFeedback(): Promise<UserFeedback[]> {
+    return Array.from(this.userFeedbacks.values());
+  }
+
   // Helper method to get a random pin ID
   private getRandomPinId(): string {
     const pinIds = Array.from(this.pins.keys());

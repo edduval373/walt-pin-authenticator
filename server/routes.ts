@@ -323,6 +323,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // User Feedback endpoints for preserving agreement/disagreement with AI analysis
+  app.post('/api/feedback', async (req, res) => {
+    try {
+      const { analysisId, pinId, userAgreement, feedbackComment } = req.body;
+      
+      // Validate required fields
+      if (!analysisId || !pinId || !userAgreement) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: analysisId, pinId, and userAgreement are required"
+        });
+      }
+
+      // Validate userAgreement value
+      if (userAgreement !== 'agree' && userAgreement !== 'disagree') {
+        return res.status(400).json({
+          success: false,
+          message: "userAgreement must be either 'agree' or 'disagree'"
+        });
+      }
+
+      // Create feedback record
+      const feedback = await storage.createUserFeedback({
+        analysisId: parseInt(analysisId),
+        pinId,
+        userAgreement,
+        feedbackComment: feedbackComment || null
+      });
+
+      log(`User feedback saved: ${userAgreement} for analysis ${analysisId}`);
+
+      res.json({
+        success: true,
+        message: "Feedback saved successfully",
+        feedbackId: feedback.id,
+        timestamp: feedback.submittedAt
+      });
+
+    } catch (error: any) {
+      log(`Error saving user feedback: ${error.message}`);
+      res.status(500).json({
+        success: false,
+        message: "Failed to save feedback",
+        error: error.message
+      });
+    }
+  });
+
+  // Get feedback for a specific analysis
+  app.get('/api/feedback/analysis/:analysisId', async (req, res) => {
+    try {
+      const analysisId = parseInt(req.params.analysisId);
+      const feedback = await storage.getFeedbackByAnalysisId(analysisId);
+      
+      res.json({
+        success: true,
+        feedback,
+        count: feedback.length
+      });
+    } catch (error: any) {
+      log(`Error retrieving feedback: ${error.message}`);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve feedback",
+        error: error.message
+      });
+    }
+  });
+
+  // Get all user feedback (for admin/analytics)
+  app.get('/api/feedback/all', async (req, res) => {
+    try {
+      const allFeedback = await storage.getAllUserFeedback();
+      
+      res.json({
+        success: true,
+        feedback: allFeedback,
+        total: allFeedback.length,
+        agreementStats: {
+          agree: allFeedback.filter(f => f.userAgreement === 'agree').length,
+          disagree: allFeedback.filter(f => f.userAgreement === 'disagree').length
+        }
+      });
+    } catch (error: any) {
+      log(`Error retrieving all feedback: ${error.message}`);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve feedback",
+        error: error.message
+      });
+    }
+  });
   
   // Setup global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

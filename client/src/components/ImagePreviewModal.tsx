@@ -72,39 +72,33 @@ export default function ImagePreviewModal({
               </p>
             </div>
             
-            <div className={`flex flex-row gap-2 mt-4 ${allowSkip ? 'justify-between' : 'justify-between'}`}>
-              <Button
-                variant="outline"
-                onClick={onRetake}
-                className="flex-1"
-              >
-                Retake Photo
-              </Button>
-              
-              {allowSkip && onSkip && (
-                <Button
-                  variant="secondary"
-                  onClick={onSkip}
-                  className="flex-1"
-                >
-                  Skip This View
-                </Button>
-              )}
-              
-              {showProcessButton && onProcess ? (
-                <Button
-                  onClick={onProcess}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
-                >
-                  <span>Process</span>
-                  <RiArrowRightLine className="text-lg" />
-                </Button>
-              ) : (
+            <div className="flex flex-col gap-3 mt-4">
+              {/* First row - Yes/No buttons */}
+              <div className="flex flex-row gap-2">
                 <Button
                   onClick={onConfirm}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {viewType === 'angled' ? 'Finish' : 'Continue'}
+                  Yes, it looks good
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={onRetake}
+                  className="flex-1"
+                >
+                  No, Retake
+                </Button>
+              </div>
+              
+              {/* Second row - Process button (only when front image exists) */}
+              {showProcessButton && onProcess && (
+                <Button
+                  onClick={onProcess}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
+                >
+                  <span>Move On to Processing</span>
+                  <RiArrowRightLine className="text-lg" />
                 </Button>
               )}
             </div>

@@ -92,7 +92,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0" style={{ transform: 'translateY(-144px)' }}>
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

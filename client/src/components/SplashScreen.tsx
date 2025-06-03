@@ -59,7 +59,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </motion.div>
         
         {/* Text content */}
-        <div className="flex-1 flex flex-col justify-center">
+        <div className="flex-1 flex flex-col justify-center" style={{ transform: 'translateY(-96px)' }}>
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -92,7 +92,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0" style={{ transform: 'translateY(-96px)' }}>
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

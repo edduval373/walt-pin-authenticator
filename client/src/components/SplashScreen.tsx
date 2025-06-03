@@ -94,7 +94,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="mt-8">
+        <div className="mt-8" style={{ transform: 'translateY(-96px)' }}>
           {/* Legal Disclaimer - Compact */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

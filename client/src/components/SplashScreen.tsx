@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
 
 // Version configuration
-const APP_VERSION = "v1.2.0";
+const APP_VERSION = "1.2.0";
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -88,11 +88,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
             <h1 className="text-3xl font-bold text-indigo-700 tracking-tight mb-2">
               W.A.L.T. Mobile App
             </h1>
-            <div className="flex items-center justify-center gap-3 text-indigo-600 text-opacity-90">
-              <span className="text-base font-medium">BETA</span>
-              <span className="text-sm bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full font-semibold">
-                {APP_VERSION}
-              </span>
+            <div className="text-indigo-600 text-opacity-90 text-base">
+              BETA Version {APP_VERSION}
             </div>
           </motion.div>
         </div>

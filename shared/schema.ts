@@ -61,7 +61,7 @@ export const userFeedback = pgTable("user_feedback", {
   analysisId: integer("analysis_id").references(() => analyses.id).notNull(),
   pinId: text("pin_id").notNull(),
   userAgreement: text("user_agreement").notNull(), // "agree" or "disagree"
-  feedbackComment: text("feedback_comment").default(null), // optional user comment
+  feedbackComment: text("feedback_comment"), // optional user comment
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
 });
 

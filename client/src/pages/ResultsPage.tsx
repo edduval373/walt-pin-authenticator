@@ -565,7 +565,7 @@ export default function ResultsPage() {
         <FeedbackModal
           isOpen={showFeedbackModal}
           onClose={() => setShowFeedbackModal(false)}
-          analysisId={result.id || 1} // Use result ID or fallback
+          analysisId={Date.now()} // Generate unique analysis ID
           pinId={result.pinId || serverResponse.sessionId || 'unknown'}
           analysisRating={rating.value}
           analysisText={serverResponse.analysis || 'No analysis text available'}

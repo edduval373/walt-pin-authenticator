@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RiArrowLeftLine, RiCamera2Line, RiHistoryLine, RiStarLine, RiCheckboxCircleLine, RiCloseCircleLine, RiRefreshLine, RiShieldCheckLine, RiShieldLine, RiThumbUpFill, RiThumbDownFill } from "react-icons/ri";
 import ApiRequestLogger from "@/components/ApiRequestLogger";
 import StepProgress from "@/components/StepProgress";
+import FeedbackModal from "@/components/FeedbackModal";
 
 import { AnalysisResult } from "@/lib/pin-authenticator";
 import VerificationReport from "@/components/VerificationReport";
@@ -23,6 +24,8 @@ export default function ResultsPage() {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [userFeedback, setUserFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'agree' | 'disagree'>('agree');
   
   // Get analysis result from sessionStorage
   const analysisResultJson = sessionStorage.getItem('analysisResult');
@@ -103,23 +106,14 @@ export default function ResultsPage() {
   const handleFeedback = (feedback: 'positive' | 'negative') => {
     setUserFeedback(feedback);
     
+    // Set feedback type for modal
+    setFeedbackType(feedback === 'positive' ? 'agree' : 'disagree');
+    
+    // Open feedback modal for comment collection
+    setShowFeedbackModal(true);
+    
     // Log the feedback for analytics
     console.log(`User feedback: ${feedback} for analysis rating ${rating.text}`);
-    
-    // Store feedback in sessionStorage for potential API submission later
-    sessionStorage.setItem('userFeedback', JSON.stringify({
-      feedback,
-      rating: rating.value,
-      timestamp: new Date().toISOString(),
-      sessionId: serverResponse?.sessionId || 'unknown'
-    }));
-    
-    // Optional: Show confirmation message
-    if (feedback === 'positive') {
-      console.log('Thank you for your positive feedback!');
-    } else {
-      console.log('Thank you for your feedback. We\'ll use this to improve our analysis.');
-    }
   };
   
   // Function to remove white background from pin image
@@ -565,6 +559,18 @@ export default function ResultsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Feedback Modal for collecting user comments */}
+      {showFeedbackModal && result && serverResponse && (
+        <FeedbackModal
+          isOpen={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+          analysisId={result.id || 1} // Use result ID or fallback
+          pinId={result.pinId || serverResponse.sessionId || 'unknown'}
+          analysisRating={rating.value}
+          analysisText={serverResponse.analysis || 'No analysis text available'}
+        />
+      )}
     </div>
   );
 }

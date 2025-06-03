@@ -896,11 +896,7 @@ export default function CameraPage() {
         </div>
         
 
-        
-        <p className="text-center text-sm text-gray-600 mt-3">
-          Center the pin in the frame and ensure good lighting. 
-          Please capture all three views for best results.{!capturedImages.front && " Front view is required."}
-        </p>
+
         
         {/* Image capture indicators */}
         <div className="w-full mt-2 flex gap-2 justify-center">
@@ -1057,6 +1053,12 @@ export default function CameraPage() {
                 <div className="w-14 h-14 rounded-full border-2 border-white"></div>
               </button>
             </div>
+            
+            {/* Instructions below camera button */}
+            <p className="text-center text-sm text-white font-medium mt-4">
+              Center the pin in the frame and ensure good lighting. 
+              Please capture all three views for best results.{!capturedImages.front && " Front view is required."}
+            </p>
               
             {/* Hidden file input */}
             <input 

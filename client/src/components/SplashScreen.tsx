@@ -56,7 +56,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
               style={{ 
                 position: 'absolute',
-                top: '-460px',
+                top: '-320px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 1
@@ -67,8 +67,8 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                 alt="W.A.L.T. Logo" 
                 className="object-contain"
                 style={{
-                  width: '437px',
-                  height: '437px',
+                  width: '300px',
+                  height: '300px',
                   objectFit: 'contain'
                 }}
               />

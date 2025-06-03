@@ -3,6 +3,7 @@ import { RiInformationLine, RiArrowLeftLine, RiHome4Line, RiUpload2Line, RiCamer
 import { useLocation } from "wouter";
 import { NavigationContext } from "../App";
 import TransmissionLogViewer from "./TransmissionLogViewer";
+import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
 
 interface HeaderProps {
   onInfoClick: () => void;
@@ -79,11 +80,12 @@ export default function Header({ onInfoClick }: HeaderProps) {
               <RiHome4Line className="text-2xl" />
             </button>
           )}
-          <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mr-2 shadow-lg">
-            <div className="text-white text-lg font-bold">
-              W.A.L.T.
-            </div>
-          </div>
+          <img 
+            src={pinAuthLogo} 
+            alt="W.A.L.T. Logo" 
+            className="mr-2"
+            style={{ height: '60px', objectFit: 'contain', objectPosition: 'left' }}
+          />
         </div>
         
         {/* Centered Results text */}

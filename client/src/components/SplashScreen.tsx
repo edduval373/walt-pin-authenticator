@@ -87,7 +87,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
               W.A.L.T. Mobile App
             </h1>
             <div className="text-indigo-600 text-opacity-90 text-base">
-              Beta Version
+              v1.0.0
             </div>
           </motion.div>
         </div>

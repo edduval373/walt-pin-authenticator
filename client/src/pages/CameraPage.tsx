@@ -39,11 +39,8 @@ export default function CameraPage() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [showLogViewer, setShowLogViewer] = useState(false);
   
-  // Show demo option immediately on page load since camera access in Replit is problematic
+  // Only show demo option after significant camera failure or user request
   useEffect(() => {
-    // Show demo option immediately to provide alternative
-    setShowDemoOption(true);
-    
     // Check if we're running in Replit (likely sandboxed environment)
     const isInReplit = () => {
       return window.location.hostname.includes('replit') || 
@@ -55,7 +52,16 @@ export default function CameraPage() {
     if (isInReplit()) {
       console.warn("Running in Replit environment - camera access may be limited due to sandbox restrictions");
     }
-  }, []);
+    
+    // Only show demo option after a delay to allow camera to initialize
+    const demoTimer = setTimeout(() => {
+      if (directCameraError && !directCameraReady) {
+        setShowDemoOption(true);
+      }
+    }, 5000); // Give camera 5 seconds to initialize before showing demo option
+    
+    return () => clearTimeout(demoTimer);
+  }, [directCameraError, directCameraReady]);
   
   // Function to switch cameras
   const handleCameraChange = (newCameraId: string) => {
@@ -495,6 +501,10 @@ export default function CameraPage() {
     // Store the image with proper numbering in session storage
     const imageKey = `Image #${imageNumber} - ${activeView}`;
     sessionStorage.setItem(imageKey, imageData);
+    
+    // Clear any camera errors since capture was successful
+    setDirectCameraError(null);
+    setShowDemoOption(false);
     
     // Set the preview image data and show the preview modal
     setPreviewImageData(imageData);
@@ -938,8 +948,8 @@ export default function CameraPage() {
         onClose={() => setShowLogViewer(false)}
       />
       
-      {/* Demo Mode Banner - Only show when camera fails */}
-      {directCameraError && showDemoOption && (
+      {/* Demo Mode Banner - Only show when camera fails AND no image preview is open */}
+      {directCameraError && showDemoOption && !previewModalOpen && (
         <div className="bg-blue-100 border-b border-blue-300 p-4">
           <div className="flex flex-col items-center max-w-md mx-auto">
             <div className="flex-shrink-0 mb-2">

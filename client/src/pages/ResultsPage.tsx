@@ -37,6 +37,22 @@ export default function ResultsPage() {
   const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
   const [serverResponse, setServerResponse] = useState<any>(null);
 
+  // Function to process markdown headers in HTML content
+  const processMarkdownHeaders = (htmlContent: string): string => {
+    if (!htmlContent) return htmlContent;
+    
+    // Convert ## headers to h2 tags
+    let processed = htmlContent.replace(/^##\s+(.+)$/gm, '<h2 class="text-lg font-semibold mt-4 mb-2 text-gray-800">$1</h2>');
+    
+    // Convert ### headers to h3 tags
+    processed = processed.replace(/^###\s+(.+)$/gm, '<h3 class="text-base font-semibold mt-3 mb-2 text-gray-700">$1</h3>');
+    
+    // Convert #### headers to h4 tags
+    processed = processed.replace(/^####\s+(.+)$/gm, '<h4 class="text-sm font-semibold mt-2 mb-1 text-gray-600">$1</h4>');
+    
+    return processed;
+  };
+
 
 
   // Function to handle user feedback
@@ -404,7 +420,7 @@ export default function ResultsPage() {
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pin Identification</h3>
               {serverResponse?.identification ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.identification }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.identification) }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -421,7 +437,7 @@ export default function ResultsPage() {
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Authenticity Analysis</h3>
               {serverResponse?.analysis ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.analysis }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.analysis) }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -438,7 +454,7 @@ export default function ResultsPage() {
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pricing & Market Value</h3>
               {serverResponse?.pricing ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.pricing }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.pricing) }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">

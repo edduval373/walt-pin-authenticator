@@ -488,7 +488,6 @@ export default function ResultsPage() {
             <TabsTrigger value="analysis" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Analysis</TabsTrigger>
             <TabsTrigger value="identification" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Identification</TabsTrigger>
             <TabsTrigger value="pricing" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Pricing</TabsTrigger>
-            <TabsTrigger value="characters" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Characters</TabsTrigger>
             <TabsTrigger value="server-response" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Response</TabsTrigger>
           </TabsList>
           
@@ -543,22 +542,7 @@ export default function ResultsPage() {
             </div>
           </TabsContent>
           
-          {/* Characters Tab - Fourth */}
-          <TabsContent value="characters" className="p-4 bg-indigo-50">
-            <div className="analysis-result">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Character Identification</h3>
-              {serverResponse?.characters ? (
-                <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.characters }} />
-                </div>
-              ) : (
-                <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
-                  <p className="font-medium">No character data available</p>
-                  <p className="text-sm mt-1">The server did not return character identification information.</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
+
           
           {/* Server Response Tab */}
           <TabsContent value="server-response" className="p-4 bg-indigo-50">

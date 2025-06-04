@@ -161,8 +161,46 @@ export default function ProcessingPage() {
         setProgress(90);
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Now proceed with image upload
+        // Now proceed with image upload with progress tracking
         setStatusMessage("Uploading images for analysis...");
+        
+        // Initialize upload progress
+        setUploadProgress({
+          front: 0,
+          back: 0,
+          angled: 0
+        });
+        
+        // Simulate front image upload progress
+        setCurrentView('front');
+        setStatusMessage("Transmitting front view...");
+        for (let i = 0; i <= 100; i += 20) {
+          setUploadProgress(prev => ({ ...prev, front: i }));
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        // Simulate back image upload progress (if available)
+        if (capturedImages.back) {
+          setCurrentView('back');
+          setStatusMessage("Transmitting back view...");
+          for (let i = 0; i <= 100; i += 25) {
+            setUploadProgress(prev => ({ ...prev, back: i }));
+            await new Promise(resolve => setTimeout(resolve, 80));
+          }
+        }
+        
+        // Simulate angled image upload progress (if available)
+        if (capturedImages.angled) {
+          setCurrentView('angled');
+          setStatusMessage("Transmitting angled view...");
+          for (let i = 0; i <= 100; i += 25) {
+            setUploadProgress(prev => ({ ...prev, angled: i }));
+            await new Promise(resolve => setTimeout(resolve, 80));
+          }
+        }
+        
+        setStatusMessage("Processing images with PIM Standard analyzer...");
+        
         const { analyzePinImagesWithPimStandard } = await import('@/lib/updated-pim-api');
         
         if (!capturedImages.front) {

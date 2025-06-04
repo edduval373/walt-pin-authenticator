@@ -39,8 +39,37 @@ export default function CameraPage() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [showLogViewer, setShowLogViewer] = useState(false);
   
-  // Only show demo option after significant camera failure or user request
+  // Clear memory and initialize on camera page load
   useEffect(() => {
+    // Clear all stored images and analysis data to prevent memory buildup
+    console.log("Clearing memory on camera page load");
+    sessionStorage.removeItem('capturedImages');
+    sessionStorage.removeItem('analysisResult');
+    sessionStorage.removeItem('serverResponse');
+    
+    // Clear any cached image data from previous sessions
+    const keys = Object.keys(sessionStorage);
+    keys.forEach(key => {
+      if (key.startsWith('Image #') || key.includes('image_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
+    // Reset component state to clear any cached images
+    setCapturedImages({
+      front: '',
+      back: '',
+      angled: ''
+    });
+    setActiveView('front');
+    setPreviewModalOpen(false);
+    setPreviewImageData('');
+    
+    // Force garbage collection if available
+    if (window.gc) {
+      window.gc();
+    }
+    
     // Check if we're running in Replit (likely sandboxed environment)
     const isInReplit = () => {
       return window.location.hostname.includes('replit') || 

@@ -45,19 +45,24 @@ const VERSION_CONFIG = {
   // Recent changes log for version tracking
   recentChanges: [
     {
-      date: '2025-06-03',
-      type: 'minor',
-      description: 'Enhanced feedback modal with React portals and improved mobile sizing'
-    },
-    {
-      date: '2025-06-03',
+      date: '2025-06-04',
       type: 'patch',
-      description: 'Fixed rating display logic for non-pin images (0/5 with "No Pin Found")'
+      description: 'Fixed demo mode interference with back image confirmation'
     },
     {
-      date: '2025-06-03',
-      type: 'minor',
-      description: 'Improved analysis insights to only show relevant features'
+      date: '2025-06-04',
+      type: 'patch',
+      description: 'Added memory cleanup on camera page to prevent performance degradation'
+    },
+    {
+      date: '2025-06-04',
+      type: 'patch',
+      description: 'Connected progress bars to show actual image transmission status'
+    },
+    {
+      date: '2025-06-04',
+      type: 'patch',
+      description: 'Removed characters tab from results screen'
     }
   ]
 };

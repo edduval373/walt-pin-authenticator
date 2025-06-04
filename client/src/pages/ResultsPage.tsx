@@ -41,29 +41,42 @@ export default function ResultsPage() {
   const processMarkdownHeaders = (htmlContent: string): string => {
     if (!htmlContent) return htmlContent;
     
-    // Handle both standalone markdown headers and those within HTML paragraphs
     let processed = htmlContent;
     
-    // Convert ## headers to h2 tags (standalone)
-    processed = processed.replace(/^##\s+(.+)$/gm, '<h2 class="text-lg font-semibold mt-4 mb-2 text-gray-800">$1</h2>');
+    // First, handle the specific case where ## appears after table cells
+    // Look for patterns like "N/A ## Detail" or "❌ 70 ## Detail"
+    processed = processed.replace(/(<\/td>\s*<\/tr>\s*<\/tbody>\s*<\/table>)\s*##\s+(.+?)(?=\n|$)/g, 
+      '$1<h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$2</h2>');
+    
+    // Handle ## headers that appear immediately after table content without proper closing
+    processed = processed.replace(/(N\/A|❌\s*\d+)\s+##\s+(.+?)(?=\n|<|$)/g, 
+      '$1</td></tr></tbody></table><h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$2</h2>');
+    
+    // Handle ## headers within table cells
+    processed = processed.replace(/(<td[^>]*>[^<]*?)##\s+(.+?)(<\/td>)/g, 
+      '$1</td></tr></tbody></table><h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$2</h2><table class="min-w-full border-collapse border border-gray-300"><tbody><tr><td class="border border-gray-300 px-2 py-1">$3');
+    
+    // Convert standalone ## headers
+    processed = processed.replace(/^##\s+(.+)$/gm, '<h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h2>');
     
     // Convert ## headers within paragraph tags
-    processed = processed.replace(/<p><p>##\s+(.+?)<\/p><\/p>/g, '<h2 class="text-lg font-semibold mt-4 mb-2 text-gray-800">$1</h2>');
-    processed = processed.replace(/<p>##\s+(.+?)<\/p>/g, '<h2 class="text-lg font-semibold mt-4 mb-2 text-gray-800">$1</h2>');
+    processed = processed.replace(/<p><p>##\s+(.+?)<\/p><\/p>/g, '<h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h2>');
+    processed = processed.replace(/<p>##\s+(.+?)<\/p>/g, '<h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h2>');
     
-    // Convert ### headers to h3 tags (standalone)
-    processed = processed.replace(/^###\s+(.+)$/gm, '<h3 class="text-base font-semibold mt-3 mb-2 text-gray-700">$1</h3>');
+    // Handle any remaining ## headers in various contexts
+    processed = processed.replace(/##\s+(.+?)(?=\n|<|$)/g, '<h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h2>');
     
-    // Convert ### headers within paragraph tags
-    processed = processed.replace(/<p><p>###\s+(.+?)<\/p><\/p>/g, '<h3 class="text-base font-semibold mt-3 mb-2 text-gray-700">$1</h3>');
-    processed = processed.replace(/<p>###\s+(.+?)<\/p>/g, '<h3 class="text-base font-semibold mt-3 mb-2 text-gray-700">$1</h3>');
+    // Convert ### headers
+    processed = processed.replace(/^###\s+(.+)$/gm, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
+    processed = processed.replace(/<p><p>###\s+(.+?)<\/p><\/p>/g, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
+    processed = processed.replace(/<p>###\s+(.+?)<\/p>/g, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
+    processed = processed.replace(/###\s+(.+?)(?=\n|<|$)/g, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
     
-    // Convert #### headers to h4 tags (standalone)
-    processed = processed.replace(/^####\s+(.+)$/gm, '<h4 class="text-sm font-semibold mt-2 mb-1 text-gray-600">$1</h4>');
-    
-    // Convert #### headers within paragraph tags
-    processed = processed.replace(/<p><p>####\s+(.+?)<\/p><\/p>/g, '<h4 class="text-sm font-semibold mt-2 mb-1 text-gray-600">$1</h4>');
-    processed = processed.replace(/<p>####\s+(.+?)<\/p>/g, '<h4 class="text-sm font-semibold mt-2 mb-1 text-gray-600">$1</h4>');
+    // Convert #### headers
+    processed = processed.replace(/^####\s+(.+)$/gm, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
+    processed = processed.replace(/<p><p>####\s+(.+?)<\/p><\/p>/g, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
+    processed = processed.replace(/<p>####\s+(.+?)<\/p>/g, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
+    processed = processed.replace(/####\s+(.+?)(?=\n|<|$)/g, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
     
     return processed;
   };

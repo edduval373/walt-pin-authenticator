@@ -139,7 +139,7 @@ app.use((req, res, next) => {
           identification: 'Analysis from master server',
           pricing: 'See full report'
         };
-      } catch (error) {
+      } catch (error: any) {
         console.log(`[mobile-upload] Master server error: ${error.message}`);
         // Master server unavailable - still create database record
         analysisResult = {

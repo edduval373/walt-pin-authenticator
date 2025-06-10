@@ -233,7 +233,7 @@ export default function ProcessingPage() {
         
         // Capture raw request data
         const rawRequest = `POST /mobile-upload HTTP/1.1
-Host: pim-master-library-edduval15.replit.app
+Host: ${window.location.host}
 
 Headers: {
   "Content-Type": "application/json",

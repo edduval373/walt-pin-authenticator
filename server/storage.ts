@@ -17,6 +17,7 @@ export interface IStorage {
   getAllPins(): Promise<Pin[]>;
   getPinById(pinId: string): Promise<Pin | undefined>;
   createPin(pin: InsertPin): Promise<Pin>;
+  updatePinFeedback(pinId: string, userAgreement: string, feedbackComment?: string): Promise<Pin | undefined>;
   
   // Analysis methods
   analyzePin(imageData: string): Promise<Analysis>;

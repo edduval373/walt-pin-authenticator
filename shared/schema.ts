@@ -28,6 +28,9 @@ export const pins = pgTable("pins", {
   dominantColors: jsonb("dominant_colors").notNull(),
   similarPins: jsonb("similar_pins").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  userAgreement: text("user_agreement"), // "agree" or "disagree"
+  feedbackComment: text("feedback_comment"), // optional user comment
+  feedbackSubmittedAt: timestamp("feedback_submitted_at"), // when feedback was submitted
 });
 
 export const insertPinSchema = createInsertSchema(pins)

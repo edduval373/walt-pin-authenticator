@@ -330,10 +330,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { analysisId, pinId, userAgreement, feedbackComment } = req.body;
       
       // Validate required fields
-      if (!analysisId || !pinId || !userAgreement) {
+      if (!pinId || !userAgreement) {
         return res.status(400).json({
           success: false,
-          message: "Missing required fields: analysisId, pinId, and userAgreement are required"
+          message: "Missing required fields: pinId and userAgreement are required"
         });
       }
 
@@ -345,21 +345,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create feedback record
-      const feedback = await storage.createUserFeedback({
-        analysisId: parseInt(analysisId),
-        pinId,
-        userAgreement,
-        feedbackComment: feedbackComment || null
-      });
+      // Update pin with feedback
+      const updatedPin = await storage.updatePinFeedback(pinId, userAgreement, feedbackComment);
 
-      log(`User feedback saved: ${userAgreement} for analysis ${analysisId}`);
+      if (!updatedPin) {
+        return res.status(404).json({
+          success: false,
+          message: "Pin not found"
+        });
+      }
+
+      // Also create a feedback record in the user_feedback table for analytics
+      try {
+        await storage.createUserFeedback({
+          analysisId: parseInt(analysisId) || 0,
+          pinId,
+          userAgreement,
+          feedbackComment: feedbackComment || null
+        });
+      } catch (feedbackError) {
+        log(`Warning: Could not create feedback record: ${feedbackError}`);
+      }
+
+      log(`User feedback saved: ${userAgreement} for pin ${pinId}`);
 
       res.json({
         success: true,
         message: "Feedback saved successfully",
-        feedbackId: feedback.id,
-        timestamp: feedback.submittedAt
+        pinId: updatedPin.pinId,
+        userAgreement: updatedPin.userAgreement,
+        feedbackComment: updatedPin.feedbackComment,
+        timestamp: updatedPin.feedbackSubmittedAt
       });
 
     } catch (error: any) {
@@ -412,6 +428,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to retrieve feedback",
+        error: error.message
+      });
+    }
+  });
+
+  // Get all pins with feedback data (for viewing pin feedback)
+  app.get('/api/pins/all', async (req, res) => {
+    try {
+      const allPins = await storage.getAllPins();
+      
+      res.json({
+        success: true,
+        pins: allPins,
+        total: allPins.length,
+        feedbackStats: {
+          withFeedback: allPins.filter(p => p.userAgreement).length,
+          agree: allPins.filter(p => p.userAgreement === 'agree').length,
+          disagree: allPins.filter(p => p.userAgreement === 'disagree').length
+        }
+      });
+    } catch (error: any) {
+      log(`Error retrieving all pins: ${error.message}`);
+      res.status(500).json({
+        success: false,
+        message: "Failed to retrieve pins",
         error: error.message
       });
     }

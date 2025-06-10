@@ -126,7 +126,7 @@ export class DatabaseStorage implements IStorage {
 
   async getPinById(pinId: string): Promise<Pin | undefined> {
     try {
-      const result = await this.pool.query('SELECT * FROM pins WHERE id = $1', [pinId]);
+      const result = await this.pool.query('SELECT * FROM pins WHERE pin_id = $1', [pinId]);
       return result.rows[0] || undefined;
     } catch (error: any) {
       log(`Error getting pin: ${error.message}`, 'database');
@@ -143,6 +143,26 @@ export class DatabaseStorage implements IStorage {
       return result.rows[0];
     } catch (error: any) {
       log(`Error creating pin: ${error.message}`, 'database');
+      throw error;
+    }
+  }
+
+  async updatePinFeedback(pinId: string, userAgreement: string, feedbackComment?: string): Promise<Pin | undefined> {
+    try {
+      const result = await this.pool.query(
+        'UPDATE pins SET user_agreement = $1, feedback_comment = $2, feedback_submitted_at = CURRENT_TIMESTAMP WHERE pin_id = $3 RETURNING *',
+        [userAgreement, feedbackComment || null, pinId]
+      );
+      
+      if (result.rows[0]) {
+        log(`Pin feedback updated: ${userAgreement} for pin ${pinId}`, 'database');
+        return result.rows[0];
+      } else {
+        log(`Pin not found for feedback update: ${pinId}`, 'database');
+        return undefined;
+      }
+    } catch (error: any) {
+      log(`Error updating pin feedback: ${error.message}`, 'database');
       throw error;
     }
   }

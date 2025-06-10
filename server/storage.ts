@@ -107,10 +107,28 @@ export class MemStorage implements IStorage {
     const pin: Pin = { 
       ...insertPin, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      userAgreement: null,
+      feedbackComment: null,
+      feedbackSubmittedAt: null
     };
     this.pins.set(insertPin.pinId, pin);
     return pin;
+  }
+
+  async updatePinFeedback(pinId: string, userAgreement: string, feedbackComment?: string): Promise<Pin | undefined> {
+    const pin = this.pins.get(pinId);
+    if (pin) {
+      const updatedPin = {
+        ...pin,
+        userAgreement,
+        feedbackComment: feedbackComment || null,
+        feedbackSubmittedAt: new Date()
+      };
+      this.pins.set(pinId, updatedPin);
+      return updatedPin;
+    }
+    return undefined;
   }
   
   // Analysis methods

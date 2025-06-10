@@ -482,6 +482,7 @@ export default function CameraPage() {
   // Track if the preview modal is open
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewImageData, setPreviewImageData] = useState<string>('');
+  const [previewViewType, setPreviewViewType] = useState<'front' | 'back' | 'angled'>('front');
   
   // Handle file upload from local storage
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -533,8 +534,9 @@ export default function CameraPage() {
           const lastView = viewOrder[filesToProcess.length - 1];
           setActiveView(lastView);
           
-          // Show preview of the last uploaded image
+          // Show preview of the last uploaded image with correct view type
           setPreviewImageData(imageData);
+          setPreviewViewType(targetView);
           setPreviewModalOpen(true);
         }
       };
@@ -575,6 +577,7 @@ export default function CameraPage() {
     
     // Set the preview image data and show the preview modal
     setPreviewImageData(imageData);
+    setPreviewViewType(activeView);
     console.log("Setting preview modal to true");
     setPreviewModalOpen(true);
     console.log("Preview modal state after:", true);
@@ -1171,9 +1174,9 @@ export default function CameraPage() {
         onSkip={handleSkip}
         onProcess={handleEvaluate}
         imageData={previewImageData}
-        viewType={activeView}
-        allowSkip={activeView !== 'front'}
-        showProcessButton={Boolean(capturedImages.front && (activeView === 'angled' || capturedImages.angled))}
+        viewType={previewViewType}
+        allowSkip={previewViewType !== 'front'}
+        showProcessButton={Boolean(capturedImages.front && (previewViewType === 'angled' || capturedImages.angled))}
       />
 
       {/* Info Modal */}

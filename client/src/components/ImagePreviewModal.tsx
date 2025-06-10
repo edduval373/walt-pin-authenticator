@@ -35,7 +35,7 @@ export default function ImagePreviewModal({
     angled: 'Angled View'
   };
 
-  console.log("ImagePreviewModal render - open:", open, "imageData length:", imageData?.length || 0);
+  console.log("ImagePreviewModal render - open:", open, "imageData length:", imageData?.length || 0, "viewType:", viewType);
 
   if (!open) return null;
 

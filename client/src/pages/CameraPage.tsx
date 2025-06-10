@@ -510,6 +510,8 @@ export default function CameraPage() {
         const imageData = e.target?.result as string;
         const targetView = viewOrder[index];
         
+        console.log(`Processing file ${index + 1} of ${filesToProcess.length} as ${targetView} view`);
+        
         // Update the specific view with this image
         newImages[targetView] = imageData;
         filesProcessed++;
@@ -535,8 +537,10 @@ export default function CameraPage() {
           setActiveView(lastView);
           
           // Show preview of the last uploaded image with correct view type
-          setPreviewImageData(imageData);
-          setPreviewViewType(targetView);
+          const lastImageData = newImages[lastView];
+          setPreviewImageData(lastImageData);
+          setPreviewViewType(lastView);
+          console.log("Setting preview view type to:", lastView, "with image data length:", lastImageData.length);
           setPreviewModalOpen(true);
         }
       };

@@ -89,17 +89,12 @@ export async function analyzePinImagesWithPimStandard(
       // Store COMPLETE request details in session storage for logging
       const requestLog = {
         timestamp: new Date().toISOString(),
-        url: '/api/mobile/verify-pin',
+        url: 'https://pim-master-library-edduval15.replit.app/mobile-upload',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-session-id': finalSessionId
+          'Content-Type': 'application/json'
         },
-        body: {
-          frontImageBase64: cleanFrontImage,
-          ...(cleanBackImage && { backImageBase64: cleanBackImage }),
-          ...(cleanAngledImage && { angledImageBase64: cleanAngledImage })
-        }
+        body: body // Store the complete body with all image data
       };
       
       // Save the request log
@@ -118,30 +113,16 @@ export async function analyzePinImagesWithPimStandard(
       
       // Log the actual packet being sent
       console.log('ACTUAL REQUEST PACKET:', {
-        url: '/api/mobile/verify-pin',
+        url: 'https://pim-master-library-edduval15.replit.app/mobile-upload',
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-session-id': finalSessionId
-        },
-        bodySize: JSON.stringify({
-          frontImageBase64: cleanFrontImage,
-          ...(cleanBackImage && { backImageBase64: cleanBackImage }),
-          ...(cleanAngledImage && { angledImageBase64: cleanAngledImage })
-        }).length
+        headers: requestHeaders,
+        bodySize: requestBody.length
       });
       
-      const response = await fetch('/api/mobile/verify-pin', {
+      const response = await fetch('https://pim-master-library-edduval15.replit.app/mobile-upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-session-id': finalSessionId
-        },
-        body: JSON.stringify({
-          frontImageBase64: cleanFrontImage,
-          ...(cleanBackImage && { backImageBase64: cleanBackImage }),
-          ...(cleanAngledImage && { angledImageBase64: cleanAngledImage })
-        })
+        headers: requestHeaders,
+        body: requestBody
       });
       
       clearTimeout(timeoutId);

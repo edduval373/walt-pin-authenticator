@@ -232,18 +232,19 @@ export default function ProcessingPage() {
         const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
         
         // Capture raw request data
-        const rawRequest = `POST /api/mobile/verify-pin HTTP/1.1
-Host: localhost:5000
+        const rawRequest = `POST /mobile-upload HTTP/1.1
+Host: pim-master-library-edduval15.replit.app
 
 Headers: {
   "Content-Type": "application/json",
-  "x-session-id": "${sessionId}"
+  "x-api-key": "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g"
 }
 
 Body: {
-  "frontImageBase64": "[BASE64_IMAGE_DATA_${capturedImages.front.length}_CHARS]"${capturedImages.back ? `,
-  "backImageBase64": "[BASE64_IMAGE_DATA_${capturedImages.back.length}_CHARS]"` : ''}${capturedImages.angled ? `,
-  "angledImageBase64": "[BASE64_IMAGE_DATA_${capturedImages.angled.length}_CHARS]"` : ''}
+  "sessionId": "${sessionId}",
+  "frontImageData": "[BASE64_IMAGE_DATA_${capturedImages.front.length}_CHARS]"${capturedImages.back ? `,
+  "backImageData": "[BASE64_IMAGE_DATA_${capturedImages.back.length}_CHARS]"` : ''}${capturedImages.angled ? `,
+  "angledImageData": "[BASE64_IMAGE_DATA_${capturedImages.angled.length}_CHARS]"` : ''}
 }`;
 
         // Capture raw response data

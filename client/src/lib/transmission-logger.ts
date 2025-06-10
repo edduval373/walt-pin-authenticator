@@ -37,8 +37,8 @@ class TransmissionLogger {
           // Ensure all required fields exist
           if (!log.endpoint) {
             log.endpoint = log.type === 'health_check' 
-              ? '/api/mobile/health'
-              : '/api/mobile/verify-pin';
+              ? 'https://pim-master-library.replit.app/health'
+              : 'https://pim-master-library.replit.app/mobile-upload';
           }
           
           // Convert any object responseData to string

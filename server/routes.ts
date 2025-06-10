@@ -6,7 +6,6 @@ import multer from "multer";
 import fetch from "node-fetch";
 import FormData from "form-data";
 import { log } from "./vite";
-import { getMobileAppLogs, generateMobileAppLogsPage } from './mobile-app-logs-viewer';
 
 // Set up multer for file uploads
 const storage_multer = multer.memoryStorage();
@@ -22,7 +21,6 @@ const API_ENVIRONMENTS = {
   development: {
     // Try both known endpoints in development environment
     baseUrls: [
-      "https://pim-master-library-edduval15.replit.app", // Working endpoint from webview logs
       "https://master.pinauth.com", // Use master.pinauth.com as primary
       "https://api.pinmaster.railway.app"       
     ],
@@ -74,7 +72,8 @@ interface PimStandardResponse {
   success: boolean;
   message: string;
   sessionId?: string;
-  id?: number;  // Use consistent 'id' field
+  recordNumber?: number;
+  recordId?: number;
   timestamp?: string;
   authentic?: boolean;
   authenticityRating?: number;
@@ -173,7 +172,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
         // Parse the response
         const data = await apiResponse.json() as PimStandardResponse;
         log(`API Response success: ${data.success}, message: ${data.message}`, 'express');
-        log(`API Response record fields: id=${data.id}, sessionId=${data.sessionId}`, 'express');
+        log(`API Response record fields: recordNumber=${data.recordNumber}, recordId=${data.recordId}, sessionId=${data.sessionId}`, 'express');
         log(`Full API Response: ${JSON.stringify(data, null, 2).substring(0, 500)}...`, 'express');
         
         // Map the response to include necessary fields for our app
@@ -181,7 +180,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
           success: data.success,
           message: data.message || "Verification completed",
           sessionId: data.sessionId || `session_${Date.now()}`,
-          id: data.id || undefined, // Will be assigned later from database ID
+          recordNumber: data.recordNumber || data.recordId,
           timestamp: data.timestamp || new Date().toISOString(),
           authentic: typeof data.authentic === 'boolean' ? data.authentic : true,
           authenticityRating: data.authenticityRating !== undefined ? data.authenticityRating : 4,
@@ -212,19 +211,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     }
   } catch (error: any) {
     log(`Error in PIM API call: ${error.message || error}`, 'express');
-    
-    // Return a clear error response indicating API unavailability
-    return {
-      success: false,
-      message: "External authentication API currently unavailable. Please contact support for manual verification.",
-      authentic: false,
-      authenticityRating: 0,
-      analysis: "Unable to process - External API service unavailable",
-      identification: "Service unavailable",
-      pricing: "Unable to determine",
-      sessionId: `error_${Date.now()}`,
-      timestamp: new Date().toISOString()
-    };
+    throw error;
   }
 }
 
@@ -256,41 +243,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  // Mobile App Debug Endpoints
-  app.get('/api/mobile/logs', getMobileAppLogs);
-  
-  app.get('/api/mobile/debug', (req, res) => {
-    const html = generateMobileAppLogsPage();
-    res.setHeader('Content-Type', 'text/html');
-    res.send(html);
-  });
-  
   // Mobile API endpoints for app integration
   
   // POST /api/mobile/verify-pin - Submit images, get pin IDs + analysis
   app.post('/api/mobile/verify-pin', async (req, res) => {
-    const sessionId = req.headers['x-session-id'] || `session_${Date.now()}`;
-    const requestId = `req_${Date.now()}`;
-    
-    // Create initial log entry
-    const logEntry: any = {
-      sessionId: sessionId as string,
-      requestType: 'verify-pin',
-      requestBody: {
-        frontImageLength: req.body.frontImageBase64?.length || 0,
-        backImageLength: req.body.backImageBase64?.length || 0,
-        angledImageLength: req.body.angledImageBase64?.length || 0,
-        requestId
-      },
-      hostApiCalled: false,
-      responseStatus: null,
-      responseBody: null,
-      hostApiResponse: null,
-      hostApiStatus: null,
-      errorMessage: null
-    };
-
     try {
+      const sessionId = req.headers['x-session-id'] || `session_${Date.now()}`;
+      const requestId = `req_${Date.now()}`;
+      
       log(`Processing mobile pin verification - Session: ${sessionId}, Request: ${requestId}`);
       
       // Extract image data from request
@@ -298,17 +258,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate front image is provided
       if (!frontImageBase64) {
-        logEntry.responseStatus = 400;
-        logEntry.errorMessage = "Front image is required for verification";
-        logEntry.responseBody = {
-          success: false,
-          message: "Front image is required for verification",
-          requestId,
-          sessionId
-        };
-        
-        await storage.createMobileAppLog(logEntry);
-        
         return res.status(400).json({
           success: false,
           message: "Front image is required for verification",
@@ -319,9 +268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       log(`Processing images - Front: ${frontImageBase64.length.toString().substring(0, 6)} chars`);
       
-      // Mark that we're calling the host API
-      logEntry.hostApiCalled = true;
-      
       // Call the PIM Standard API to analyze the images
       const analysisResult: PimStandardResponse = await analyzeImageForPin(
         frontImageBase64,
@@ -329,38 +275,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         angledImageBase64
       );
       
-      // Log the host API response
-      logEntry.hostApiResponse = analysisResult;
-      logEntry.hostApiStatus = analysisResult.success ? 200 : 503;
-      
-      // If the API call failed, don't proceed with database storage
-      if (!analysisResult.success) {
-        logEntry.responseStatus = 503;
-        logEntry.errorMessage = analysisResult.message;
-        logEntry.responseBody = {
-          success: false,
-          message: analysisResult.message,
-          errorCode: "external_api_unavailable",
-          sessionId,
-          requestId
-        };
-        
-        await storage.createMobileAppLog(logEntry);
-        
-        return res.status(503).json({
-          success: false,
-          message: analysisResult.message,
-          errorCode: "external_api_unavailable",
-          sessionId,
-          requestId
-        });
-      }
-      
       // Create a provisional pin record with analysis results
       const pinId = analysisResult.sessionId || `pin_${Date.now()}`;
+      const recordNumber = Date.now(); // Unique record number for tracking
       
-      // Store the pin with provisional status and get the actual database record
-      const createdPin = await storage.createPin({
+      // Store the pin with provisional status
+      await storage.createPin({
         pinId,
         name: `Mobile Analysis ${pinId}`,
         series: 'Mobile App Results',
@@ -369,15 +289,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dominantColors: [],
         similarPins: []
       });
-      
-      // The ID is the actual database ID
-      const id = createdPin.id;
-      
-      // If external API didn't provide an id, use our database ID
-      if (!analysisResult.id) {
-        analysisResult.id = id;
-        log(`External API provided no id, assigned database ID: ${id}`);
-      }
       
       // Create analysis record
       await storage.createAnalysis({
@@ -390,12 +301,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageQualityScore: 85
       });
       
-      log(`Created pin record: ${pinId} with ID: ${id}`);
+      log(`Created provisional pin record: ${pinId} with record number: ${recordNumber}`);
       
-      const successResponse = {
+      return res.json({
         success: true,
         pinId,
-        id,
+        recordNumber,
         sessionId,
         requestId,
         authentic: analysisResult.authentic,
@@ -404,35 +315,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         identification: analysisResult.identification,
         pricing: analysisResult.pricing,
         message: "Pin analysis complete - awaiting user confirmation"
-      };
-      
-      // Log successful completion
-      logEntry.responseStatus = 200;
-      logEntry.responseBody = successResponse;
-      await storage.createMobileAppLog(logEntry);
-      
-      log(`Mobile verification complete - ID: ${id}, Host response logged`);
-      
-      return res.json(successResponse);
+      });
       
     } catch (error: any) {
       log(`Error in mobile pin verification: ${error.message}`);
-      
-      // Log the error
-      logEntry.responseStatus = 500;
-      logEntry.errorMessage = error.message;
-      logEntry.responseBody = {
-        success: false,
-        message: "Verification failed",
-        errorCode: "processing_error"
-      };
-      
-      try {
-        await storage.createMobileAppLog(logEntry);
-      } catch (logError) {
-        log(`Failed to log error: ${logError}`);
-      }
-      
       return res.status(500).json({
         success: false,
         message: "Verification failed",
@@ -441,19 +327,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /api/mobile/confirm-pin - Confirm or reject provisional pins using ID
+  // POST /api/mobile/confirm-pin - Confirm or reject provisional pins using record number
   app.post('/api/mobile/confirm-pin', async (req, res) => {
     try {
-      const { id, pinId, userAgreement, feedbackComment } = req.body;
+      const { recordNumber, pinId, userAgreement, feedbackComment } = req.body;
       const sessionId = req.headers['x-session-id'];
       
-      log(`Processing pin confirmation - ID: ${id}, Pin: ${pinId}, Agreement: ${userAgreement}`);
+      log(`Processing pin confirmation - Record: ${recordNumber}, Pin: ${pinId}, Agreement: ${userAgreement}`);
       
       // Validate required fields
-      if (!id || !pinId || !userAgreement) {
+      if (!recordNumber || !pinId || !userAgreement) {
         return res.status(400).json({
           success: false,
-          message: "Missing required fields: id, pinId, and userAgreement are required"
+          message: "Missing required fields: recordNumber, pinId, and userAgreement are required"
         });
       }
 
@@ -465,34 +351,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Update pin with user feedback using ID (database ID) from master app
-      const updatedPin = await storage.updatePinFeedbackById(id, userAgreement, feedbackComment);
+      // Update pin with user feedback using record number for tracking
+      const updatedPin = await storage.updatePinFeedback(pinId, userAgreement, feedbackComment);
 
       if (!updatedPin) {
         return res.status(404).json({
           success: false,
-          message: `Pin not found for ID: ${id}`
+          message: "Pin record not found"
         });
       }
 
-      // Create feedback record with ID
+      // Create feedback record with record number
       try {
         await storage.createUserFeedback({
-          analysisId: id, // Use ID as analysis ID for mobile tracking
+          analysisId: recordNumber, // Use record number as analysis ID for mobile tracking
           pinId,
           userAgreement,
           feedbackComment: feedbackComment || null
         });
       } catch (feedbackError) {
-        log(`Warning: Could not create feedback record for ID ${id}: ${feedbackError}`);
+        log(`Warning: Could not create feedback record for record ${recordNumber}: ${feedbackError}`);
       }
 
-      log(`Mobile user feedback confirmed - ID: ${id}, Agreement: ${userAgreement}`);
+      log(`Mobile user feedback confirmed - Record: ${recordNumber}, Agreement: ${userAgreement}`);
 
       return res.json({
         success: true,
         message: "Pin confirmation saved successfully",
-        id,
+        recordNumber,
         pinId: updatedPin.pinId,
         userAgreement: updatedPin.userAgreement,
         feedbackComment: updatedPin.feedbackComment,
@@ -559,41 +445,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Mobile Health Check Endpoint
-  app.get('/api/mobile/health', async (req, res) => {
-    try {
-      // Check if our server is running and database is accessible
-      const healthCheck = {
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        server: 'running',
-        database: 'connected',
-        apiEndpoints: 'available'
-      };
-      
-      // Test database connection
-      try {
-        await storage.getAllPins(); // Simple database query
-        healthCheck.database = 'connected';
-      } catch (dbError) {
-        healthCheck.database = 'error';
-        healthCheck.status = 'degraded';
-      }
-      
-      return res.json({
-        success: true,
-        message: 'Server is healthy and ready to process pin images',
-        health: healthCheck
-      });
-    } catch (error: any) {
-      return res.status(500).json({
-        success: false,
-        message: 'Health check failed',
-        error: error.message
-      });
-    }
-  });
-
   // API Test Endpoint
   app.get('/api/test-connection', async (req, res) => {
     try {

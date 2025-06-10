@@ -458,20 +458,18 @@ export default function CameraPage() {
           <div className="flex items-center">
             <button 
               onClick={handleBackToSplash}
-              className="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition mr-2"
-              aria-label="Go Back"
+              className="hover:bg-white hover:bg-opacity-20 transition rounded-lg p-1"
+              aria-label="Return to Splash Screen"
             >
-              <RiArrowLeftLine className="text-2xl" />
+              <img 
+                src={pinAuthLogo} 
+                alt="PinAuth Logo" 
+                className="cursor-pointer"
+                style={{ height: '78px', objectFit: 'contain', objectPosition: 'left' }}
+              />
             </button>
-            <img 
-              src={pinAuthLogo} 
-              alt="W.A.L.T. Logo" 
-              className="mr-0"
-              style={{ height: '78px', objectFit: 'contain', objectPosition: 'left' }}
-            />
           </div>
           <div className="flex items-center space-x-2">
-
             <button 
               onClick={() => setIsInfoModalOpen(true)}
               className="p-2 rounded-full hover:bg-indigo-600 transition bg-indigo-500 bg-opacity-30"

@@ -47,7 +47,7 @@ export default function Header({ onInfoClick }: HeaderProps) {
     }
   };
   
-  const showBackButton = location !== "/"; // Only show back button when not on home page
+  const showBackButton = false; // Remove back button from all pages
   const showUploadButton = location === "/camera"; // Only show upload button on camera page
   
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,29 +63,18 @@ export default function Header({ onInfoClick }: HeaderProps) {
     <header className="bg-indigo-400 text-white shadow-md py-0">
       <div className="w-full px-3 py-1 flex items-center justify-between relative">
         <div className="flex items-center">
-          {showBackButton ? (
-            <button 
-              onClick={handleBackClick}
-              className="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition mr-2"
-              aria-label="Go Back"
-            >
-              <RiArrowLeftLine className="text-2xl" />
-            </button>
-          ) : (
-            <button 
-              onClick={showSplashScreen}
-              className="p-2 rounded-full hover:bg-white hover:bg-opacity-20 transition mr-2"
-              aria-label="Show Splash Screen"
-            >
-              <RiHome4Line className="text-2xl" />
-            </button>
-          )}
-          <img 
-            src={pinAuthLogo} 
-            alt="W.A.L.T. Logo" 
-            className="mr-2"
-            style={{ height: '78px', objectFit: 'contain', objectPosition: 'left' }}
-          />
+          <button 
+            onClick={showSplashScreen}
+            className="hover:bg-white hover:bg-opacity-20 transition rounded-lg p-1"
+            aria-label="Return to Splash Screen"
+          >
+            <img 
+              src={pinAuthLogo} 
+              alt="PinAuth Logo" 
+              className="cursor-pointer"
+              style={{ height: '78px', objectFit: 'contain', objectPosition: 'left' }}
+            />
+          </button>
         </div>
         
         {/* Centered Results text */}

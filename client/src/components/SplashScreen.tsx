@@ -120,19 +120,17 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                 This AI application is unreliable and should not be used for financial decisions.
               </p>
               
-              {/* Expandable/Collapsible Button */}
-              <button
-                onClick={toggleLegalExpanded}
-                className="w-full bg-indigo-100 hover:bg-indigo-200 border border-indigo-300 rounded-lg py-2 px-3 text-indigo-700 font-medium transition-colors flex items-center justify-center gap-2"
-                aria-label={isLegalExpanded ? "Hide full legal notice" : "Read full legal notice"}
-              >
-                <span>{isLegalExpanded ? "Hide Full Notice" : "Read Full Legal Notice"}</span>
-                {isLegalExpanded ? (
-                  <RiArrowUpSLine className="text-lg" />
-                ) : (
+              {/* Expandable Button - hide once expanded */}
+              {!isLegalExpanded && (
+                <button
+                  onClick={toggleLegalExpanded}
+                  className="w-full bg-indigo-100 hover:bg-indigo-200 border border-indigo-300 rounded-lg py-2 px-3 text-indigo-700 font-medium transition-colors flex items-center justify-center gap-2"
+                  aria-label="Read full legal notice"
+                >
+                  <span>Read Full Legal Notice</span>
                   <RiArrowDownSLine className="text-lg" />
-                )}
-              </button>
+                </button>
+              )}
               
               {/* Expandable Content */}
               <motion.div

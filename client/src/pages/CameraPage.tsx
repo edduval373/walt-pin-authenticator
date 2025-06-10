@@ -1169,7 +1169,7 @@ export default function CameraPage() {
         imageData={previewImageData}
         viewType={activeView}
         allowSkip={activeView !== 'front'}
-        showProcessButton={!!capturedImages.front && (activeView === 'angled' || !!capturedImages.angled)}
+        showProcessButton={Boolean(capturedImages.front && (activeView === 'angled' || capturedImages.angled))}
       />
 
       {/* Info Modal */}

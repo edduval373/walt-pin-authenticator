@@ -345,13 +345,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Check if pin exists, if not create it
+      let existingPin = await storage.getPinById(pinId);
+      
+      if (!existingPin) {
+        // Create a new pin record for this analysis session
+        const newPin = await storage.createPin({
+          pinId,
+          name: `Analysis Session ${pinId}`,
+          series: 'Analysis Results',
+          releaseYear: new Date().getFullYear(),
+          imageUrl: '',
+          dominantColors: [],
+          similarPins: []
+        });
+        log(`Created new pin record for feedback: ${pinId}`);
+        existingPin = newPin;
+      }
+
       // Update pin with feedback
       const updatedPin = await storage.updatePinFeedback(pinId, userAgreement, feedbackComment);
 
       if (!updatedPin) {
-        return res.status(404).json({
+        return res.status(500).json({
           success: false,
-          message: "Pin not found"
+          message: "Failed to update pin with feedback"
         });
       }
 

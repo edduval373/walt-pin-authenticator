@@ -502,7 +502,15 @@ export default function CameraPage() {
     // Process all selected files
     let filesProcessed = 0;
     const newImages = { ...capturedImages };
-    const viewOrder: ('front' | 'back' | 'angled')[] = ['front', 'back', 'angled'];
+    
+    // If uploading multiple files, use the standard order: front, back, angled
+    // If uploading a single file, use the current activeView
+    let viewOrder: ('front' | 'back' | 'angled')[];
+    if (filesToProcess.length === 1) {
+      viewOrder = [activeView];
+    } else {
+      viewOrder = ['front', 'back', 'angled'];
+    }
     
     filesToProcess.forEach((file, index) => {
       const reader = new FileReader();
@@ -510,7 +518,7 @@ export default function CameraPage() {
         const imageData = e.target?.result as string;
         const targetView = viewOrder[index];
         
-        console.log(`Processing file ${index + 1} of ${filesToProcess.length} as ${targetView} view`);
+        console.log(`Processing file ${index + 1} of ${filesToProcess.length} as ${targetView} view (activeView: ${activeView})`);
         
         // Update the specific view with this image
         newImages[targetView] = imageData;

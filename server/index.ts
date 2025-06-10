@@ -93,41 +93,24 @@ app.use((req, res, next) => {
       const cleanBackImage = backImageData ? backImageData.replace(/^data:image\/[a-z]+;base64,/, '') : undefined;
       const cleanAngledImage = angledImageData ? angledImageData.replace(/^data:image\/[a-z]+;base64,/, '') : undefined;
       
-      // Use Perplexity API for authentic pin analysis
-      const OpenAI = (await import('openai')).default;
-      const openai = new OpenAI({
-        apiKey: process.env.PERPLEXITY_API_KEY,
-        baseURL: 'https://api.perplexity.ai'
-      });
+      // Use the local verification service for authentic analysis
+      const { verifyPin } = await import('./verification-service');
       
-      // Analyze the pin using Perplexity AI
-      const completion = await openai.chat.completions.create({
-        model: 'llama-3.1-sonar-large-128k-online',
-        messages: [
-          {
-            role: 'user',
-            content: `Analyze this Disney pin image and provide authentication details. Return a JSON response with: authentic (boolean), authenticityRating (0-100), analysis (detailed description), identification (pin name/series), pricing (estimated value). Image data: data:image/png;base64,${cleanFrontImage}`
-          }
-        ],
-        temperature: 0.1
-      });
+      // Call the verification service with the image data
+      const verificationResult = await verifyPin(
+        cleanFrontImage,
+        cleanBackImage,
+        cleanAngledImage
+      );
       
-      const aiResponse = completion.choices[0]?.message?.content || '';
-      
-      // Parse AI response for structured data
-      let analysisResult;
-      try {
-        analysisResult = JSON.parse(aiResponse);
-      } catch {
-        // If parsing fails, create structured response from text
-        analysisResult = {
-          authentic: aiResponse.toLowerCase().includes('authentic') && !aiResponse.toLowerCase().includes('not authentic'),
-          authenticityRating: Math.floor(Math.random() * 30) + 70, // Realistic range
-          analysis: aiResponse.substring(0, 500),
-          identification: 'Disney Pin Analysis',
-          pricing: 'Analysis completed'
-        };
-      }
+      // Transform verification result to expected format
+      const analysisResult = {
+        authentic: verificationResult.authentic || false,
+        authenticityRating: verificationResult.authenticityRating || 0,
+        analysis: verificationResult.analysis || verificationResult.analysisReport || '',
+        identification: verificationResult.identification || '',
+        pricing: verificationResult.pricing || ''
+      };
       
       // Import storage after dependencies are loaded
       const { storage } = await import('./storage');

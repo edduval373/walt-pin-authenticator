@@ -17,11 +17,27 @@ export class RailwayStorage implements IStorage {
 
     this.pool = new Pool({
       connectionString: railwayUrl,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
+      max: 10
     });
     
-    log('Connected to Railway production database', 'railway');
-    this.initializeFeedbackColumns();
+    log('Attempting to connect to Railway production database', 'railway');
+    this.testConnection();
+  }
+
+  private async testConnection() {
+    try {
+      const client = await this.pool.connect();
+      await client.query('SELECT NOW()');
+      client.release();
+      log('Railway database connection successful', 'railway');
+      this.initializeFeedbackColumns();
+    } catch (error: any) {
+      log(`Railway database connection failed: ${error.message}`, 'railway');
+      log('Check Railway database status or connection string', 'railway');
+    }
   }
 
   private async initializeFeedbackColumns() {

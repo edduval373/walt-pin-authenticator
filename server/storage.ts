@@ -69,7 +69,10 @@ export class MemStorage implements IStorage {
         imageUrl: pin.imageUrl,
         dominantColors: pin.dominantColors,
         similarPins: pin.similarPins,
-        createdAt: new Date()
+        createdAt: new Date(),
+        userAgreement: null,
+        feedbackComment: null,
+        feedbackSubmittedAt: null
       };
       
       this.pins.set(pin.pinId, newPin);
@@ -232,5 +235,13 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use Railway production database directly
-export const storage = new RailwayStorage();
+// Try Railway first, fallback to memory storage if unavailable
+let storage: IStorage;
+try {
+  storage = new RailwayStorage();
+} catch (error) {
+  console.log('Railway unavailable, using memory storage');
+  storage = new MemStorage();
+}
+
+export { storage };

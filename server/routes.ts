@@ -559,6 +559,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mobile Health Check Endpoint
+  app.get('/api/mobile/health', async (req, res) => {
+    try {
+      // Check if our server is running and database is accessible
+      const healthCheck = {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        server: 'running',
+        database: 'connected',
+        apiEndpoints: 'available'
+      };
+      
+      // Test database connection
+      try {
+        await storage.getAllPins(); // Simple database query
+        healthCheck.database = 'connected';
+      } catch (dbError) {
+        healthCheck.database = 'error';
+        healthCheck.status = 'degraded';
+      }
+      
+      return res.json({
+        success: true,
+        message: 'Server is healthy and ready to process pin images',
+        health: healthCheck
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: 'Health check failed',
+        error: error.message
+      });
+    }
+  });
+
   // API Test Endpoint
   app.get('/api/test-connection', async (req, res) => {
     try {

@@ -18,8 +18,8 @@ export default function ServerHealthCheck({ onSuccess, onError }: ServerHealthCh
     setIsChecking(true);
     setError(null);
 
-    // Use your redeployed server directly
-    const healthUrl = 'https://pim-master-library-edduval15.replit.app/health';
+    // Use our local server health check endpoint
+    const healthUrl = '/api/mobile/health';
 
     try {
       const controller = new AbortController();

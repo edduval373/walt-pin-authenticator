@@ -174,6 +174,26 @@ export class RailwayStorage implements IStorage {
     }
   }
 
+  async updatePinFeedbackByRecordNumber(recordNumber: number, userAgreement: string, feedbackComment?: string): Promise<Pin | undefined> {
+    try {
+      const result = await this.pool.query(
+        'UPDATE pins SET user_agreement = $1, feedback_comment = $2, feedback_submitted_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+        [userAgreement, feedbackComment || null, recordNumber]
+      );
+      
+      if (result.rows[0]) {
+        log(`Railway pin feedback updated: ${userAgreement} for record ${recordNumber}`, 'railway');
+        return result.rows[0];
+      } else {
+        log(`Railway pin not found for feedback update: record ${recordNumber}`, 'railway');
+        return undefined;
+      }
+    } catch (error: any) {
+      log(`Railway error updating pin feedback by recordNumber: ${error.message}`, 'railway');
+      throw error;
+    }
+  }
+
   // Analysis methods
   async analyzePin(imageData: string): Promise<Analysis> {
     try {

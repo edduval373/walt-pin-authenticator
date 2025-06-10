@@ -211,7 +211,19 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     }
   } catch (error: any) {
     log(`Error in PIM API call: ${error.message || error}`, 'express');
-    throw error;
+    
+    // Return a clear error response indicating API unavailability
+    return {
+      success: false,
+      message: "External authentication API currently unavailable. Please contact support for manual verification.",
+      authentic: false,
+      authenticityRating: 0,
+      analysis: "Unable to process - External API service unavailable",
+      identification: "Service unavailable",
+      pricing: "Unable to determine",
+      sessionId: `error_${Date.now()}`,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 
@@ -275,12 +287,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         angledImageBase64
       );
       
+      // If the API call failed, don't proceed with database storage
+      if (!analysisResult.success) {
+        return res.status(503).json({
+          success: false,
+          message: analysisResult.message,
+          errorCode: "external_api_unavailable",
+          sessionId,
+          requestId
+        });
+      }
+      
       // Create a provisional pin record with analysis results
       const pinId = analysisResult.sessionId || `pin_${Date.now()}`;
-      const recordNumber = Date.now(); // Unique record number for tracking
       
-      // Store the pin with provisional status
-      await storage.createPin({
+      // Store the pin with provisional status and get the actual database record
+      const createdPin = await storage.createPin({
         pinId,
         name: `Mobile Analysis ${pinId}`,
         series: 'Mobile App Results',
@@ -289,6 +311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dominantColors: [],
         similarPins: []
       });
+      
+      // The record number is the actual database ID
+      const recordNumber = createdPin.id;
       
       // Create analysis record
       await storage.createAnalysis({
@@ -301,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageQualityScore: 85
       });
       
-      log(`Created provisional pin record: ${pinId} with record number: ${recordNumber}`);
+      log(`Created pin record: ${pinId} with record number (ID): ${recordNumber}`);
       
       return res.json({
         success: true,
@@ -351,13 +376,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Update pin with user feedback using record number for tracking
-      const updatedPin = await storage.updatePinFeedback(pinId, userAgreement, feedbackComment);
+      // Update pin with user feedback using record number (database ID) from master app
+      const updatedPin = await storage.updatePinFeedbackByRecordNumber(recordNumber, userAgreement, feedbackComment);
 
       if (!updatedPin) {
         return res.status(404).json({
           success: false,
-          message: "Pin record not found"
+          message: `Pin record not found for record number: ${recordNumber}`
         });
       }
 

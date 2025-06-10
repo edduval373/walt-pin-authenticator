@@ -58,6 +58,9 @@ app.use((req, res, next) => {
   
 
   
+  // Register API routes FIRST to ensure they take precedence over Vite middleware
+  const server = await registerRoutes(app);
+  
   // Keep other API routes for web app functionality
   app.use('/mobile', mobileApiRouter);
   
@@ -67,10 +70,6 @@ app.use((req, res, next) => {
     res.send(generateMobileApiDocs());
   });
   
-
-
-
-
   // Add health check endpoint for Railway deployment
   app.get('/health', (req, res) => {
     res.status(200).json({
@@ -83,9 +82,6 @@ app.use((req, res, next) => {
 
   // Add additional compatibility routes
   app.use('/api/mobile', mobileApiRouter);
-  
-  // Register API routes next to ensure they take precedence over web routes
-  const server = await registerRoutes(app);
 
   // Add a specific route to return API information for the web app
   app.get('/api/info', (req, res) => {

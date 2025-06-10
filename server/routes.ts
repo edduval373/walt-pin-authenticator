@@ -445,6 +445,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mobile Upload Endpoint - Exact specification from host
+  app.post('/mobile-upload', async (req, res) => {
+    try {
+      const { sessionId, frontImageData, backImageData, angledImageData } = req.body;
+      
+      // Validate API key
+      const apiKey = req.headers['x-api-key'];
+      if (apiKey !== 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g') {
+        return res.status(401).json({
+          success: false,
+          error: "Invalid API key"
+        });
+      }
+      
+      // Validate required fields
+      if (!sessionId || !frontImageData) {
+        return res.status(400).json({
+          success: false,
+          error: "Missing required fields: sessionId and frontImageData"
+        });
+      }
+      
+      // Validate session ID format (12-digit)
+      if (!/^\d{12}$/.test(sessionId)) {
+        return res.status(400).json({
+          success: false,
+          error: "Session ID must be 12-digit format"
+        });
+      }
+      
+      // Extract base64 data (remove data URI prefix if present)
+      const cleanFrontImage = frontImageData.replace(/^data:image\/[a-z]+;base64,/, '');
+      const cleanBackImage = backImageData ? backImageData.replace(/^data:image\/[a-z]+;base64,/, '') : undefined;
+      const cleanAngledImage = angledImageData ? angledImageData.replace(/^data:image\/[a-z]+;base64,/, '') : undefined;
+      
+      // Call external API for analysis
+      const analysisResult = await analyzeImageForPin(cleanFrontImage, cleanBackImage, cleanAngledImage);
+      
+      // Create database record BEFORE sending response
+      const pinId = `pin_${sessionId}`;
+      const pin = await storage.createPin({
+        pinId,
+        name: `Mobile Analysis ${sessionId}`,
+        series: 'Mobile Upload',
+        releaseYear: new Date().getFullYear(),
+        imageUrl: '',
+        dominantColors: [],
+        similarPins: []
+      });
+      
+      // Return response with database ID
+      return res.json({
+        success: true,
+        message: "Pin analysis completed successfully",
+        sessionId,
+        id: pin.id, // Primary database ID
+        timestamp: new Date().toISOString(),
+        authentic: analysisResult.authentic,
+        authenticityRating: analysisResult.authenticityRating,
+        analysis: analysisResult.analysis,
+        identification: analysisResult.identification,
+        pricing: analysisResult.pricing
+      });
+      
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // API Test Endpoint
   app.get('/api/test-connection', async (req, res) => {
     try {

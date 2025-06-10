@@ -110,6 +110,7 @@ app.use((req, res, next) => {
       }
       
       // Send to master app server with timeout handling
+      console.log(`[mobile-upload] Sending request to master server with sessionId: ${sessionId}`);
       let analysisResult;
       try {
         const response = await Promise.race([
@@ -122,9 +123,11 @@ app.use((req, res, next) => {
             body: JSON.stringify(requestBody)
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Master server timeout')), 10000)
+            setTimeout(() => reject(new Error('Master server timeout')), 30000)
           )
         ]) as any;
+        
+        console.log(`[mobile-upload] Master server response status: ${response.status}`);
         
         const htmlResponse = await response.text();
         
@@ -137,6 +140,7 @@ app.use((req, res, next) => {
           pricing: 'See full report'
         };
       } catch (error) {
+        console.log(`[mobile-upload] Master server error: ${error.message}`);
         // Master server unavailable - still create database record
         analysisResult = {
           authentic: false,

@@ -33,11 +33,29 @@ export default function ServerHealthCheck({ onSuccess, onError }: ServerHealthCh
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        const data = await response.json();
-        const message = 'Server is healthy and ready to process pin images';
-        transmissionLogger.logHealthCheck('success', message, healthUrl);
-        console.log("Health check successful:", data);
-        onSuccess();
+        // Master server returns JSON with "OK" status
+        try {
+          const data = await response.json();
+          if (data === 'OK' || data.status === 'OK' || data.status === 'healthy' || data.message === 'OK') {
+            const message = 'Server is healthy and ready to process pin images';
+            transmissionLogger.logHealthCheck('success', message, healthUrl);
+            console.log("Health check successful:", data);
+            onSuccess();
+          } else {
+            throw new Error(`Unexpected health response: ${JSON.stringify(data)}`);
+          }
+        } catch (parseError) {
+          // Fallback to text parsing if JSON fails
+          const responseText = await response.text();
+          if (responseText.trim() === 'OK' || responseText.includes('healthy')) {
+            const message = 'Server is healthy and ready to process pin images';
+            transmissionLogger.logHealthCheck('success', message, healthUrl);
+            console.log("Health check successful");
+            onSuccess();
+          } else {
+            throw new Error(`Unexpected health response: ${responseText}`);
+          }
+        }
       } else {
         const errorMsg = `Server responded with status: ${response.status}`;
         transmissionLogger.logHealthCheck('failed', errorMsg, healthUrl, errorMsg);

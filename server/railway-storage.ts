@@ -27,7 +27,10 @@ export class RailwayStorage implements IStorage {
     });
     
     log('Connecting to Railway production database', 'railway');
-    this.testConnection();
+    // Don't wait for connection test in constructor to avoid blocking
+    this.testConnection().catch(error => {
+      log(`Database connection test failed: ${error.message}`, 'railway');
+    });
   }
 
   private async testConnection() {
@@ -36,7 +39,7 @@ export class RailwayStorage implements IStorage {
       await client.query('SELECT NOW()');
       client.release();
       log('Railway database connection successful', 'railway');
-      this.initializeFeedbackColumns();
+      await this.initializeFeedbackColumns();
     } catch (error: any) {
       log(`Railway database connection failed: ${error.message}`, 'railway');
       log('Check Railway database status or connection string', 'railway');

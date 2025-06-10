@@ -106,8 +106,11 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    log(`Error ${status}: ${message}`, 'server');
+    
+    if (!res.headersSent) {
+      res.status(status).json({ message });
+    }
   });
 
   // Set up web application routes AFTER API routes

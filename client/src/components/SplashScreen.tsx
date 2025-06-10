@@ -48,7 +48,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="text-center px-4 max-w-sm w-full py-2 min-h-screen flex flex-col" style={{ paddingTop: '0px', transform: 'translateY(-72px)' }}>
+      <div className="text-center px-4 max-w-sm w-full py-2 min-h-screen flex flex-col" style={{ paddingTop: '0px', transform: 'translateY(-120px)' }}>
         
         {/* Logo at top */}
         <motion.div
@@ -70,7 +70,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </motion.div>
         
         {/* Text content */}
-        <div className="flex-1 flex flex-col justify-start" style={{ transform: 'translateY(-108px)' }}>
+        <div className="flex-1 flex flex-col justify-start" style={{ transform: 'translateY(-156px)' }}>
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -103,7 +103,7 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0" style={{ transform: 'translateY(-108px)' }}>
+        <div className="flex-shrink-0" style={{ transform: 'translateY(-156px)' }}>
           {/* Legal Disclaimer - Expandable Design */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

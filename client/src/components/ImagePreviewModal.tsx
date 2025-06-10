@@ -108,15 +108,7 @@ export default function ImagePreviewModal({
               </Button>
             </div>
             
-            {showProcessButton && onProcess && (
-              <Button
-                onClick={onProcess}
-                className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-3 py-4 text-lg font-bold"
-              >
-                <span>Done with Images - Process Now</span>
-                <RiArrowRightLine className="text-2xl" />
-              </Button>
-            )}
+
           </div>
         </div>
       </div>

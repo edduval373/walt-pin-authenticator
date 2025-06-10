@@ -988,12 +988,16 @@ export default function CameraPage() {
           <div className={`h-1 w-8 rounded-full ${capturedImages.angled ? 'bg-green-500' : 'bg-gray-300'}`}></div>
         </div>
         
-        {/* Next step reminder when front image is captured */}
+        {/* Process Now Button when front image is captured */}
         {capturedImages.front && (
-          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center">
-            <p className="text-green-700 font-medium text-sm">
-              ✓ Front image captured! Tap "Next" above to analyze your pin
-            </p>
+          <div className="mt-4 w-full max-w-sm mx-auto">
+            <Button
+              onClick={handleEvaluate}
+              className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-3 py-4 text-lg font-bold shadow-lg"
+            >
+              <span>Done with Images - Process Now</span>
+              <RiArrowRightLine className="text-2xl" />
+            </Button>
           </div>
         )}
         
@@ -1142,19 +1146,6 @@ export default function CameraPage() {
               Center the pin in the frame and ensure good lighting. 
               Please capture all three views for best results.{!capturedImages.front && " Front view is required."}
             </p>
-            
-            {/* Process Now Button - Shows when images are ready */}
-            {capturedImages.front && (
-              <div className="mt-6 w-full max-w-sm">
-                <Button
-                  onClick={handleEvaluate}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-3 py-4 text-lg font-bold shadow-lg"
-                >
-                  <span>Done with Images - Process Now</span>
-                  <RiArrowRightLine className="text-2xl" />
-                </Button>
-              </div>
-            )}
               
             {/* Hidden file input */}
             <input 

@@ -96,7 +96,7 @@ export default function ImagePreviewModal({
                 onClick={onConfirm}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Yes, it looks good
+                {viewType === 'angled' ? 'Confirm & Process' : 'Yes, it looks good'}
               </Button>
               
               <Button

@@ -516,9 +516,13 @@ export default function CameraPage() {
         // Get the next image number for naming
         const imageNumber = transmissionLogger.getNextImageNumber();
         
-        // Store the image with proper numbering in session storage
-        const imageKey = `Image #${imageNumber} - ${targetView}`;
-        sessionStorage.setItem(imageKey, imageData);
+        // Store the image with proper numbering in session storage (but only store smaller versions to avoid quota issues)
+        try {
+          const imageKey = `Image #${imageNumber} - ${targetView}`;
+          sessionStorage.setItem(imageKey, imageData);
+        } catch (error) {
+          console.warn("Storage quota exceeded, skipping individual image storage");
+        }
         
         // If all files are processed, update state
         if (filesProcessed === filesToProcess.length) {
@@ -526,7 +530,8 @@ export default function CameraPage() {
           console.log("Updated captured images from file upload:", newImages);
           
           // Set activeView to the last uploaded image's view
-          setActiveView(viewOrder[filesToProcess.length - 1]);
+          const lastView = viewOrder[filesToProcess.length - 1];
+          setActiveView(lastView);
           
           // Show preview of the last uploaded image
           setPreviewImageData(imageData);
@@ -606,7 +611,10 @@ export default function CameraPage() {
   const handleConfirm = () => {
     setPreviewModalOpen(false);
     
-    // If all required images are captured, or we're on the last view
+    // Check if we have at least front image (required for processing)
+    const canProcess = !!capturedImages.front;
+    
+    // If we're on the angled view or have all images, or if we can process and user wants to
     if (activeView === 'angled' || (capturedImages.front && capturedImages.back && capturedImages.angled)) {
       // Stop the camera before navigating to reduce resource usage
       if (streamRef.current) {
@@ -1161,7 +1169,7 @@ export default function CameraPage() {
         imageData={previewImageData}
         viewType={activeView}
         allowSkip={activeView !== 'front'}
-        showProcessButton={!!capturedImages.front}
+        showProcessButton={!!capturedImages.front && (activeView === 'angled' || !!capturedImages.angled)}
       />
 
       {/* Info Modal */}

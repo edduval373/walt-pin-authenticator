@@ -73,8 +73,7 @@ interface PimStandardResponse {
   success: boolean;
   message: string;
   sessionId?: string;
-  recordNumber?: number;
-  recordId?: number;
+  id?: number;  // Use consistent 'id' field
   timestamp?: string;
   authentic?: boolean;
   authenticityRating?: number;
@@ -173,7 +172,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
         // Parse the response
         const data = await apiResponse.json() as PimStandardResponse;
         log(`API Response success: ${data.success}, message: ${data.message}`, 'express');
-        log(`API Response record fields: recordNumber=${data.recordNumber}, recordId=${data.recordId}, sessionId=${data.sessionId}`, 'express');
+        log(`API Response record fields: id=${data.id}, sessionId=${data.sessionId}`, 'express');
         log(`Full API Response: ${JSON.stringify(data, null, 2).substring(0, 500)}...`, 'express');
         
         // Map the response to include necessary fields for our app
@@ -181,7 +180,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
           success: data.success,
           message: data.message || "Verification completed",
           sessionId: data.sessionId || `session_${Date.now()}`,
-          recordNumber: data.recordNumber || data.recordId,
+          id: data.id || undefined, // Will be assigned later from database ID
           timestamp: data.timestamp || new Date().toISOString(),
           authentic: typeof data.authentic === 'boolean' ? data.authentic : true,
           authenticityRating: data.authenticityRating !== undefined ? data.authenticityRating : 4,
@@ -372,6 +371,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // The ID is the actual database ID
       const id = createdPin.id;
+      
+      // If external API didn't provide an id, use our database ID
+      if (!analysisResult.id) {
+        analysisResult.id = id;
+        log(`External API provided no id, assigned database ID: ${id}`);
+      }
       
       // Create analysis record
       await storage.createAnalysis({

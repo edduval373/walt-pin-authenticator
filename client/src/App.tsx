@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,17 +7,19 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/Header";
 import InfoModal from "@/components/InfoModal";
 import SplashScreen from "@/components/SplashScreen";
-import NotFound from "@/pages/not-found";
-import IntroPage from "@/pages/IntroPage";
-import CameraPage from "@/pages/CameraPage";
-import ProcessingPage from "@/pages/ProcessingPage";
-import ResultsPage from "@/pages/ResultsPage";
-import TestPortalPage from "@/pages/TestPortalPage";
-import RealApiTestPage from "@/pages/RealApiTestPage";
-import ProductionApiPage from "@/pages/ProductionApiPage";
-import ApiTester from "@/components/ApiTester";
-import ApiConnectionTestPage from "@/pages/ApiConnectionTestPage";
-import TextApiTestPage from "@/pages/TextApiTestPage";
+
+// Lazy load components to reduce bundle size
+const NotFound = lazy(() => import("@/pages/not-found"));
+const IntroPage = lazy(() => import("@/pages/IntroPage"));
+const CameraPage = lazy(() => import("@/pages/CameraPage"));
+const ProcessingPage = lazy(() => import("@/pages/ProcessingPage"));
+const ResultsPage = lazy(() => import("@/pages/ResultsPage"));
+const TestPortalPage = lazy(() => import("@/pages/TestPortalPage"));
+const RealApiTestPage = lazy(() => import("@/pages/RealApiTestPage"));
+const ProductionApiPage = lazy(() => import("@/pages/ProductionApiPage"));
+const ApiTester = lazy(() => import("@/components/ApiTester"));
+const ApiConnectionTestPage = lazy(() => import("@/pages/ApiConnectionTestPage"));
+const TextApiTestPage = lazy(() => import("@/pages/TextApiTestPage"));
 
 // Create context for navigation actions
 export const NavigationContext = React.createContext({
@@ -25,23 +27,32 @@ export const NavigationContext = React.createContext({
   showSplashScreen: () => {}
 });
 
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+  </div>
+);
+
 function Router() {
   const [location, setLocation] = useLocation();
   
   return (
-    <Switch>
-      <Route path="/" component={IntroPage} />
-      <Route path="/camera" component={CameraPage} />
-      <Route path="/processing" component={ProcessingPage} />
-      <Route path="/results" component={ResultsPage} />
-      <Route path="/test-portal" component={TestPortalPage} />
-      <Route path="/real-api-test" component={RealApiTestPage} />
-      <Route path="/production-api" component={ProductionApiPage} />
-      <Route path="/api-test" component={ApiTester} />
-      <Route path="/connection-test" component={ApiConnectionTestPage} />
-      <Route path="/text-test" component={TextApiTestPage} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<LoadingFallback />}>
+      <Switch>
+        <Route path="/" component={IntroPage} />
+        <Route path="/camera" component={CameraPage} />
+        <Route path="/processing" component={ProcessingPage} />
+        <Route path="/results" component={ResultsPage} />
+        <Route path="/test-portal" component={TestPortalPage} />
+        <Route path="/real-api-test" component={RealApiTestPage} />
+        <Route path="/production-api" component={ProductionApiPage} />
+        <Route path="/api-test" component={ApiTester} />
+        <Route path="/connection-test" component={ApiConnectionTestPage} />
+        <Route path="/text-test" component={TextApiTestPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

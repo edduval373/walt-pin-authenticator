@@ -50,7 +50,10 @@ export default function FeedbackModal({
   const { toast } = useToast();
 
   const handleSubmit = async () => {
+    console.log('Submit button clicked, agreement state:', agreement);
+    
     if (!agreement) {
+      console.log('No agreement selected, showing toast');
       toast({
         title: "Please select your feedback",
         description: "Let us know if you agree or disagree with the analysis.",
@@ -59,6 +62,7 @@ export default function FeedbackModal({
       return;
     }
 
+    console.log('Starting feedback submission...');
     setIsSubmitting(true);
 
     try {
@@ -172,20 +176,60 @@ export default function FeedbackModal({
             {/* Agreement selection */}
             <div className="space-y-2">
               <Label className="text-base font-medium">Your feedback:</Label>
-              <RadioGroup value={agreement} onValueChange={setAgreement}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="agree" id="agree" />
-                  <Label htmlFor="agree" className="cursor-pointer">
-                    I agree with this analysis
-                  </Label>
+              <div className="space-y-3">
+                {/* Custom radio buttons for better mobile compatibility */}
+                <div 
+                  className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    agreement === 'agree' 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                  onClick={() => {
+                    console.log('Agree button clicked');
+                    setAgreement('agree');
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    console.log('Agree button touched');
+                    setAgreement('agree');
+                  }}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    agreement === 'agree' ? 'border-green-500 bg-green-500' : 'border-gray-300'
+                  }`}>
+                    {agreement === 'agree' && (
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                  <span className="text-base font-medium">I agree with this analysis</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="disagree" id="disagree" />
-                  <Label htmlFor="disagree" className="cursor-pointer">
-                    I disagree with this analysis
-                  </Label>
+                
+                <div 
+                  className={`flex items-center space-x-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    agreement === 'disagree' 
+                      ? 'border-red-500 bg-red-50' 
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                  onClick={() => {
+                    console.log('Disagree button clicked');
+                    setAgreement('disagree');
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    console.log('Disagree button touched');
+                    setAgreement('disagree');
+                  }}
+                >
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    agreement === 'disagree' ? 'border-red-500 bg-red-500' : 'border-gray-300'
+                  }`}>
+                    {agreement === 'disagree' && (
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                  <span className="text-base font-medium">I disagree with this analysis</span>
                 </div>
-              </RadioGroup>
+              </div>
             </div>
 
             {/* Optional comment */}
@@ -211,13 +255,35 @@ export default function FeedbackModal({
             <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1">
               Cancel
             </Button>
-            <Button 
-              onClick={handleSubmit} 
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('Submit button clicked (native button)');
+                handleSubmit();
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log('Submit button touched (native button)');
+                handleSubmit();
+              }}
               disabled={isSubmitting || !agreement}
-              className="bg-indigo-600 hover:bg-indigo-700 flex-1"
+              className={`flex-1 px-4 py-2 rounded-md font-medium transition-all duration-200 ${
+                isSubmitting || !agreement
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white active:bg-indigo-800'
+              }`}
+              style={{
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent'
+              }}
             >
               {isSubmitting ? "Submitting..." : "Submit Feedback"}
-            </Button>
+            </button>
+          </div>
+          
+          {/* Debug info */}
+          <div className="mt-2 text-xs text-gray-500 text-center">
+            Agreement: {agreement || 'none'} | Button enabled: {!(isSubmitting || !agreement) ? 'yes' : 'no'}
           </div>
         </div>
       </div>

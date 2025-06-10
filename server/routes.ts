@@ -259,10 +259,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // POST /api/mobile/verify-pin - Submit images, get pin IDs + analysis
   app.post('/api/mobile/verify-pin', async (req, res) => {
+    const sessionId = req.headers['x-session-id'] || `session_${Date.now()}`;
+    const requestId = `req_${Date.now()}`;
+    
+    // Create initial log entry
+    const logEntry: any = {
+      sessionId: sessionId as string,
+      requestType: 'verify-pin',
+      requestBody: {
+        frontImageLength: req.body.frontImageBase64?.length || 0,
+        backImageLength: req.body.backImageBase64?.length || 0,
+        angledImageLength: req.body.angledImageBase64?.length || 0,
+        requestId
+      },
+      hostApiCalled: false,
+      responseStatus: null,
+      responseBody: null,
+      hostApiResponse: null,
+      hostApiStatus: null,
+      errorMessage: null
+    };
+
     try {
-      const sessionId = req.headers['x-session-id'] || `session_${Date.now()}`;
-      const requestId = `req_${Date.now()}`;
-      
       log(`Processing mobile pin verification - Session: ${sessionId}, Request: ${requestId}`);
       
       // Extract image data from request
@@ -270,6 +288,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate front image is provided
       if (!frontImageBase64) {
+        logEntry.responseStatus = 400;
+        logEntry.errorMessage = "Front image is required for verification";
+        logEntry.responseBody = {
+          success: false,
+          message: "Front image is required for verification",
+          requestId,
+          sessionId
+        };
+        
+        await storage.createMobileAppLog(logEntry);
+        
         return res.status(400).json({
           success: false,
           message: "Front image is required for verification",
@@ -280,6 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       log(`Processing images - Front: ${frontImageBase64.length.toString().substring(0, 6)} chars`);
       
+      // Mark that we're calling the host API
+      logEntry.hostApiCalled = true;
+      
       // Call the PIM Standard API to analyze the images
       const analysisResult: PimStandardResponse = await analyzeImageForPin(
         frontImageBase64,
@@ -287,8 +319,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         angledImageBase64
       );
       
+      // Log the host API response
+      logEntry.hostApiResponse = analysisResult;
+      logEntry.hostApiStatus = analysisResult.success ? 200 : 503;
+      
       // If the API call failed, don't proceed with database storage
       if (!analysisResult.success) {
+        logEntry.responseStatus = 503;
+        logEntry.errorMessage = analysisResult.message;
+        logEntry.responseBody = {
+          success: false,
+          message: analysisResult.message,
+          errorCode: "external_api_unavailable",
+          sessionId,
+          requestId
+        };
+        
+        await storage.createMobileAppLog(logEntry);
+        
         return res.status(503).json({
           success: false,
           message: analysisResult.message,
@@ -328,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       log(`Created pin record: ${pinId} with ID: ${id}`);
       
-      return res.json({
+      const successResponse = {
         success: true,
         pinId,
         id,
@@ -340,10 +388,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         identification: analysisResult.identification,
         pricing: analysisResult.pricing,
         message: "Pin analysis complete - awaiting user confirmation"
-      });
+      };
+      
+      // Log successful completion
+      logEntry.responseStatus = 200;
+      logEntry.responseBody = successResponse;
+      await storage.createMobileAppLog(logEntry);
+      
+      log(`Mobile verification complete - ID: ${id}, Host response logged`);
+      
+      return res.json(successResponse);
       
     } catch (error: any) {
       log(`Error in mobile pin verification: ${error.message}`);
+      
+      // Log the error
+      logEntry.responseStatus = 500;
+      logEntry.errorMessage = error.message;
+      logEntry.responseBody = {
+        success: false,
+        message: "Verification failed",
+        errorCode: "processing_error"
+      };
+      
+      try {
+        await storage.createMobileAppLog(logEntry);
+      } catch (logError) {
+        log(`Failed to log error: ${logError}`);
+      }
+      
       return res.status(500).json({
         success: false,
         message: "Verification failed",

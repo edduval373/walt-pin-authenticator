@@ -4,7 +4,7 @@
 const VERSION_CONFIG = {
   current: {
     major: 1,
-    minor: 2,
+    minor: 3,
     patch: 0
   },
   

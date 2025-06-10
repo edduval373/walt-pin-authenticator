@@ -110,4 +110,4 @@ async function testIdWorkflow() {
 }
 
 // Run the test
-testRecordNumberWorkflow();
+testIdWorkflow();

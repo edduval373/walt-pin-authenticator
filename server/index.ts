@@ -114,7 +114,7 @@ app.use((req, res, next) => {
       let analysisResult;
       try {
         const response = await Promise.race([
-          fetch('https://pim-master-library-edduval15.replit.app/mobile-upload', {
+          fetch('https://master.pinauth.com/mobile-upload', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

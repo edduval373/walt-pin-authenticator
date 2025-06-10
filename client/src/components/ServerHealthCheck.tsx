@@ -19,7 +19,7 @@ export default function ServerHealthCheck({ onSuccess, onError }: ServerHealthCh
     setError(null);
 
     // Use your redeployed server directly
-    const healthUrl = 'https://pim-master-library-edduval15.replit.app/health';
+    const healthUrl = 'https://master.pinauth.com/health';
 
     try {
       const controller = new AbortController();

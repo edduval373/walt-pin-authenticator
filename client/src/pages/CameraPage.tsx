@@ -411,6 +411,11 @@ export default function CameraPage() {
   // Track which side we're currently capturing (front is always first)
   const [activeView, setActiveView] = useState<'front' | 'back' | 'angled'>('front');
   
+  // Debug activeView changes
+  useEffect(() => {
+    console.log("activeView changed to:", activeView);
+  }, [activeView]);
+  
   // Access navigation context
   // We need to get the showSplashScreen function to go back to splash
   const { showSplashScreen } = useContext(NavigationContext);
@@ -926,7 +931,10 @@ export default function CameraPage() {
           {/* Extra Large View Type Buttons */}
           <div className="flex gap-2 sm:gap-3 w-full justify-between">
             <button 
-              onClick={() => setActiveView('front')}
+              onClick={() => {
+                console.log("FRONT button clicked, setting activeView to 'front'");
+                setActiveView('front');
+              }}
               className={`text-center px-4 sm:px-6 py-1 rounded-lg font-bold text-xl sm:text-2xl shadow-md flex-1 md:min-w-[110px] relative
                 ${activeView === 'front' 
                   ? 'bg-indigo-500 text-white' 
@@ -946,7 +954,10 @@ export default function CameraPage() {
             </button>
             
             <button 
-              onClick={() => setActiveView('back')}
+              onClick={() => {
+                console.log("BACK button clicked, setting activeView to 'back'");
+                setActiveView('back');
+              }}
               className={`text-center px-4 sm:px-6 py-1 rounded-lg font-bold text-xl sm:text-2xl shadow-md flex-1 md:min-w-[110px] relative
                 ${activeView === 'back' 
                   ? 'bg-indigo-500 text-white' 
@@ -966,7 +977,10 @@ export default function CameraPage() {
             </button>
             
             <button 
-              onClick={() => setActiveView('angled')}
+              onClick={() => {
+                console.log("ANGLED button clicked, setting activeView to 'angled'");
+                setActiveView('angled');
+              }}
               className={`text-center px-4 sm:px-6 py-1 rounded-lg font-bold text-xl sm:text-2xl shadow-md flex-1 md:min-w-[110px] relative
                 ${activeView === 'angled' 
                   ? 'bg-indigo-500 text-white' 

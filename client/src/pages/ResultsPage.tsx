@@ -518,6 +518,11 @@ export default function ResultsPage() {
                   </div>
                   
                   <div className="bg-gray-50 rounded-md p-4">
+                    <h4 className="font-medium text-sm mb-2">Record Number</h4>
+                    <p className="text-gray-700 font-mono">{serverResponse.sessionId || 'No record number provided'}</p>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-md p-4">
                     <h4 className="font-medium text-sm mb-2">Complete Response</h4>
                     <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-96 whitespace-pre-wrap">
                       {JSON.stringify(serverResponse, null, 2)}

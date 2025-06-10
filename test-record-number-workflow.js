@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Test script to demonstrate the record number workflow for mobile app integration
- * Shows how record numbers (database IDs) are used for user agreement tracking
+ * Test script to demonstrate the ID workflow for mobile app integration
+ * Shows how IDs (database IDs) are used for user agreement tracking
  */
 
 import http from 'http';
@@ -32,8 +32,8 @@ function makeRequest(options, data) {
   });
 }
 
-async function testRecordNumberWorkflow() {
-  console.log('=== Testing Record Number Workflow ===\n');
+async function testIdWorkflow() {
+  console.log('=== Testing ID Workflow ===\n');
   
   // Step 1: Submit images for verification
   console.log('Step 1: Submitting images to /api/mobile/verify-pin');
@@ -60,14 +60,14 @@ async function testRecordNumberWorkflow() {
     console.log('Status:', verifyResponse.statusCode);
     console.log('Response:', JSON.stringify(verifyResponse.body, null, 2));
     
-    if (verifyResponse.body.success && verifyResponse.body.recordNumber) {
-      const recordNumber = verifyResponse.body.recordNumber;
+    if (verifyResponse.body.success && verifyResponse.body.id) {
+      const id = verifyResponse.body.id;
       const pinId = verifyResponse.body.pinId;
       
-      console.log(`\nRecord Number Received: ${recordNumber}`);
+      console.log(`\nID Received: ${id}`);
       console.log(`Pin ID: ${pinId}`);
       
-      // Step 2: Submit user agreement using record number
+      // Step 2: Submit user agreement using ID
       console.log('\nStep 2: Submitting user agreement to /api/mobile/confirm-pin');
       
       const confirmOptions = {
@@ -82,7 +82,7 @@ async function testRecordNumberWorkflow() {
       };
       
       const confirmData = {
-        recordNumber: recordNumber,
+        id: id,
         pinId: pinId,
         userAgreement: 'agree',
         feedbackComment: 'Test feedback from mobile app'
@@ -94,9 +94,9 @@ async function testRecordNumberWorkflow() {
       
       console.log('\n=== Workflow Summary ===');
       console.log(`✓ Images submitted and processed`);
-      console.log(`✓ Record number ${recordNumber} assigned (database ID)`);
-      console.log(`✓ User agreement recorded using record number`);
-      console.log(`✓ Master app can now update: UPDATE pins SET user_agreement = 'agree' WHERE id = ${recordNumber}`);
+      console.log(`✓ ID ${id} assigned (database ID)`);
+      console.log(`✓ User agreement recorded using ID`);
+      console.log(`✓ Master app can now update: UPDATE pins SET user_agreement = 'agree' WHERE id = ${id}`);
       
     } else {
       console.log('\n⚠ External API unavailable - this is expected behavior');

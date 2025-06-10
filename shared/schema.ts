@@ -19,7 +19,7 @@ export type User = typeof users.$inferSelect;
 
 // Disney Pin model
 export const pins = pgTable("pins", {
-  id: serial("id").primaryKey(),
+  id: serial("id").primaryKey(), // ID used by master app for tracking
   pinId: text("pin_id").notNull().unique(),
   name: text("name").notNull(),
   series: text("series").notNull(),

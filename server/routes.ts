@@ -312,8 +312,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         similarPins: []
       });
       
-      // The record number is the actual database ID
-      const recordNumber = createdPin.id;
+      // The ID is the actual database ID
+      const id = createdPin.id;
       
       // Create analysis record
       await storage.createAnalysis({
@@ -326,12 +326,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageQualityScore: 85
       });
       
-      log(`Created pin record: ${pinId} with record number (ID): ${recordNumber}`);
+      log(`Created pin record: ${pinId} with ID: ${id}`);
       
       return res.json({
         success: true,
         pinId,
-        recordNumber,
+        id,
         sessionId,
         requestId,
         authentic: analysisResult.authentic,
@@ -352,19 +352,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST /api/mobile/confirm-pin - Confirm or reject provisional pins using record number
+  // POST /api/mobile/confirm-pin - Confirm or reject provisional pins using ID
   app.post('/api/mobile/confirm-pin', async (req, res) => {
     try {
-      const { recordNumber, pinId, userAgreement, feedbackComment } = req.body;
+      const { id, pinId, userAgreement, feedbackComment } = req.body;
       const sessionId = req.headers['x-session-id'];
       
-      log(`Processing pin confirmation - Record: ${recordNumber}, Pin: ${pinId}, Agreement: ${userAgreement}`);
+      log(`Processing pin confirmation - ID: ${id}, Pin: ${pinId}, Agreement: ${userAgreement}`);
       
       // Validate required fields
-      if (!recordNumber || !pinId || !userAgreement) {
+      if (!id || !pinId || !userAgreement) {
         return res.status(400).json({
           success: false,
-          message: "Missing required fields: recordNumber, pinId, and userAgreement are required"
+          message: "Missing required fields: id, pinId, and userAgreement are required"
         });
       }
 
@@ -376,34 +376,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Update pin with user feedback using record number (database ID) from master app
-      const updatedPin = await storage.updatePinFeedbackByRecordNumber(recordNumber, userAgreement, feedbackComment);
+      // Update pin with user feedback using ID (database ID) from master app
+      const updatedPin = await storage.updatePinFeedbackById(id, userAgreement, feedbackComment);
 
       if (!updatedPin) {
         return res.status(404).json({
           success: false,
-          message: `Pin record not found for record number: ${recordNumber}`
+          message: `Pin not found for ID: ${id}`
         });
       }
 
-      // Create feedback record with record number
+      // Create feedback record with ID
       try {
         await storage.createUserFeedback({
-          analysisId: recordNumber, // Use record number as analysis ID for mobile tracking
+          analysisId: id, // Use ID as analysis ID for mobile tracking
           pinId,
           userAgreement,
           feedbackComment: feedbackComment || null
         });
       } catch (feedbackError) {
-        log(`Warning: Could not create feedback record for record ${recordNumber}: ${feedbackError}`);
+        log(`Warning: Could not create feedback record for ID ${id}: ${feedbackError}`);
       }
 
-      log(`Mobile user feedback confirmed - Record: ${recordNumber}, Agreement: ${userAgreement}`);
+      log(`Mobile user feedback confirmed - ID: ${id}, Agreement: ${userAgreement}`);
 
       return res.json({
         success: true,
         message: "Pin confirmation saved successfully",
-        recordNumber,
+        id,
         pinId: updatedPin.pinId,
         userAgreement: updatedPin.userAgreement,
         feedbackComment: updatedPin.feedbackComment,

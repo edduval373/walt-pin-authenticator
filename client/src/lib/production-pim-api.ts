@@ -65,11 +65,11 @@ export async function verifyPinWithProductionApi(
     });
     
     // Make the API request with proper headers
-    const fetchPromise = fetch('/api/mobile/simple-verify', {
+    const fetchPromise = fetch('/api/mobile/verify-pin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': 'mobile-test-key'
+        'x-session-id': requestId
       },
       body: JSON.stringify(requestBody)
     });

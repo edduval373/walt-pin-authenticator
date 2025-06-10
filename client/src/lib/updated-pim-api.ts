@@ -61,22 +61,22 @@ export async function analyzePinImagesWithPimStandard(
     // Generate session ID if not provided
     const finalSessionId = sessionId || new Date().toISOString().replace(/[-:T]/g, '').slice(2, 14);
     
-    // Prepare request body exactly as your host app expects
+    // Prepare request body with proper data URI format as specified
     const body = {
       sessionId: finalSessionId,
-      frontImageData: cleanFrontImage
+      frontImageData: `data:image/png;base64,${cleanFrontImage}`
     };
     
     // Add optional images if provided
     if (cleanBackImage && cleanBackImage.length > 100) {
       Object.assign(body, { 
-        backImageData: cleanBackImage
+        backImageData: `data:image/png;base64,${cleanBackImage}`
       });
     }
     
     if (cleanAngledImage && cleanAngledImage.length > 100) {
       Object.assign(body, { 
-        angledImageData: cleanAngledImage
+        angledImageData: `data:image/png;base64,${cleanAngledImage}`
       });
     }
     
@@ -113,13 +113,13 @@ export async function analyzePinImagesWithPimStandard(
       
       // Log the actual packet being sent
       console.log('ACTUAL REQUEST PACKET:', {
-        url: 'https://pim-master-library-edduval15.replit.app/mobile-upload',
+        url: '/mobile-upload',
         method: 'POST',
         headers: requestHeaders,
         bodySize: requestBody.length
       });
       
-      const response = await fetch('https://pim-master-library-edduval15.replit.app/mobile-upload', {
+      const response = await fetch('/mobile-upload', {
         method: 'POST',
         headers: requestHeaders,
         body: requestBody

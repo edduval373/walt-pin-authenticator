@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
 
 // Automatic version management based on recent changes
-// Recent changes: Fixed demo mode blocking, added memory cleanup, connected progress bars, removed characters tab
+// Recent changes: Added expandable legal notice, fixed mobile UX, optimized deployment
 // Change impact: PATCH (bug fixes and optimizations)
-// Suggested version: 1.3.1 (was 1.3.0)
-const APP_VERSION = "1.3.1";
+// Suggested version: 1.3.2 (was 1.3.1)
+const APP_VERSION = "1.3.2";
 
 interface SplashScreenProps {
   onComplete: () => void;

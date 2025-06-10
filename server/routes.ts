@@ -22,6 +22,7 @@ const API_ENVIRONMENTS = {
   development: {
     // Try both known endpoints in development environment
     baseUrls: [
+      "https://pim-master-library-edduval15.replit.app", // Working endpoint from webview logs
       "https://master.pinauth.com", // Use master.pinauth.com as primary
       "https://api.pinmaster.railway.app"       
     ],

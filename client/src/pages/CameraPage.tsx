@@ -425,6 +425,7 @@ export default function CameraPage() {
     const handleHeaderFileUpload = (event: CustomEvent) => {
       const files = event.detail;
       if (files && Array.isArray(files)) {
+        console.log("Header file upload received with activeView:", activeView);
         handleFileUpload({ target: { files } } as any);
       }
     };
@@ -433,7 +434,7 @@ export default function CameraPage() {
     return () => {
       window.removeEventListener('headerFileUpload', handleHeaderFileUpload as EventListener);
     };
-  }, []);
+  }, [activeView]); // Include activeView in dependency array to capture current state
   
   // Custom header with back button that goes to splash
   const CustomHeader = () => {
@@ -504,6 +505,10 @@ export default function CameraPage() {
     // If more than 3 images selected, take only the first 3
     const filesToProcess = imageFiles.slice(0, 3);
     
+    // Capture current activeView at the time of file selection to avoid closure issues
+    const currentActiveView = activeView;
+    console.log("File upload started with activeView:", currentActiveView);
+    
     // Process all selected files
     let filesProcessed = 0;
     const newImages = { ...capturedImages };
@@ -512,9 +517,11 @@ export default function CameraPage() {
     // If uploading a single file, use the current activeView
     let viewOrder: ('front' | 'back' | 'angled')[];
     if (filesToProcess.length === 1) {
-      viewOrder = [activeView];
+      viewOrder = [currentActiveView];
+      console.log("Single file upload - using current view:", currentActiveView);
     } else {
       viewOrder = ['front', 'back', 'angled'];
+      console.log("Multiple file upload - using standard order:", viewOrder);
     }
     
     filesToProcess.forEach((file, index) => {
@@ -523,7 +530,7 @@ export default function CameraPage() {
         const imageData = e.target?.result as string;
         const targetView = viewOrder[index];
         
-        console.log(`Processing file ${index + 1} of ${filesToProcess.length} as ${targetView} view (activeView: ${activeView})`);
+        console.log(`Processing file ${index + 1} of ${filesToProcess.length} as ${targetView} view (captured activeView: ${currentActiveView})`);
         
         // Update the specific view with this image
         newImages[targetView] = imageData;
@@ -545,15 +552,17 @@ export default function CameraPage() {
           setCapturedImages(newImages);
           console.log("Updated captured images from file upload:", newImages);
           
-          // Set activeView to the last uploaded image's view
-          const lastView = viewOrder[filesToProcess.length - 1];
-          setActiveView(lastView);
+          // For single file uploads, keep the same view active
+          // For multiple files, set to the last uploaded view
+          const nextActiveView = filesToProcess.length === 1 ? currentActiveView : viewOrder[filesToProcess.length - 1];
+          setActiveView(nextActiveView);
           
-          // Show preview of the last uploaded image with correct view type
-          const lastImageData = newImages[lastView];
-          setPreviewImageData(lastImageData);
-          setPreviewViewType(lastView);
-          console.log("Setting preview view type to:", lastView, "with image data length:", lastImageData.length);
+          // Show preview of the uploaded image with correct view type
+          const previewView = filesToProcess.length === 1 ? currentActiveView : viewOrder[filesToProcess.length - 1];
+          const previewImageData = newImages[previewView];
+          setPreviewImageData(previewImageData);
+          setPreviewViewType(previewView);
+          console.log("Setting preview view type to:", previewView, "with image data length:", previewImageData.length);
           setPreviewModalOpen(true);
         }
       };
@@ -631,11 +640,15 @@ export default function CameraPage() {
   const handleConfirm = () => {
     setPreviewModalOpen(false);
     
+    console.log("Confirm button pressed - current activeView:", activeView);
+    console.log("Current captured images:", Object.keys(capturedImages).filter(key => capturedImages[key]));
+    
     // Check if we have at least front image (required for processing)
     const canProcess = !!capturedImages.front;
     
-    // If we're on the angled view or have all images, or if we can process and user wants to
+    // If we're on the angled view or have all three images, proceed to processing
     if (activeView === 'angled' || (capturedImages.front && capturedImages.back && capturedImages.angled)) {
+      console.log("Ready to process - navigating to processing page");
       // Stop the camera before navigating to reduce resource usage
       if (streamRef.current) {
         const tracks = streamRef.current.getTracks();
@@ -650,10 +663,12 @@ export default function CameraPage() {
       // Navigate to processing page
       setLocation('/processing');
     } else {
-      // Move to the next view and automatically advance dropdown selection
+      // Move to the next view in sequence
       if (activeView === 'front') {
+        console.log("Moving from front to back view");
         setActiveView('back');
       } else if (activeView === 'back') {
+        console.log("Moving from back to angled view");
         setActiveView('angled');
       }
     }

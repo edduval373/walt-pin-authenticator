@@ -461,7 +461,7 @@ export default function CameraPage() {
               src={pinAuthLogo} 
               alt="W.A.L.T. Logo" 
               className="mr-0"
-              style={{ height: '60px', objectFit: 'contain', objectPosition: 'left' }}
+              style={{ height: '78px', objectFit: 'contain', objectPosition: 'left' }}
             />
           </div>
           <div className="flex items-center space-x-2">

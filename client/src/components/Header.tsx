@@ -84,7 +84,7 @@ export default function Header({ onInfoClick }: HeaderProps) {
             src={pinAuthLogo} 
             alt="W.A.L.T. Logo" 
             className="mr-2"
-            style={{ height: '60px', objectFit: 'contain', objectPosition: 'left' }}
+            style={{ height: '78px', objectFit: 'contain', objectPosition: 'left' }}
           />
         </div>
         

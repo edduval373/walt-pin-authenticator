@@ -89,7 +89,7 @@ export async function analyzePinImagesWithPimStandard(
       // Store COMPLETE request details in session storage for logging
       const requestLog = {
         timestamp: new Date().toISOString(),
-        url: 'https://pim-master-library-edduval15.replit.app/mobile-upload',
+        url: '/mobile-upload',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

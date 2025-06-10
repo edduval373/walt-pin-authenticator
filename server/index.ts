@@ -96,7 +96,7 @@ app.use((req, res, next) => {
       // Send images to master app server
       const fetch = (await import('node-fetch')).default;
       
-      const requestBody = {
+      const requestBody: any = {
         sessionId,
         frontImageData: `data:image/png;base64,${cleanFrontImage}`
       };
@@ -109,26 +109,43 @@ app.use((req, res, next) => {
         requestBody.angledImageData = `data:image/png;base64,${cleanAngledImage}`;
       }
       
-      // Send to master app server
-      const response = await fetch('https://pim-master-library-edduval15.replit.app/mobile-upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      const htmlResponse = await response.text();
-      
-      // Parse the HTML response to extract analysis data
-      const analysisResult = {
-        authentic: htmlResponse.includes('authentic') && !htmlResponse.includes('not authentic'),
-        authenticityRating: 85, // Extract from HTML if available
-        analysis: htmlResponse,
-        identification: 'Analysis from master server',
-        pricing: 'See full report'
-      };
+      // Send to master app server with timeout handling
+      let analysisResult;
+      try {
+        const response = await Promise.race([
+          fetch('https://pim-master-library-edduval15.replit.app/mobile-upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+            },
+            body: JSON.stringify(requestBody)
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Master server timeout')), 10000)
+          )
+        ]) as any;
+        
+        const htmlResponse = await response.text();
+        
+        // Parse the HTML response to extract analysis data
+        analysisResult = {
+          authentic: htmlResponse.includes('authentic') && !htmlResponse.includes('not authentic'),
+          authenticityRating: 85,
+          analysis: htmlResponse,
+          identification: 'Analysis from master server',
+          pricing: 'See full report'
+        };
+      } catch (error) {
+        // Master server unavailable - still create database record
+        analysisResult = {
+          authentic: false,
+          authenticityRating: 0,
+          analysis: 'Master server unavailable - analysis pending',
+          identification: 'Pending analysis',
+          pricing: 'Pending analysis'
+        };
+      }
       
       // Import storage after dependencies are loaded
       const { storage } = await import('./storage');

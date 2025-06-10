@@ -66,22 +66,36 @@ export default function ProcessingPage() {
   // Ref to track if processing is running
   const isProcessing = React.useRef(false);
   
-  // Load captured images from sessionStorage on component mount
+  // Load captured images from sessionStorage or global memory on component mount
   useEffect(() => {
-    console.log("Loading capturedImages from sessionStorage");
+    console.log("Loading capturedImages from storage");
     
+    let images = null;
+    
+    // First try sessionStorage
     const storedImages = sessionStorage.getItem('capturedImages');
     if (storedImages) {
       try {
-        const images = JSON.parse(storedImages);
-        setCapturedImages(images);
-        console.log("Successfully loaded captured images");
+        images = JSON.parse(storedImages);
+        console.log("Successfully loaded captured images from sessionStorage");
       } catch (error) {
-        console.error("Failed to parse captured images:", error);
-        setLocation('/camera');
+        console.error("Failed to parse captured images from sessionStorage:", error);
       }
+    }
+    
+    // If sessionStorage failed, try global memory storage
+    if (!images && (window as any).tempImageStorage) {
+      images = (window as any).tempImageStorage;
+      console.log("Successfully loaded captured images from global memory storage");
+      // Clean up global storage after loading
+      delete (window as any).tempImageStorage;
+    }
+    
+    if (images && images.front) {
+      setCapturedImages(images);
+      console.log("Images loaded successfully, front view available");
     } else {
-      console.log("No captured images found, redirecting to camera");
+      console.log("No valid captured images found, redirecting to camera");
       setLocation('/camera');
     }
   }, [setLocation]);

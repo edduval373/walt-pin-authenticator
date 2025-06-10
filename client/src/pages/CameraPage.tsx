@@ -688,10 +688,25 @@ export default function CameraPage() {
       setDirectCameraReady(false);
     }
     
-    // Store all captured images (as they currently are) in sessionStorage
+    // Store captured images preserving full quality for authentication
     const imagesToStore = { ...capturedImages };
-    console.log("Storing images in sessionStorage:", imagesToStore);
-    sessionStorage.setItem('capturedImages', JSON.stringify(imagesToStore));
+    console.log("Attempting to store full-quality images");
+    
+    try {
+      // Clear sessionStorage completely to maximize available space
+      sessionStorage.clear();
+      console.log("Cleared sessionStorage to maximize space");
+      
+      // Store images with full quality preserved
+      sessionStorage.setItem('capturedImages', JSON.stringify(imagesToStore));
+      console.log("Full-quality images stored successfully in sessionStorage");
+    } catch (error) {
+      console.error("SessionStorage quota exceeded, using global memory storage");
+      
+      // Store images in global memory as fallback - preserves full quality
+      (window as any).tempImageStorage = imagesToStore;
+      console.log("Using temporary global storage for full-quality images");
+    }
     
     // Navigate to processing page
     console.log("Navigating to processing page");

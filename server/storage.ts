@@ -5,6 +5,7 @@ import {
 } from "@shared/schema";
 import { pinDatabase } from "@/lib/pin-database";
 import { DatabaseStorage } from "./db-storage";
+import { RailwayStorage } from "./railway-storage";
 
 // Interface for all storage operations
 export interface IStorage {
@@ -231,5 +232,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use database storage for persistent data when DATABASE_URL is available
-export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();
+// Use Railway production database directly
+export const storage = new RailwayStorage();

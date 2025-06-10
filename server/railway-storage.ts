@@ -11,19 +11,23 @@ export class RailwayStorage implements IStorage {
   private pool: Pool;
 
   constructor() {
-    // Use Railway database URL or fallback to development database
-    const railwayUrl = process.env.RAILWAY_DATABASE_URL || 
-                      'postgresql://postgres:4g5OHY8LLLCePbBxD7SW@containers-us-west-93.railway.app:6993/railway';
+    // Use Railway environment variables directly
+    const railwayUrl = process.env.DATABASE_URL || process.env.RAILWAY_DATABASE_URL;
+    
+    if (!railwayUrl) {
+      throw new Error('No Railway database URL found in environment variables');
+    }
 
     this.pool = new Pool({
       connectionString: railwayUrl,
       ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 10000,
+      connectionTimeoutMillis: 15000,
       idleTimeoutMillis: 30000,
-      max: 10
+      max: 5,
+      min: 0
     });
     
-    log('Attempting to connect to Railway production database', 'railway');
+    log(`Attempting to connect to Railway database`, 'railway');
     this.testConnection();
   }
 
@@ -42,15 +46,30 @@ export class RailwayStorage implements IStorage {
 
   private async initializeFeedbackColumns() {
     try {
-      // Add feedback columns to pins table if they don't exist
-      await this.pool.query(`
-        ALTER TABLE pins 
-        ADD COLUMN IF NOT EXISTS user_agreement VARCHAR(10) CHECK (user_agreement IN ('agree', 'disagree')),
-        ADD COLUMN IF NOT EXISTS feedback_comment TEXT,
-        ADD COLUMN IF NOT EXISTS feedback_submitted_at TIMESTAMP
+      // Check if columns already exist
+      const columnsResult = await this.pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'pins' AND column_name IN ('user_agreement', 'feedback_comment', 'feedback_submitted_at')
       `);
       
-      log('Railway database feedback columns initialized', 'railway');
+      const existingColumns = columnsResult.rows.map(row => row.column_name);
+      
+      if (existingColumns.length < 3) {
+        log('Adding feedback columns to Railway pins table...', 'railway');
+        
+        // Add feedback columns to pins table if they don't exist
+        await this.pool.query(`
+          ALTER TABLE pins 
+          ADD COLUMN IF NOT EXISTS user_agreement VARCHAR(10) CHECK (user_agreement IN ('agree', 'disagree')),
+          ADD COLUMN IF NOT EXISTS feedback_comment TEXT,
+          ADD COLUMN IF NOT EXISTS feedback_submitted_at TIMESTAMP
+        `);
+        
+        log('Railway database feedback columns added successfully', 'railway');
+      } else {
+        log('Railway feedback columns already exist', 'railway');
+      }
     } catch (error: any) {
       log(`Railway database initialization error: ${error.message}`, 'railway');
     }

@@ -11,11 +11,10 @@ export class RailwayStorage implements IStorage {
   private pool: Pool;
 
   constructor() {
-    // Use Railway environment variables directly
-    const railwayUrl = process.env.DATABASE_URL || process.env.RAILWAY_DATABASE_URL;
+    const railwayUrl = process.env.DATABASE_URL;
     
     if (!railwayUrl) {
-      throw new Error('No Railway database URL found in environment variables');
+      throw new Error('Railway DATABASE_URL environment variable is required');
     }
 
     this.pool = new Pool({
@@ -23,11 +22,11 @@ export class RailwayStorage implements IStorage {
       ssl: { rejectUnauthorized: false },
       connectionTimeoutMillis: 15000,
       idleTimeoutMillis: 30000,
-      max: 5,
-      min: 0
+      max: 10,
+      min: 1
     });
     
-    log(`Attempting to connect to Railway database`, 'railway');
+    log('Connecting to Railway production database', 'railway');
     this.testConnection();
   }
 

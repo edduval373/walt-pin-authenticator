@@ -418,9 +418,9 @@ export default function CameraPage() {
   // Listen for file uploads from header
   useEffect(() => {
     const handleHeaderFileUpload = (event: CustomEvent) => {
-      const file = event.detail;
-      if (file) {
-        handleFileUpload({ target: { files: [file] } } as any);
+      const files = event.detail;
+      if (files && Array.isArray(files)) {
+        handleFileUpload({ target: { files } } as any);
       }
     };
 
@@ -485,29 +485,62 @@ export default function CameraPage() {
   
   // Handle file upload from local storage
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
     
     // Only accept image files
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      alert('Please select image files');
       return;
     }
     
-    // Read the file as data URL
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const imageData = e.target?.result as string;
-      // Pass image to the handler
-      handleCapture(imageData);
-      
-      // Reset the file input so the same file can be selected again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    };
+    // If more than 3 images selected, take only the first 3
+    const filesToProcess = imageFiles.slice(0, 3);
     
-    reader.readAsDataURL(file);
+    // Process all selected files
+    let filesProcessed = 0;
+    const newImages = { ...capturedImages };
+    const viewOrder: ('front' | 'back' | 'angled')[] = ['front', 'back', 'angled'];
+    
+    filesToProcess.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageData = e.target?.result as string;
+        const targetView = viewOrder[index];
+        
+        // Update the specific view with this image
+        newImages[targetView] = imageData;
+        filesProcessed++;
+        
+        // Get the next image number for naming
+        const imageNumber = transmissionLogger.getNextImageNumber();
+        
+        // Store the image with proper numbering in session storage
+        const imageKey = `Image #${imageNumber} - ${targetView}`;
+        sessionStorage.setItem(imageKey, imageData);
+        
+        // If all files are processed, update state
+        if (filesProcessed === filesToProcess.length) {
+          setCapturedImages(newImages);
+          console.log("Updated captured images from file upload:", newImages);
+          
+          // Set activeView to the last uploaded image's view
+          setActiveView(viewOrder[filesToProcess.length - 1]);
+          
+          // Show preview of the last uploaded image
+          setPreviewImageData(imageData);
+          setPreviewModalOpen(true);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    });
+    
+    // Reset the file input so files can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
   
   const handleCapture = (imageData: string) => {
@@ -1107,6 +1140,7 @@ export default function CameraPage() {
               type="file"
               ref={fileInputRef}
               accept="image/*"
+              multiple
               onChange={handleFileUpload}
               className="hidden"
             />

@@ -51,10 +51,10 @@ export default function Header({ onInfoClick }: HeaderProps) {
   const showUploadButton = location === "/camera"; // Only show upload button on camera page
   
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
       // Trigger the same file upload logic as in CameraPage
-      const uploadEvent = new CustomEvent('headerFileUpload', { detail: file });
+      const uploadEvent = new CustomEvent('headerFileUpload', { detail: files });
       window.dispatchEvent(uploadEvent);
     }
   };
@@ -124,6 +124,7 @@ export default function Header({ onInfoClick }: HeaderProps) {
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           onChange={handleFileUpload}
           className="hidden"
         />

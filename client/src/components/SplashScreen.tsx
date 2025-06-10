@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { RiCheckLine, RiShieldCheckLine, RiArrowRightLine } from "react-icons/ri";
+import React, { useEffect, useState, useRef } from 'react';
+import { RiCheckLine, RiShieldCheckLine, RiArrowRightLine, RiArrowUpSLine, RiArrowDownSLine } from "react-icons/ri";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
@@ -17,7 +17,32 @@ interface SplashScreenProps {
 export default function SplashScreen({ onComplete }: SplashScreenProps) {
   const [progress, setProgress] = useState(0);
   const [showGetStarted, setShowGetStarted] = useState(false);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
+  // Check scroll position to show/hide scroll indicators
+  const checkScrollPosition = () => {
+    if (!scrollContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    setCanScrollUp(scrollTop > 0);
+    setCanScrollDown(scrollTop < scrollHeight - clientHeight - 1);
+  };
+
+  // Scroll functions
+  const scrollUp = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ top: -20, behavior: 'smooth' });
+    }
+  };
+
+  const scrollDown = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ top: 20, behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     // Only show the automatic loading for a bit, then show the Get Started button
     const interval = setInterval(() => {
@@ -30,6 +55,9 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         return prev + 4;  // Increment by 4% each time (25 steps to reach 100%)
       });
     }, 60);  // Update every 60ms
+    
+    // Check initial scroll position
+    setTimeout(checkScrollPosition, 100);
     
     return () => {
       clearInterval(interval);
@@ -99,16 +127,39 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         
         {/* Bottom Section */}
         <div className="flex-shrink-0" style={{ transform: 'translateY(-108px)' }}>
-          {/* Legal Disclaimer - Compact */}
+          {/* Legal Disclaimer - With Custom Scroll Controls */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="mb-3 bg-indigo-50 border border-indigo-200 rounded-lg p-2"
+            className="mb-3 bg-indigo-50 border border-indigo-200 rounded-lg p-2 relative"
           >
             <div className="text-xs text-gray-600 leading-tight">
               <p className="font-semibold text-indigo-700 mb-1 text-center">⚠️ IMPORTANT LEGAL NOTICE</p>
-              <div className="max-h-12 overflow-y-auto">
+              
+              {/* Scroll Up Button */}
+              {canScrollUp && (
+                <button
+                  onClick={scrollUp}
+                  className="absolute top-8 right-1 z-10 bg-indigo-200 hover:bg-indigo-300 rounded-full p-1 shadow-md transition-colors"
+                  aria-label="Scroll up"
+                >
+                  <RiArrowUpSLine className="text-indigo-700 text-sm" />
+                </button>
+              )}
+              
+              {/* Scrollable Content */}
+              <div 
+                ref={scrollContainerRef}
+                className="max-h-12 overflow-y-auto pr-6 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-indigo-100"
+                onScroll={checkScrollPosition}
+                style={{
+                  /* Force scrollbar to be visible on iOS */
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#a5b4fc #e0e7ff'
+                }}
+              >
                 <p className="mb-1">
                   <strong>FOR ENTERTAINMENT PURPOSES ONLY.</strong> This application utilizes artificial intelligence (AI) technology which is inherently unreliable and subject to errors, biases, and limitations.
                 </p>
@@ -121,6 +172,28 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
                 <p className="text-xs text-gray-500">
                   By using this app, you acknowledge these limitations and agree that the developers disclaim all liability for any losses or damages resulting from reliance on AI-generated content.
                 </p>
+              </div>
+              
+              {/* Scroll Down Button */}
+              {canScrollDown && (
+                <button
+                  onClick={scrollDown}
+                  className="absolute bottom-1 right-1 z-10 bg-indigo-200 hover:bg-indigo-300 rounded-full p-1 shadow-md transition-colors"
+                  aria-label="Scroll down"
+                >
+                  <RiArrowDownSLine className="text-indigo-700 text-sm" />
+                </button>
+              )}
+              
+              {/* Visual Scroll Indicator */}
+              <div className="absolute right-2 top-8 bottom-4 w-1 bg-indigo-100 rounded-full overflow-hidden">
+                <div 
+                  className="bg-indigo-400 rounded-full transition-all duration-200 ease-out"
+                  style={{
+                    height: canScrollDown ? '30%' : '100%',
+                    transform: canScrollUp ? 'translateY(50%)' : 'translateY(0%)'
+                  }}
+                />
               </div>
             </div>
           </motion.div>

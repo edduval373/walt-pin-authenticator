@@ -103,8 +103,8 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     try {
       const result = await this.pool.query(
-        'INSERT INTO users (username, email) VALUES ($1, $2) RETURNING *',
-        [user.username, user.email]
+        'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
+        [user.username, user.password]
       );
       return result.rows[0];
     } catch (error: any) {
@@ -137,8 +137,8 @@ export class DatabaseStorage implements IStorage {
   async createPin(pin: InsertPin): Promise<Pin> {
     try {
       const result = await this.pool.query(
-        'INSERT INTO pins (id, name, description) VALUES ($1, $2, $3) RETURNING *',
-        [pin.id, pin.name, pin.description]
+        'INSERT INTO pins (pin_id, name, series, release_year, image_url, dominant_colors, similar_pins) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [pin.pinId, pin.name, pin.series, pin.releaseYear, pin.imageUrl, pin.dominantColors, pin.similarPins]
       );
       return result.rows[0];
     } catch (error: any) {
@@ -151,8 +151,8 @@ export class DatabaseStorage implements IStorage {
   async analyzePin(imageData: string): Promise<Analysis> {
     try {
       const result = await this.pool.query(
-        'INSERT INTO analyses (pin_id, image_data, analysis_result, authenticity_rating) VALUES ($1, $2, $3, $4) RETURNING *',
-        ['unknown', imageData, 'Analysis completed', 4]
+        'INSERT INTO analyses (image_blob, pin_id, confidence, factors, color_match_percentage, database_match_count, image_quality_score) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [imageData, 'unknown', 4, {}, 75, 1, 85]
       );
       return result.rows[0];
     } catch (error: any) {
@@ -184,8 +184,8 @@ export class DatabaseStorage implements IStorage {
   async createAnalysis(analysis: InsertAnalysis): Promise<Analysis> {
     try {
       const result = await this.pool.query(
-        'INSERT INTO analyses (pin_id, image_data, analysis_result, authenticity_rating) VALUES ($1, $2, $3, $4) RETURNING *',
-        [analysis.pinId, analysis.imageData, analysis.analysisResult, analysis.authenticityRating]
+        'INSERT INTO analyses (image_blob, pin_id, confidence, factors, color_match_percentage, database_match_count, image_quality_score) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [analysis.imageBlob, analysis.pinId, analysis.confidence, analysis.factors, analysis.colorMatchPercentage, analysis.databaseMatchCount, analysis.imageQualityScore]
       );
       return result.rows[0];
     } catch (error: any) {

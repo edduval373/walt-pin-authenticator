@@ -49,6 +49,23 @@ In Railway dashboard, add these variables:
 **Optional:**
 - `DATABASE_URL` = (if using database)
 
+## Step 5: Preventing Deployment Warning Emails
+
+The app now includes optimizations to prevent Railway warning emails:
+
+**Build Optimizations:**
+- ✅ Code splitting with lazy loading reduces bundle size
+- ✅ Updated browserslist data prevents outdated warnings
+- ✅ Production configuration with proper minification
+- ✅ Terser optimization removes console logs in production
+
+**What the warnings mean:**
+- "CSS syntax error": Resolved with improved minification
+- "Large bundle warning": Fixed with code splitting
+- "Browserslist outdated": Updated automatically during build
+
+Your deployments should now complete without warning emails, showing only success notifications.
+
 ## Your Clean App Structure
 
 ```

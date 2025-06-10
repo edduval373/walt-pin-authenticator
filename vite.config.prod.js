@@ -18,8 +18,25 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      external: [],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-progress', '@radix-ui/react-tabs'],
+          icons: ['react-icons', 'lucide-react'],
+          motion: ['framer-motion'],
+          query: ['@tanstack/react-query'],
+          forms: ['react-hook-form', '@hookform/resolvers'],
+        },
+      },
+    },
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
     },
   },
   define: {

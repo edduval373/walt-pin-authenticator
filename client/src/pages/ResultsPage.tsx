@@ -519,7 +519,7 @@ export default function ResultsPage() {
                   
                   <div className="bg-gray-50 rounded-md p-4">
                     <h4 className="font-medium text-sm mb-2">Record Number</h4>
-                    <p className="text-gray-700 font-mono">{serverResponse.sessionId || 'No record number provided'}</p>
+                    <p className="text-gray-700 font-mono">{serverResponse.recordNumber || serverResponse.recordId || 'No record number provided'}</p>
                   </div>
                   
                   <div className="bg-gray-50 rounded-md p-4">

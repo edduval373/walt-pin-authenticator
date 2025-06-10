@@ -6,6 +6,7 @@ import multer from "multer";
 import fetch from "node-fetch";
 import FormData from "form-data";
 import { log } from "./vite";
+import { getMobileAppLogs, generateMobileAppLogsPage } from './mobile-app-logs-viewer';
 
 // Set up multer for file uploads
 const storage_multer = multer.memoryStorage();
@@ -253,6 +254,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       },
       hasApiKey: !!PIM_STANDARD_API_KEY
     });
+  });
+  
+  // Mobile App Debug Endpoints
+  app.get('/api/mobile/logs', getMobileAppLogs);
+  
+  app.get('/api/mobile/debug', (req, res) => {
+    const html = generateMobileAppLogsPage();
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
   });
   
   // Mobile API endpoints for app integration

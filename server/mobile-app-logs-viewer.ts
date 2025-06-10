@@ -19,7 +19,7 @@ export async function getMobileAppLogs(req: Request, res: Response) {
     }
     
     // Format logs for easy debugging
-    const formattedLogs = logs.slice(0, Number(limit)).map(logEntry => ({
+    const formattedLogs = logs.slice(0, Number(limit)).map((logEntry: any) => ({
       id: logEntry.id,
       sessionId: logEntry.sessionId,
       requestType: logEntry.requestType,
@@ -30,29 +30,29 @@ export async function getMobileAppLogs(req: Request, res: Response) {
       
       // Host API response details (if available)
       hostResponse: logEntry.hostApiResponse ? {
-        success: logEntry.hostApiResponse.success,
-        recordNumber: logEntry.hostApiResponse.recordNumber || logEntry.hostApiResponse.recordId,
-        authentic: logEntry.hostApiResponse.authentic,
-        authenticityRating: logEntry.hostApiResponse.authenticityRating,
-        hasAnalysis: !!logEntry.hostApiResponse.analysis,
-        hasIdentification: !!logEntry.hostApiResponse.identification,
-        hasPricing: !!logEntry.hostApiResponse.pricing
+        success: (logEntry.hostApiResponse as any).success,
+        recordNumber: (logEntry.hostApiResponse as any).recordNumber || (logEntry.hostApiResponse as any).recordId,
+        authentic: (logEntry.hostApiResponse as any).authentic,
+        authenticityRating: (logEntry.hostApiResponse as any).authenticityRating,
+        hasAnalysis: !!(logEntry.hostApiResponse as any).analysis,
+        hasIdentification: !!(logEntry.hostApiResponse as any).identification,
+        hasPricing: !!(logEntry.hostApiResponse as any).pricing
       } : null,
       
       // Request details
       requestDetails: {
-        frontImageLength: logEntry.requestBody?.frontImageLength,
-        backImageLength: logEntry.requestBody?.backImageLength,
-        angledImageLength: logEntry.requestBody?.angledImageLength,
-        requestId: logEntry.requestBody?.requestId
+        frontImageLength: (logEntry.requestBody as any)?.frontImageLength,
+        backImageLength: (logEntry.requestBody as any)?.backImageLength,
+        angledImageLength: (logEntry.requestBody as any)?.angledImageLength,
+        requestId: (logEntry.requestBody as any)?.requestId
       },
       
       // Final response to mobile app
       finalResponse: logEntry.responseBody ? {
-        success: logEntry.responseBody.success,
-        id: logEntry.responseBody.id,
-        pinId: logEntry.responseBody.pinId,
-        hasAnalysis: !!logEntry.responseBody.analysis
+        success: (logEntry.responseBody as any).success,
+        id: (logEntry.responseBody as any).id,
+        pinId: (logEntry.responseBody as any).pinId,
+        hasAnalysis: !!(logEntry.responseBody as any).analysis
       } : null,
       
       errorMessage: logEntry.errorMessage

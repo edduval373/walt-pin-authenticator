@@ -4,6 +4,7 @@ import {
   type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback
 } from "@shared/schema";
 import { pinDatabase } from "@/lib/pin-database";
+import { DatabaseStorage } from "./db-storage";
 
 // Interface for all storage operations
 export interface IStorage {
@@ -211,4 +212,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use database storage for persistent data when DATABASE_URL is available
+export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();

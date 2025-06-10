@@ -73,3 +73,24 @@ export const insertUserFeedbackSchema = createInsertSchema(userFeedback)
 
 export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
 export type UserFeedback = typeof userFeedback.$inferSelect;
+
+// Mobile App API Log model for tracking interactions
+export const mobileAppApiLog = pgTable("mobile_app_api_log", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull(),
+  requestType: text("request_type").notNull(), // "verify-pin" or "confirm-pin"
+  requestBody: jsonb("request_body").notNull(),
+  responseBody: jsonb("response_body"),
+  responseStatus: integer("response_status"),
+  hostApiCalled: boolean("host_api_called").default(false),
+  hostApiResponse: jsonb("host_api_response"),
+  hostApiStatus: integer("host_api_status"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertMobileAppApiLogSchema = createInsertSchema(mobileAppApiLog)
+  .omit({ id: true, createdAt: true });
+
+export type InsertMobileAppApiLog = z.infer<typeof insertMobileAppApiLogSchema>;
+export type MobileAppApiLog = typeof mobileAppApiLog.$inferSelect;

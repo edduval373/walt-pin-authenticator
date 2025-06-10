@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { 
-  type User, type Pin, type Analysis, type UserFeedback,
-  type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback
+  type User, type Pin, type Analysis, type UserFeedback, type MobileAppApiLog,
+  type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback, type InsertMobileAppApiLog
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { log } from "./vite";
@@ -306,6 +306,53 @@ export class RailwayStorage implements IStorage {
       return feedback;
     } catch (error: any) {
       log(`Railway error getting all user feedback: ${error.message}`, 'railway');
+      return [];
+    }
+  }
+
+  // Mobile App API Log methods
+  async createMobileAppLog(logEntry: InsertMobileAppApiLog): Promise<MobileAppApiLog> {
+    try {
+      const result = await this.pool.query(
+        'INSERT INTO mobile_app_api_log (session_id, request_type, request_body, response_body, response_status, host_api_called, host_api_response, host_api_status, error_message) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+        [
+          logEntry.sessionId,
+          logEntry.requestType,
+          logEntry.requestBody,
+          logEntry.responseBody || null,
+          logEntry.responseStatus || null,
+          logEntry.hostApiCalled || false,
+          logEntry.hostApiResponse || null,
+          logEntry.hostApiStatus || null,
+          logEntry.errorMessage || null
+        ]
+      );
+      return result.rows[0];
+    } catch (error: any) {
+      log(`Railway error creating mobile app log: ${error.message}`, 'railway');
+      throw error;
+    }
+  }
+
+  async getMobileAppLogsBySession(sessionId: string): Promise<MobileAppApiLog[]> {
+    try {
+      const result = await this.pool.query(
+        'SELECT * FROM mobile_app_api_log WHERE session_id = $1 ORDER BY created_at DESC',
+        [sessionId]
+      );
+      return result.rows;
+    } catch (error: any) {
+      log(`Railway error getting mobile app logs for session ${sessionId}: ${error.message}`, 'railway');
+      return [];
+    }
+  }
+
+  async getAllMobileAppLogs(): Promise<MobileAppApiLog[]> {
+    try {
+      const result = await this.pool.query('SELECT * FROM mobile_app_api_log ORDER BY created_at DESC LIMIT 100');
+      return result.rows;
+    } catch (error: any) {
+      log(`Railway error getting all mobile app logs: ${error.message}`, 'railway');
       return [];
     }
   }

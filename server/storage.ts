@@ -1,6 +1,6 @@
 import { 
-  type User, type Pin, type Analysis, type UserFeedback,
-  type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback
+  type User, type Pin, type Analysis, type UserFeedback, type MobileAppApiLog,
+  type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback, type InsertMobileAppApiLog
 } from "@shared/schema";
 import { RailwayStorage } from "./railway-storage";
 
@@ -28,6 +28,11 @@ export interface IStorage {
   createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
   getFeedbackByAnalysisId(analysisId: number): Promise<UserFeedback[]>;
   getAllUserFeedback(): Promise<UserFeedback[]>;
+  
+  // Mobile App API Log methods
+  createMobileAppLog(logEntry: InsertMobileAppApiLog): Promise<MobileAppApiLog>;
+  getMobileAppLogsBySession(sessionId: string): Promise<MobileAppApiLog[]>;
+  getAllMobileAppLogs(): Promise<MobileAppApiLog[]>;
 }
 
 // Use Railway production database exclusively

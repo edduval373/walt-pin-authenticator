@@ -643,41 +643,45 @@ export default function CameraPage() {
     console.log("Confirm button pressed - current activeView:", activeView);
     console.log("Current captured images:", Object.keys(capturedImages).filter(key => capturedImages[key]));
     
-    // Check if we have at least front image (required for processing)
-    const canProcess = !!capturedImages.front;
+    // If we're confirming the angled view and we have all three images, go directly to processing
+    if (activeView === 'angled' && capturedImages.front && capturedImages.back && capturedImages.angled) {
+      console.log("All three images captured - proceeding to processing automatically");
+      handleEvaluate();
+      return;
+    }
     
-    // If we're on the angled view or have all three images, proceed to processing
-    if (activeView === 'angled' || (capturedImages.front && capturedImages.back && capturedImages.angled)) {
-      console.log("Ready to process - navigating to processing page");
-      // Stop the camera before navigating to reduce resource usage
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        tracks.forEach(track => track.stop());
-        streamRef.current = null;
-        setDirectCameraReady(false);
-      }
-      
-      // Store all captured images in sessionStorage
-      sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));
-      
-      // Navigate to processing page
-      setLocation('/processing');
-    } else {
-      // Move to the next view in sequence
-      if (activeView === 'front') {
-        console.log("Moving from front to back view");
-        setActiveView('back');
-      } else if (activeView === 'back') {
-        console.log("Moving from back to angled view");
-        setActiveView('angled');
-      }
+    // If we have all three images regardless of current view, go to processing
+    if (capturedImages.front && capturedImages.back && capturedImages.angled) {
+      console.log("All three images available - proceeding to processing");
+      handleEvaluate();
+      return;
+    }
+    
+    // Otherwise, move to the next view in sequence
+    if (activeView === 'front') {
+      console.log("Moving from front to back view");
+      setActiveView('back');
+    } else if (activeView === 'back') {
+      console.log("Moving from back to angled view");
+      setActiveView('angled');
+    } else if (activeView === 'angled') {
+      // If we're on angled but don't have all images, still proceed with what we have
+      console.log("On angled view - proceeding to processing with available images");
+      handleEvaluate();
     }
   };
   
   // Function to evaluate the current images
   const handleEvaluate = () => {
+    console.log("handleEvaluate called");
+    console.log("Current captured images:", Object.keys(capturedImages).filter(key => capturedImages[key]));
+    console.log("Front image exists:", !!capturedImages.front);
+    console.log("Back image exists:", !!capturedImages.back);
+    console.log("Angled image exists:", !!capturedImages.angled);
+    
     // Stop the camera before navigating to reduce resource usage
     if (streamRef.current) {
+      console.log("Stopping camera stream");
       const tracks = streamRef.current.getTracks();
       tracks.forEach((track) => track.stop());
       streamRef.current = null;
@@ -685,9 +689,12 @@ export default function CameraPage() {
     }
     
     // Store all captured images (as they currently are) in sessionStorage
-    sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));
+    const imagesToStore = { ...capturedImages };
+    console.log("Storing images in sessionStorage:", imagesToStore);
+    sessionStorage.setItem('capturedImages', JSON.stringify(imagesToStore));
     
     // Navigate to processing page
+    console.log("Navigating to processing page");
     setLocation('/processing');
   };
   

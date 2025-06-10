@@ -89,12 +89,17 @@ export async function analyzePinImagesWithPimStandard(
       // Store COMPLETE request details in session storage for logging
       const requestLog = {
         timestamp: new Date().toISOString(),
-        url: 'https://pim-master-library-edduval15.replit.app/mobile-upload',
+        url: '/api/mobile/verify-pin',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-session-id': finalSessionId
         },
-        body: body // Store the complete body with all image data
+        body: {
+          frontImageBase64: cleanFrontImage,
+          ...(cleanBackImage && { backImageBase64: cleanBackImage }),
+          ...(cleanAngledImage && { angledImageBase64: cleanAngledImage })
+        }
       };
       
       // Save the request log
@@ -113,16 +118,30 @@ export async function analyzePinImagesWithPimStandard(
       
       // Log the actual packet being sent
       console.log('ACTUAL REQUEST PACKET:', {
-        url: 'https://pim-master-library-edduval15.replit.app/mobile-upload',
+        url: '/api/mobile/verify-pin',
         method: 'POST',
-        headers: requestHeaders,
-        bodySize: requestBody.length
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-id': finalSessionId
+        },
+        bodySize: JSON.stringify({
+          frontImageBase64: cleanFrontImage,
+          ...(cleanBackImage && { backImageBase64: cleanBackImage }),
+          ...(cleanAngledImage && { angledImageBase64: cleanAngledImage })
+        }).length
       });
       
-      const response = await fetch('https://pim-master-library-edduval15.replit.app/mobile-upload', {
+      const response = await fetch('/api/mobile/verify-pin', {
         method: 'POST',
-        headers: requestHeaders,
-        body: requestBody
+        headers: {
+          'Content-Type': 'application/json',
+          'x-session-id': finalSessionId
+        },
+        body: JSON.stringify({
+          frontImageBase64: cleanFrontImage,
+          ...(cleanBackImage && { backImageBase64: cleanBackImage }),
+          ...(cleanAngledImage && { angledImageBase64: cleanAngledImage })
+        })
       });
       
       clearTimeout(timeoutId);

@@ -229,6 +229,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       environment: process.env.NODE_ENV
     });
   });
+
+
   
   // Add endpoint to get current API configuration (without exposing the actual key)
   app.get('/api/config', (req, res) => {

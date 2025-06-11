@@ -129,15 +129,16 @@ app.use((req, res, next) => {
         
         console.log(`[mobile-upload] Master server response status: ${response.status}`);
         
-        const htmlResponse = await response.text();
+        // Parse JSON response from production server
+        const jsonResponse = await response.json();
         
-        // Parse the HTML response to extract analysis data
+        // Extract analysis data from production JSON response
         analysisResult = {
-          authentic: htmlResponse.includes('authentic') && !htmlResponse.includes('not authentic'),
-          authenticityRating: 85,
-          analysis: htmlResponse,
-          identification: 'Analysis from master server',
-          pricing: 'See full report'
+          authentic: jsonResponse.authentic || false,
+          authenticityRating: jsonResponse.authenticityRating || 0,
+          analysis: jsonResponse.analysis || '',
+          identification: jsonResponse.identification || '',
+          pricing: jsonResponse.pricing || ''
         };
       } catch (error: any) {
         console.log(`[mobile-upload] Master server error: ${error.message}`);

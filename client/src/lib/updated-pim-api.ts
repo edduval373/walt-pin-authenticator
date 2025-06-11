@@ -89,7 +89,7 @@ export async function analyzePinImagesWithPimStandard(
       // Store COMPLETE request details in session storage for logging
       const requestLog = {
         timestamp: new Date().toISOString(),
-        url: 'https://master.pinauth.com/mobile-upload',
+        url: '/mobile-upload',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -119,7 +119,7 @@ export async function analyzePinImagesWithPimStandard(
         bodySize: requestBody.length
       });
       
-      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      const response = await fetch('/mobile-upload', {
         method: 'POST',
         headers: requestHeaders,
         body: requestBody

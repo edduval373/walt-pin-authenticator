@@ -6,30 +6,31 @@ This guide provides the complete API integration requirements for mobile app dev
 ## Base Configuration
 
 ### API Endpoints
-- **Base URL**: `https://pinauth.com/api/mobile/` (Railway deployment)
-- **Development URL**: `http://localhost:5000/api/mobile/` (Local testing)
+- **Production URL**: `https://master.pinauth.com/mobile-upload` (Live production endpoint)
+- **Development URL**: `http://localhost:5000/mobile-upload` (Local testing)
 
 ### Authentication
 ```javascript
 headers: {
   'Content-Type': 'application/json',
-  'x-api-key': 'your-api-key-here',
-  'x-session-id': 'unique-session-identifier'
+  'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
 }
 ```
 
 ## API Endpoints
 
-### 1. Verify Pin - Submit Images for Analysis
-**POST** `/api/mobile/verify-pin`
+### 1. Mobile Upload - Submit Images for Analysis
+**POST** `/mobile-upload`
 
-Submit pin images and receive immediate analysis results with a record number for tracking.
+Submit pin images and receive immediate analysis results with a database ID for tracking.
 
 **Request Body:**
 ```json
 {
-  "frontImageBase64": "data:image/jpeg;base64,/9j/4AAQ...",
-  "backImageBase64": "data:image/jpeg;base64,/9j/4AAQ..." // Optional
+  "sessionId": "250611135600",
+  "frontImageData": "data:image/jpeg;base64,/9j/4AAQ...",
+  "backImageData": "data:image/jpeg;base64,/9j/4AAQ...",
+  "angledImageData": "data:image/jpeg;base64,/9j/4AAQ..."
 }
 ```
 
@@ -37,16 +38,15 @@ Submit pin images and receive immediate analysis results with a record number fo
 ```json
 {
   "success": true,
-  "pinId": "250610124536",
-  "recordNumber": 1749559612345,
-  "sessionId": "session_1749559612000",
-  "requestId": "req_1749559612345",
+  "message": "Pin analysis completed successfully",
+  "sessionId": "250611135600",
+  "id": 322,
+  "timestamp": "2025-06-11T13:55:30.697Z",
   "authentic": true,
   "authenticityRating": 85,
-  "analysis": "<p>AI analysis of pin authenticity...</p>",
-  "identification": "<p>Pin identification details...</p>",
-  "pricing": "<p>Market value information...</p>",
-  "message": "Pin analysis complete - awaiting user confirmation"
+  "analysis": "<p>ANALYSIS analysis unavailable</p>",
+  "identification": "<p>IDENTIFICATION analysis unavailable</p>",
+  "pricing": "<p>PRICING analysis unavailable</p>"
 }
 ```
 

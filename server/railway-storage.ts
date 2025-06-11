@@ -11,15 +11,21 @@ export class RailwayStorage implements IStorage {
   private pool: Pool;
 
   constructor() {
-    const railwayUrl = process.env.DATABASE_URL;
-    
-    if (!railwayUrl) {
-      throw new Error('Railway DATABASE_URL environment variable is required');
-    }
+    // Use individual PostgreSQL environment variables
+    const poolConfig = process.env.DATABASE_URL ? {
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    } : {
+      host: process.env.PGHOST,
+      port: parseInt(process.env.PGPORT || '5432'),
+      database: process.env.PGDATABASE,
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      ssl: { rejectUnauthorized: false }
+    };
 
     this.pool = new Pool({
-      connectionString: railwayUrl,
-      ssl: { rejectUnauthorized: false },
+      ...poolConfig,
       connectionTimeoutMillis: 10000,
       idleTimeoutMillis: 20000,
       max: 5,

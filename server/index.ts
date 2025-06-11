@@ -142,14 +142,12 @@ app.use((req, res, next) => {
         };
       } catch (error: any) {
         console.log(`[mobile-upload] Master server error: ${error.message}`);
-        // Master server unavailable - still create database record
-        analysisResult = {
-          authentic: false,
-          authenticityRating: 0,
-          analysis: 'Master server unavailable - analysis pending',
-          identification: 'Pending analysis',
-          pricing: 'Pending analysis'
-        };
+        // Master server unavailable - return error instead of creating incomplete records
+        return res.status(503).json({
+          success: false,
+          error: "Master server unavailable - authentic analysis service not accessible",
+          message: "Please try again when the authentication service is available"
+        });
       }
       
       // Import storage after dependencies are loaded

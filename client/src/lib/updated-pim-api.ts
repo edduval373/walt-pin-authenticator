@@ -89,7 +89,7 @@ export async function analyzePinImagesWithPimStandard(
       // Store COMPLETE request details in session storage for logging
       const requestLog = {
         timestamp: new Date().toISOString(),
-        url: '/mobile-upload',
+        url: 'https://master.pinauth.com/mobile-upload',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -113,13 +113,13 @@ export async function analyzePinImagesWithPimStandard(
       
       // Log the actual packet being sent
       console.log('ACTUAL REQUEST PACKET:', {
-        url: '/mobile-upload',
+        url: 'https://master.pinauth.com/mobile-upload',
         method: 'POST',
         headers: requestHeaders,
         bodySize: requestBody.length
       });
       
-      const response = await fetch('/mobile-upload', {
+      const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
         headers: requestHeaders,
         body: requestBody
@@ -172,20 +172,21 @@ export async function analyzePinImagesWithPimStandard(
       
       // Map the new response format from your deployed server
       return {
-        success: true,
-        message: 'Analysis complete',
-        authentic: true, // Will be determined from analysis content
-        authenticityRating: 85, // Will be extracted from analysis
+        success: data.success || true,
+        message: data.message || 'Analysis complete',
+        id: data.id, // Preserve database ID from production endpoint
+        authentic: data.authentic !== undefined ? data.authentic : true,
+        authenticityRating: data.authenticityRating || 85,
         analysis: data.analysis || '',
         identification: data.identification || '',
-        pricing: data.prices || '',
+        pricing: data.pricing || '',
         analysisReport: data.analysis || '',
         aiFindings: data.characters || '',
         pinId: data.identification || '',
         pinIdHtml: data.identification || '',
-        pricingHtml: data.prices || '',
-        sessionId: body.sessionId,
-        timestamp: new Date().toISOString(),
+        pricingHtml: data.pricing || '',
+        sessionId: data.sessionId || body.sessionId,
+        timestamp: data.timestamp || new Date().toISOString(),
         // New fields from your host's response format
         characters: data.characters || '',
         frontUrl: data.frontUrl || '',

@@ -3,6 +3,9 @@
 process.env.PIM_API_URL = "https://master.pinauth.com";
 process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
 
+// CRITICAL: Load NeonDB protection system first
+import './neon-protection';
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";

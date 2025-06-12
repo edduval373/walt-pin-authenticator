@@ -17,7 +17,17 @@ A mobile-first web application for Disney pin collectors, providing AI-powered p
 - Backend: Node.js, Express
 - Build Tool: Vite
 - Image Processing: Advanced AI-powered analysis
-- Database: PostgreSQL with Drizzle ORM
+- Database: Railway PostgreSQL with Drizzle ORM
+
+## 🚨 DATABASE PROTECTION WARNING 🚨
+
+**NeonDB is PERMANENTLY BANNED from this project.**
+
+This application uses Railway PostgreSQL exclusively. The NeonDB protection system prevents accidental usage that could cause production failures.
+
+- Database config: `server/db.ts` (DO NOT MODIFY)
+- Protection system: Blocks NeonDB imports automatically
+- See `DATABASE_PROTECTION_WARNING.md` for full details
 
 ## Quick Start
 

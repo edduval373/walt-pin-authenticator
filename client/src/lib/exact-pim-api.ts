@@ -127,11 +127,11 @@ export async function getExactPimAnalysisReport(
     console.log('Using API endpoint: /api/mobile/simple-verify');
     
     // Use the working simple-verify endpoint with mobile-test-key
-    const response = await fetch('/api/mobile/simple-verify', {
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': 'mobile-test-key'  // Use the exact API key needed for mobile integration
+        'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
       },
       body: JSON.stringify(payload)
     });

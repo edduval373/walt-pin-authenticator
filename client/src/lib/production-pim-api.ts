@@ -65,11 +65,11 @@ export async function verifyPinWithProductionApi(
     });
     
     // Make the API request with proper headers
-    const fetchPromise = fetch('/api/mobile/simple-verify', {
+    const fetchPromise = fetch('https://master.pinauth.com/mobile-upload', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': 'mobile-test-key'
+        'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
       },
       body: JSON.stringify(requestBody)
     });

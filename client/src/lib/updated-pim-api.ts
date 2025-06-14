@@ -106,7 +106,7 @@ export async function analyzePinImagesWithPimStandard(
       // Call the direct external endpoint with proper authentication
       const requestHeaders = {
         'Content-Type': 'application/json',
-        'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+        'x-api-key': import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
       };
       
       const requestBody = JSON.stringify(body);

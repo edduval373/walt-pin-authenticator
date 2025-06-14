@@ -69,7 +69,7 @@ interface PimStandardResponse {
  */
 async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: string, angledImageBase64?: string): Promise<PimStandardResponse> {
   // Ensure API key is configured
-  if (!PIM_STANDARD_API_KEY) {
+  if (!PIM_API_KEY) {
     log(`ERROR: PIM Standard API key not configured`);
     throw new Error("PIM Standard API key not configured");
   }
@@ -101,7 +101,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     log(`Image sizes - Front: ${cleanFrontImage.length} chars, Back: ${requestBody.backImageData ? requestBody.backImageData.length : 'N/A'} chars, Angled: ${requestBody.angledImageData ? requestBody.angledImageData.length : 'N/A'} chars`, 'express');
     
     // Log sample of image data and API key being used
-    log(`API Key from secrets: ${PIM_STANDARD_API_KEY ? PIM_STANDARD_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
+    log(`API Key from secrets: ${PIM_API_KEY ? PIM_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
     log(`Front image data sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
     
     // Try each API endpoint in sequence until one succeeds
@@ -118,7 +118,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': PIM_STANDARD_API_KEY
+            'x-api-key': PIM_API_KEY
           },
           body: JSON.stringify(requestBody)
         });
@@ -132,7 +132,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
           log(`API Request details:
             URL: ${apiUrl}
             Method: POST
-            Headers: Content-Type: application/json, X-API-Key: ${PIM_STANDARD_API_KEY}
+            Headers: Content-Type: application/json, X-API-Key: ${PIM_API_KEY}
             Body keys: ${Object.keys(requestBody).join(', ')}
             Has image data: ${!!requestBody.frontImageBase64}
             Front image data length: ${requestBody.frontImageBase64?.length || 0}
@@ -209,13 +209,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add endpoint to get current API configuration (without exposing the actual key)
   app.get('/api/config', (req, res) => {
     res.json({
-      environment: currentEnv,
-      baseUrl: PIM_API_BASE_URLS[0],
+      environment: process.env.API_ENVIRONMENT || process.env.NODE_ENV || 'development',
+      baseUrl: PIM_API_BASE_URL,
       endpoints: {
         directVerify: '/mobile-upload',
         status: '/api/status'
       },
-      hasApiKey: !!PIM_STANDARD_API_KEY
+      hasApiKey: !!PIM_API_KEY
     });
   });
   
@@ -499,7 +499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Make a simple request to the API status endpoint
       const response = await fetch(PIM_STANDARD_DEBUG_API_URL, {
         headers: {
-          'X-API-Key': PIM_STANDARD_API_KEY
+          'X-API-Key': PIM_API_KEY
         }
       });
       

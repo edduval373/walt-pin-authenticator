@@ -1,6 +1,9 @@
-// Server startup - ensure environment variables are set with defaults
-process.env.PIM_API_URL = process.env.PIM_API_URL || "https://master.pinauth.com/mobile-upload";
-process.env.HEALTH_CHECK_URL = process.env.HEALTH_CHECK_URL || "https://master.pinauth.com/health";
+// Server startup - force correct environment variables to override any Replit secrets
+process.env.PIM_API_URL = "https://master.pinauth.com/mobile-upload";
+process.env.VITE_PIM_API_URL = "https://master.pinauth.com/mobile-upload";
+process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
+process.env.PIM_STANDARD_API_KEY = process.env.PIM_STANDARD_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
+process.env.VITE_PIM_STANDARD_API_KEY = process.env.VITE_PIM_STANDARD_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
 
 // CRITICAL: Load NeonDB protection system first
 import './neon-protection';

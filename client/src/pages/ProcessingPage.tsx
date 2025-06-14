@@ -256,14 +256,14 @@ ${JSON.stringify(result, null, 2)}`;
         transmissionLogger.logImageUpload(
           'success', 
           'Images uploaded and analyzed successfully', 
-          'https://pim-master-library-edduval15.replit.app/mobile-upload', 
+          import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload', 
           undefined, 
           JSON.stringify(result),
-          'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
+          import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
           sessionId,
           {
             'Content-Type': 'application/json',
-            'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+            'x-api-key': import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
           },
           rawRequest,
           rawResponse
@@ -301,11 +301,11 @@ ${JSON.stringify(result, null, 2)}`;
       
       // Capture raw request data for failed attempts
       const rawRequest = `POST /mobile-upload HTTP/1.1
-Host: pim-master-library-edduval15.replit.app
+Host: ${(import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload').replace('https://', '')}
 
 Headers: {
   "Content-Type": "application/json",
-  "x-api-key": "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g"
+  "x-api-key": "${import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'}"
 }
 
 Body: {
@@ -327,14 +327,14 @@ Content-Type: application/json
       transmissionLogger.logImageUpload(
         'failed', 
         'Image upload failed', 
-        'https://pim-master-library-edduval15.replit.app/mobile-upload',
+        import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload',
         error instanceof Error ? error.message : String(error),
         undefined,
-        'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
+        import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
         sessionId,
         {
           'Content-Type': 'application/json',
-          'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+          'x-api-key': import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b2c3d4e5f6g'
         },
         rawRequest,
         rawResponse

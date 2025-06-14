@@ -16,53 +16,27 @@ const upload = multer({
   }
 });
 
-// PIM Standard API configuration with environment support
-const API_ENVIRONMENTS = {
-  development: {
-    // Try both known endpoints in development environment
-    baseUrls: [
-      "https://master.pinauth.com", // Use master.pinauth.com as primary
-      "https://api.pinmaster.railway.app"       
-    ],
-    apiKey: "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g"
-  },
-  production: {
-    baseUrls: [
-      process.env.PIM_API_URL || "https://master.pinauth.com",
-      "https://api.pinmaster.railway.app"
-    ],
-    apiKey: process.env.PIM_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g"
-  },
-  testing: {
-    baseUrls: ["https://master.pinauth.com"],
-    apiKey: "pim_test_key"
-  }
-};
+// Import centralized API configuration
+import { API_BASE_URL, API_KEY, FALLBACK_URLS, API_ENDPOINTS } from "./config";
 
-// Select the environment based on NODE_ENV or default to development
-const currentEnv = (process.env.API_ENVIRONMENT || process.env.NODE_ENV || 'development') as keyof typeof API_ENVIRONMENTS;
-const apiConfig = API_ENVIRONMENTS[currentEnv] || API_ENVIRONMENTS.development;
+// Use centralized configuration instead of duplicating it here
+const PIM_API_BASE_URL = API_BASE_URL;
+const PIM_API_KEY = API_KEY;
 
-// Log which environment we're using
-log(`Using PIM API environment: ${currentEnv}`, 'express');
-log(`Available API base URLs: ${apiConfig.baseUrls.join(', ')}`, 'express');
+// Log configuration from centralized config
+log(`Using PIM API environment: ${process.env.API_ENVIRONMENT || process.env.NODE_ENV || 'development'}`, 'express');
+log(`API base URL: ${PIM_API_BASE_URL}`, 'express');
 
-// Create endpoint URLs (we'll try these in sequence if one fails)
-const PIM_API_BASE_URLS = apiConfig.baseUrls;
-const PIM_STANDARD_API_URLS = PIM_API_BASE_URLS.map(url => `${url}/mobile-upload`);
-const PIM_STANDARD_DEBUG_API_URL = `${PIM_API_BASE_URLS[0]}/api/status`;
-const PIM_STANDARD_OLD_API_URL = `${PIM_API_BASE_URLS[0]}/api/mobile/minimal/verify`;
-
-// Use the API key from the selected environment or environment variable
-const PIM_STANDARD_API_KEY = process.env.PIM_STANDARD_API_KEY || apiConfig.apiKey;
-
-
+// Create endpoint URLs using centralized configuration
+const PIM_STANDARD_API_URLS = [PIM_API_BASE_URL]; // Single endpoint from centralized config
+const PIM_STANDARD_DEBUG_API_URL = `${PIM_API_BASE_URL.replace('/mobile-upload', '')}/api/status`;
+const PIM_STANDARD_OLD_API_URL = `${PIM_API_BASE_URL.replace('/mobile-upload', '')}/api/mobile/minimal/verify`;
 
 // Log API key status at startup
-if (PIM_STANDARD_API_KEY) {
-  log("PIM Standard API key configured successfully");
+if (PIM_API_KEY) {
+  log("PIM Standard API key configured successfully", 'express');
 } else {
-  log("WARNING: PIM Standard API key not configured");
+  log("WARNING: PIM Standard API key not configured", 'express');
 }
 
 // Timeout for API requests in ms (20 seconds)

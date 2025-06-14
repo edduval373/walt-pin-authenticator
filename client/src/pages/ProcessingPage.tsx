@@ -9,7 +9,6 @@ import ApiUnavailableMessage from "@/components/ApiUnavailableMessage";
 import { transmissionLogger } from "@/lib/transmission-logger";
 import StepProgress from "@/components/StepProgress";
 import ServerErrorScreen from "@/components/ServerErrorScreen";
-import { useServerConnection } from "@/hooks/useServerConnection";
 
 // Import the updated API
 import { analyzePinImagesWithPimStandard } from "@/lib/updated-pim-api";
@@ -53,9 +52,6 @@ export default function ProcessingPage() {
   const [error, setError] = useState<string | null>(null);
   const [isApiUnavailable, setIsApiUnavailable] = useState(false);
   const [showServerError, setShowServerError] = useState(false);
-  
-  // Server connection monitoring
-  const serverConnection = useServerConnection(60000); // Check every minute
   const [currentView, setCurrentView] = useState<'front' | 'back' | 'angled'>('front');
   const [statusMessage, setStatusMessage] = useState<string>("Starting analysis...");
   const [showRetryButton, setShowRetryButton] = useState(false);
@@ -393,14 +389,13 @@ Content-Type: application/json
   };
   
   // Show server error screen if server is unavailable
-  if (showServerError || (serverConnection.error && !serverConnection.isConnected)) {
+  if (showServerError) {
     return (
       <ServerErrorScreen
-        error={serverConnection.error || "Master server is currently unavailable"}
-        isConnecting={serverConnection.isConnecting}
+        error="Master server is currently unavailable"
+        isConnecting={false}
         onRetry={() => {
           setShowServerError(false);
-          serverConnection.retry();
           if (capturedImages) {
             retryProcessing();
           }

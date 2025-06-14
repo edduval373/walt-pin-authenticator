@@ -15,7 +15,7 @@ interface ApiEnvironmentConfig {
 // Get API configuration from environment variables
 const API_URL_FROM_ENV = process.env.PIM_API_URL || "https://master.pinauth.com/mobile-upload";
 const HEALTH_URL_FROM_ENV = process.env.HEALTH_CHECK_URL || "https://master.pinauth.com/health";
-const API_KEY_FROM_ENV = process.env.PIM_STANDARD_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
+const API_KEY_FROM_ENV = process.env.MOBILE_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
 
 // Configuration for different environments - all use environment variables
 const API_ENVIRONMENTS: Record<string, ApiEnvironmentConfig> = {

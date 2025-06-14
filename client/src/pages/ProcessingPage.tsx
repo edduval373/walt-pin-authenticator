@@ -259,11 +259,11 @@ ${JSON.stringify(result, null, 2)}`;
           import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload', 
           undefined, 
           JSON.stringify(result),
-          import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
+          import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
           sessionId,
           {
             'Content-Type': 'application/json',
-            'x-api-key': import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+            'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
           },
           rawRequest,
           rawResponse
@@ -305,7 +305,7 @@ Host: ${(import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-
 
 Headers: {
   "Content-Type": "application/json",
-  "x-api-key": "${import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'}"
+  "x-api-key": "${import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'}"
 }
 
 Body: {
@@ -330,11 +330,11 @@ Content-Type: application/json
         import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload',
         error instanceof Error ? error.message : String(error),
         undefined,
-        import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
+        import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
         sessionId,
         {
           'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b2c3d4e5f6g'
+          'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
         },
         rawRequest,
         rawResponse

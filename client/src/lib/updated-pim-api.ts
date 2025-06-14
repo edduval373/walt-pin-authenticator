@@ -143,13 +143,14 @@ export async function analyzePinImagesWithPimStandard(
         sessionStorage.setItem('lastApiError', JSON.stringify(errorData));
         
         // Special handling for service unavailability errors
-        if (response.status === 503 || response.status === 502 || response.status === 504) {
-          const error = new Error(`Service Unavailable: The Pin Authentication Service is temporarily down. Please try again later.`);
+        if (response.status === 503 || response.status === 502 || response.status === 504 || response.status === 404) {
+          const error = new Error(`Server unavailable: Master server is not responding (${response.status})`);
           (error as any).serverError = errorData;
+          (error as any).isServerError = true;
           throw error;
         }
         
-        const error = new Error(`PIM Standard API returned ${response.status}: ${text}`);
+        const error = new Error(`API error ${response.status}: ${text}`);
         (error as any).serverError = errorData;
         throw error;
       }
@@ -210,10 +211,19 @@ export async function analyzePinImagesWithPimStandard(
       existingErrorLogs.unshift(errorLog);
       sessionStorage.setItem('apiErrorLogs', JSON.stringify(existingErrorLogs.slice(0, 10))); // Keep the last 10 logs
       
+      // Mark network/fetch errors as server errors
+      if (fetchError instanceof Error && (fetchError.message.includes('fetch') || fetchError.message.includes('network'))) {
+        (fetchError as any).isServerError = true;
+      }
       throw fetchError;
     }
   } catch (error: unknown) {
     console.error('Error in pin analysis:', error);
+    
+    // Check if this is a server connectivity error and rethrow it
+    if (error instanceof Error && ((error as any).isServerError || error.message.includes('Server unavailable'))) {
+      throw error;
+    }
     
     // Return an empty response when actual API data is not available
     return {

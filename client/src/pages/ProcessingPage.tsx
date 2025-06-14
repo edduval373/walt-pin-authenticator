@@ -345,10 +345,25 @@ Content-Type: application/json
         rawRequest,
         rawResponse
       );
-      setError("An error occurred during processing. Please try again.");
-      setStatusMessage("Processing failed - Please retry");
-      setProgress(0);
-      setShowRetryButton(true);
+      
+      // Check if it's a server connection error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isServerError = (error as any)?.isServerError || 
+                           errorMessage.includes('Server unavailable') ||
+                           errorMessage.includes('404') || 
+                           errorMessage.includes('fetch') || 
+                           errorMessage.includes('network') || 
+                           errorMessage.includes('timeout') || 
+                           errorMessage.includes('Not found');
+      
+      if (isServerError) {
+        setShowServerError(true);
+      } else {
+        setError("An error occurred during processing. Please try again.");
+        setStatusMessage("Processing failed - Please retry");
+        setProgress(0);
+        setShowRetryButton(true);
+      }
       isProcessing.current = false;
     }
   };

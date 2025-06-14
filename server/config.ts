@@ -7,34 +7,26 @@ interface ApiEnvironmentConfig {
   fallbackUrls?: string[];
 }
 
-// Updated API URLs for Railway production hosting  
-const FORCE_API_URL = "https://master.pinauth.com/mobile-upload";
-const FORCE_HEALTH_URL = "https://master.pinauth.com/health";
-const FORCE_API_KEY = process.env.PIM_STANDARD_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
+// Get API configuration from environment variables
+const API_URL_FROM_ENV = process.env.PIM_API_URL || "https://master.pinauth.com/mobile-upload";
+const HEALTH_URL_FROM_ENV = process.env.HEALTH_CHECK_URL || "https://master.pinauth.com/health";
+const API_KEY_FROM_ENV = process.env.PIM_STANDARD_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
 
-// Override environment variables programmatically to ensure correct URLs
-process.env.PIM_API_URL = "https://master.pinauth.com";
-process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
-
-// Force override for all API configurations
-const FORCED_PIM_API_URL = "https://master.pinauth.com";
-const FORCED_HEALTH_CHECK_URL = "https://master.pinauth.com/health";
-
-// Configuration for different environments - all use forced values
+// Configuration for different environments - all use environment variables
 const API_ENVIRONMENTS: Record<string, ApiEnvironmentConfig> = {
   development: {
-    baseUrl: FORCED_PIM_API_URL,
-    apiKey: FORCE_API_KEY,
+    baseUrl: API_URL_FROM_ENV,
+    apiKey: API_KEY_FROM_ENV,
     fallbackUrls: []
   },
   production: {
-    baseUrl: FORCED_PIM_API_URL,
-    apiKey: FORCE_API_KEY,
+    baseUrl: API_URL_FROM_ENV,
+    apiKey: API_KEY_FROM_ENV,
     fallbackUrls: []
   },
   testing: {
-    baseUrl: FORCED_PIM_API_URL,
-    apiKey: FORCE_API_KEY
+    baseUrl: API_URL_FROM_ENV,
+    apiKey: API_KEY_FROM_ENV
   }
 };
 
@@ -53,13 +45,13 @@ if (apiConfig.fallbackUrls?.length) {
 export const API_BASE_URL = apiConfig.baseUrl;
 export const API_KEY = apiConfig.apiKey;
 export const FALLBACK_URLS = apiConfig.fallbackUrls || [];
-export const HEALTH_CHECK_URL = FORCED_HEALTH_CHECK_URL; // Always use the forced health URL
+export const HEALTH_CHECK_URL = HEALTH_URL_FROM_ENV;
 
-// Export API endpoint URLs - Updated for Railway production hosting
+// Export API endpoint URLs - Using environment variables
 export const API_ENDPOINTS = {
-  directVerify: "https://master.pinauth.com/mobile-upload", // Mobile upload endpoint
-  health: "https://master.pinauth.com/health", // Health check endpoint
-  status: "https://master.pinauth.com/status"
+  directVerify: API_URL_FROM_ENV, // Mobile upload endpoint
+  health: HEALTH_URL_FROM_ENV, // Health check endpoint
+  status: `${API_URL_FROM_ENV.replace('/mobile-upload', '')}/status`
 };
 
 // Export fallback endpoint URLs

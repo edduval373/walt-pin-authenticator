@@ -1,7 +1,6 @@
-// Server startup - override environment variables to use correct URLs
-// Force override Replit secrets that may have outdated URLs
-process.env.PIM_API_URL = "https://master.pinauth.com";
-process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
+// Server startup - ensure environment variables are set with defaults
+process.env.PIM_API_URL = process.env.PIM_API_URL || "https://master.pinauth.com/mobile-upload";
+process.env.HEALTH_CHECK_URL = process.env.HEALTH_CHECK_URL || "https://master.pinauth.com/health";
 
 // CRITICAL: Load NeonDB protection system first
 import './neon-protection';

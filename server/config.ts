@@ -1,5 +1,10 @@
 import { log } from "./vite";
 
+// Force override environment variables before any configuration
+process.env.PIM_API_URL = "https://master.pinauth.com/mobile-upload";
+process.env.VITE_PIM_API_URL = "https://master.pinauth.com/mobile-upload";
+process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
+
 // API configuration with environment-specific settings
 interface ApiEnvironmentConfig {
   baseUrl: string;

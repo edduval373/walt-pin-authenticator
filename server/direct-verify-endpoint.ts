@@ -23,7 +23,7 @@ export async function directVerify(
   }
   
   // Use the exact URL format required by the mobile app
-  const API_URL = 'https://pim-master-library.replit.app/api/mobile/direct-verify';
+  const API_URL = 'https://master.pinauth.com/mobile-upload';
   
   log(`Making direct API call to: ${API_URL}`);
   
@@ -33,7 +33,7 @@ export async function directVerify(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': 'mobile-test-key'
+        'x-api-key': process.env.PIM_STANDARD_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
       },
       body: JSON.stringify(requestPayload)
     });

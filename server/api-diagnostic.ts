@@ -25,20 +25,13 @@ export async function diagnosePimApiConnection(): Promise<{
 
   // Test domains to check
   const domains = [
-    'https://pim-master-library.replit.app',
-    'https://api.pinmaster.railway.app',
-    'https://pinmaster.railway.app'
+    'https://master.pinauth.com'
   ];
   
   // Various API paths to test
   const paths = [
-    '/api/mobile/direct-verify',
-    '/api/mobile/verify',
-    '/api/verify',
-    '/verify',
-    '/api/pins/verify',
-    '/api/status',
-    '/api/info'
+    '/mobile-upload',
+    '/health'
   ];
   
   // API keys to test

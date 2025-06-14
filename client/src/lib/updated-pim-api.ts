@@ -119,9 +119,11 @@ export async function analyzePinImagesWithPimStandard(
         bodySize: requestBody.length
       });
       
-      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      const response = await fetch('/api/analyze-pin', {
         method: 'POST',
-        headers: requestHeaders,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: requestBody
       });
       

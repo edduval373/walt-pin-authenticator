@@ -4,6 +4,7 @@ import "./index.css";
 import "./assets/analysis-styles.css";
 import "./assets/verification-report.css";
 import "./assets/exact-report.css";
+import { errorLogger } from "./lib/error-logger";
 
 // Set title
 document.title = "Disney Pin Authenticator";

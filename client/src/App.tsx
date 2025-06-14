@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Header from "@/components/Header";
 import InfoModal from "@/components/InfoModal";
 import SplashScreen from "@/components/SplashScreen";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load components to reduce bundle size
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -27,10 +28,26 @@ export const NavigationContext = React.createContext({
   showSplashScreen: () => {}
 });
 
-// Loading fallback component
-const LoadingFallback = () => (
+// Loading fallback component with better error handling
+const LoadingFallback = ({ error }: { error?: boolean }) => (
   <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+    {error ? (
+      <div className="text-center">
+        <div className="text-red-500 text-4xl mb-4">⚠️</div>
+        <p className="text-gray-600 mb-4">Loading failed. Please refresh the page.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Refresh
+        </button>
+      </div>
+    ) : (
+      <div className="text-center">
+        <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    )}
   </div>
 );
 
@@ -89,29 +106,31 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <NavigationContext.Provider value={{ goBack, showSplashScreen }}>
-          <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-indigo-100">
-            {showSplash ? (
-              <SplashScreen onComplete={() => setShowSplash(false)} />
-            ) : (
-              <>
-                <Header onInfoClick={() => setIsInfoModalOpen(true)} />
-                <main className="flex-grow transition-all duration-300">
-                  <Router />
-                </main>
-                <InfoModal 
-                  isOpen={isInfoModalOpen} 
-                  onClose={() => setIsInfoModalOpen(false)}
-                />
-                <Toaster />
-              </>
-            )}
-          </div>
-        </NavigationContext.Provider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <NavigationContext.Provider value={{ goBack, showSplashScreen }}>
+            <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-indigo-100">
+              {showSplash ? (
+                <SplashScreen onComplete={() => setShowSplash(false)} />
+              ) : (
+                <>
+                  <Header onInfoClick={() => setIsInfoModalOpen(true)} />
+                  <main className="flex-grow transition-all duration-300">
+                    <Router />
+                  </main>
+                  <InfoModal 
+                    isOpen={isInfoModalOpen} 
+                    onClose={() => setIsInfoModalOpen(false)}
+                  />
+                  <Toaster />
+                </>
+              )}
+            </div>
+          </NavigationContext.Provider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

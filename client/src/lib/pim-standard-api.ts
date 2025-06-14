@@ -44,7 +44,7 @@ export async function analyzePinImagesWithPimStandard(
     };
 
     // Get the API key from environment
-    const apiKey = import.meta.env.VITE_PIM_STANDARD_API_KEY || process.env.PIM_STANDARD_API_KEY;
+    const apiKey = import.meta.env.VITE_MOBILE_API_KEY || process.env.PIM_STANDARD_API_KEY;
     
     if (!apiKey) {
       console.error('PIM Standard API key is missing');

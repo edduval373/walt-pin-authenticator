@@ -25,7 +25,7 @@ export const directVerifyPin = async (
     }
     
     // Using the path format from the screenshot logs
-    const REAL_API_URL = 'https://pim-master-library.replit.app';
+    const REAL_API_URL = 'https://master.pinauth.com';
     
     log(`Sending direct API request to ${REAL_API_URL}`);
     

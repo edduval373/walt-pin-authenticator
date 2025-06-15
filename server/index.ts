@@ -198,13 +198,29 @@ app.use((req, res, next) => {
     }
   });
 
-  // Add health check endpoint for Railway deployment FIRST
+  // Register ALL API routes first with explicit middleware
+  app.use('/api/*', (req, res, next) => {
+    // Set headers for API responses
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  });
+
+  // Add health check endpoint
   app.get('/health', (req, res) => {
     res.status(200).json({
       status: 'ok',
       service: 'walt-pin-authenticator',
       timestamp: new Date().toISOString(),
       port: process.env.PORT || 5000
+    });
+  });
+
+  // Add API health endpoint
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
     });
   });
 

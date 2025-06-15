@@ -38,35 +38,47 @@ export async function analyzePinImagesWithPimStandard(
     if (backImage) console.log('- Back image:', backImage.length, 'characters');
     if (angledImage) console.log('- Angled image:', angledImage.length, 'characters');
     
-    // Prepare the request data - clean base64 strings
+    // Generate session ID in YYMMDDHHMMSS format (12 digits)
+    const now = new Date();
+    const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+
+    // Prepare the request data
     const requestData = {
-      frontImage: frontImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''),
-      ...(backImage && { backImage: backImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '') }),
-      ...(angledImage && { angledImage: angledImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '') })
+      sessionId,
+      frontImageData: frontImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, ''),
+      ...(backImage && { backImageData: backImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '') }),
+      ...(angledImage && { angledImageData: angledImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '') })
     };
 
+    const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
+    
     console.log('ACTUAL REQUEST PACKET:', {
-      url: '/api/analyze',
+      url: 'https://master.pinauth.com/mobile-upload',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
       bodySize: JSON.stringify(requestData).length
     });
 
     console.log('Making request to production server...');
-    console.log('Request URL:', '/api/analyze');
+    console.log('Request URL:', 'https://master.pinauth.com/mobile-upload');
+    console.log('API Key:', 'Configured from env');
 
     // Set up a timeout for the fetch
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
-      // Make the API request through our backend
+      // Make the API request through our backend to avoid CORS
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          frontImage: frontImage,
+          ...(backImage && { backImage }),
+          ...(angledImage && { angledImage })
+        }),
         signal: controller.signal
       });
       
@@ -75,18 +87,18 @@ export async function analyzePinImagesWithPimStandard(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Backend API error:', response.status, errorText);
-        throw new Error(`Analysis service responded with status: ${response.status} - ${errorText}`);
+        console.error('Master API error:', response.status, errorText);
+        throw new Error(`Master service responded with status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
       console.log('Pin analysis complete:', data);
       
-      // Convert backend response to frontend format
+      // Convert master response to frontend format
       return {
         confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
         authenticityScore: data.authenticityRating || 85,
-        frontHtml: data.analysisReport || data.analysis || `<div class="analysis-result">
+        frontHtml: data.analysis || data.identification || `<div class="analysis-result">
           <h2>Pin Authentication Results</h2>
           <div class="authenticity-score">
             <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
@@ -102,7 +114,7 @@ export async function analyzePinImagesWithPimStandard(
           </div>
           <div class="ai-analysis">
             <h3>Analysis Details</h3>
-            <p>${data.analysis || 'Analysis completed with production API'}</p>
+            <p>${data.analysis || 'Analysis completed with master server'}</p>
           </div>
         </div>`,
         backHtml: backImage ? `<div class="analysis-result">
@@ -113,7 +125,7 @@ export async function analyzePinImagesWithPimStandard(
           <h2>Angled View Analysis</h2>
           <p>Angled view analysis completed</p>
         </div>` : undefined,
-        detectedPinId: data.pinId || data.sessionId || "ANALYSIS-" + Date.now(),
+        detectedPinId: data.sessionId || sessionId,
         rawApiResponse: data
       };
     } catch (fetchError) {
@@ -123,7 +135,7 @@ export async function analyzePinImagesWithPimStandard(
     }
   } catch (error: unknown) {
     console.error('Error in pin analysis:', error);
-    throw error; // Re-throw to let the calling component handle the error properly
+    throw error;
   }
 }
 

@@ -428,9 +428,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         angledImage
       );
       
-      // Create a pin record for tracking
+      // Create a pin record for tracking using existing Railway table structure
       const pinId = analysisResult.sessionId || `pin_${Date.now()}`;
       
+      // Store directly in the Railway pins table
       await storage.createPin({
         pinId,
         name: `Analysis ${pinId}`,
@@ -439,17 +440,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         imageUrl: '',
         dominantColors: [],
         similarPins: []
-      });
-      
-      // Create analysis record
-      await storage.createAnalysis({
-        imageBlob: frontImage.substring(0, 1000), // Store truncated for record keeping
-        pinId,
-        confidence: analysisResult.authenticityRating || 0,
-        factors: { analysis: analysisResult.analysis || '' },
-        colorMatchPercentage: 75,
-        databaseMatchCount: 1,
-        imageQualityScore: 85
       });
       
       log(`Analysis complete for pin: ${pinId}`);

@@ -18,11 +18,7 @@ export interface IStorage {
   updatePinFeedback(pinId: string, userAgreement: string, feedbackComment?: string): Promise<Pin | undefined>;
   updatePinFeedbackById(id: number, userAgreement: string, feedbackComment?: string): Promise<Pin | undefined>;
   
-  // Analysis methods
-  analyzePin(imageData: string): Promise<Analysis>;
-  getAllAnalyses(): Promise<Analysis[]>;
-  getAnalysisById(id: number): Promise<Analysis | undefined>;
-  createAnalysis(analysis: InsertAnalysis): Promise<Analysis>;
+  // Analysis methods - removed, using pins table only
   
   // User Feedback methods
   createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;

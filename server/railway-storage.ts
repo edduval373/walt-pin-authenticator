@@ -200,52 +200,7 @@ export class RailwayStorage implements IStorage {
     }
   }
 
-  // Analysis methods
-  async analyzePin(imageData: string): Promise<Analysis> {
-    try {
-      const result = await this.pool.query(
-        'INSERT INTO analyses (image_blob, pin_id, confidence, factors, color_match_percentage, database_match_count, image_quality_score) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [imageData, 'unknown', 4, {}, 75, 1, 85]
-      );
-      return result.rows[0];
-    } catch (error: any) {
-      log(`Railway error analyzing pin: ${error.message}`, 'railway');
-      throw error;
-    }
-  }
-
-  async getAllAnalyses(): Promise<Analysis[]> {
-    try {
-      const result = await this.pool.query('SELECT * FROM analyses ORDER BY created_at DESC');
-      return result.rows;
-    } catch (error: any) {
-      log(`Railway error getting all analyses: ${error.message}`, 'railway');
-      return [];
-    }
-  }
-
-  async getAnalysisById(id: number): Promise<Analysis | undefined> {
-    try {
-      const result = await this.pool.query('SELECT * FROM analyses WHERE id = $1', [id]);
-      return result.rows[0] || undefined;
-    } catch (error: any) {
-      log(`Railway error getting analysis: ${error.message}`, 'railway');
-      return undefined;
-    }
-  }
-
-  async createAnalysis(analysis: InsertAnalysis): Promise<Analysis> {
-    try {
-      const result = await this.pool.query(
-        'INSERT INTO analyses (image_blob, pin_id, confidence, factors, color_match_percentage, database_match_count, image_quality_score) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [analysis.imageBlob, analysis.pinId, analysis.confidence, analysis.factors, analysis.colorMatchPercentage, analysis.databaseMatchCount, analysis.imageQualityScore]
-      );
-      return result.rows[0];
-    } catch (error: any) {
-      log(`Railway error creating analysis: ${error.message}`, 'railway');
-      throw error;
-    }
-  }
+  // Analysis methods removed - using pins table only
 
   // User Feedback methods
   async createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback> {

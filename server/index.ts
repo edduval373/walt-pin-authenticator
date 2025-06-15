@@ -198,19 +198,7 @@ app.use((req, res, next) => {
     }
   });
 
-  // Register API routes AFTER the mobile-upload endpoint
-  const server = await registerRoutes(app);
-  
-  // Keep other API routes for web app functionality
-  app.use('/mobile', mobileApiRouter);
-  
-  // Add mobile documentation endpoint
-  app.get('/api/mobile/docs', (req, res) => {
-    res.setHeader('Content-Type', 'text/html');
-    res.send(generateMobileApiDocs());
-  });
-  
-  // Add health check endpoint for Railway deployment
+  // Add health check endpoint for Railway deployment FIRST
   app.get('/health', (req, res) => {
     res.status(200).json({
       status: 'ok',
@@ -220,10 +208,7 @@ app.use((req, res, next) => {
     });
   });
 
-  // Add additional compatibility routes
-  app.use('/api/mobile', mobileApiRouter);
-
-  // Add a specific route to return API information for the web app
+  // Add API info endpoint
   app.get('/api/info', (req, res) => {
     res.json({
       version: "1.0.0",
@@ -235,6 +220,19 @@ app.use((req, res, next) => {
       requiredApiKey: "mobile-test-key",
       timestamp: new Date().toISOString()
     });
+  });
+
+  // Register API routes BEFORE Vite middleware
+  const server = await registerRoutes(app);
+  
+  // Keep other API routes for web app functionality
+  app.use('/mobile', mobileApiRouter);
+  app.use('/api/mobile', mobileApiRouter);
+  
+  // Add mobile documentation endpoint
+  app.get('/api/mobile/docs', (req, res) => {
+    res.setHeader('Content-Type', 'text/html');
+    res.send(generateMobileApiDocs());
   });
 
   // Global error handler
@@ -249,7 +247,7 @@ app.use((req, res, next) => {
     }
   });
 
-  // Set up web application routes AFTER API routes
+  // Set up web application routes AFTER ALL API routes
   // This ensures API routes are prioritized over the SPA routes
   if (app.get("env") === "development") {
     await setupVite(app, server);

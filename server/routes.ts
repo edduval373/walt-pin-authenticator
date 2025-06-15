@@ -406,6 +406,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Frontend API endpoint for pin analysis
+  app.post('/api/analyze', async (req, res) => {
+    try {
+      const { frontImage, backImage, angledImage } = req.body;
+      
+      // Validate front image is provided
+      if (!frontImage) {
+        return res.status(400).json({
+          success: false,
+          message: "Front image is required for analysis"
+        });
+      }
+      
+      log(`Processing pin analysis - Front image: ${frontImage.length} chars`);
+      
+      // Call the PIM Standard API to analyze the images
+      const analysisResult: PimStandardResponse = await analyzeImageForPin(
+        frontImage,
+        backImage,
+        angledImage
+      );
+      
+      // Create a pin record for tracking
+      const pinId = analysisResult.sessionId || `pin_${Date.now()}`;
+      
+      await storage.createPin({
+        pinId,
+        name: `Analysis ${pinId}`,
+        series: 'Frontend Analysis',
+        releaseYear: new Date().getFullYear(),
+        imageUrl: '',
+        dominantColors: [],
+        similarPins: []
+      });
+      
+      // Create analysis record
+      await storage.createAnalysis({
+        imageBlob: frontImage.substring(0, 1000), // Store truncated for record keeping
+        pinId,
+        confidence: analysisResult.authenticityRating || 0,
+        factors: { analysis: analysisResult.analysis || '' },
+        colorMatchPercentage: 75,
+        databaseMatchCount: 1,
+        imageQualityScore: 85
+      });
+      
+      log(`Analysis complete for pin: ${pinId}`);
+      
+      return res.json({
+        success: true,
+        pinId,
+        sessionId: analysisResult.sessionId,
+        authentic: analysisResult.authentic,
+        authenticityRating: analysisResult.authenticityRating,
+        analysis: analysisResult.analysis,
+        identification: analysisResult.identification,
+        pricing: analysisResult.pricing,
+        analysisReport: analysisResult.analysisReport,
+        message: analysisResult.message || "Pin analysis complete"
+      });
+      
+    } catch (error: any) {
+      log(`Error in pin analysis: ${error.message}`);
+      return res.status(500).json({
+        success: false,
+        message: "Analysis failed",
+        error: error.message
+      });
+    }
+  });
+
   // Legacy endpoint for backward compatibility
   app.post('/api/mobile/direct-verify', async (req, res) => {
     try {
@@ -499,7 +570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Make a simple request to the API status endpoint
       const response = await fetch(PIM_STANDARD_DEBUG_API_URL, {
         headers: {
-          'X-API-Key': PIM_API_KEY
+          'X-API-Key': PIM_API_KEY || ''
         }
       });
       

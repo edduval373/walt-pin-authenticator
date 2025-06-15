@@ -3,6 +3,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import path from "path";
 import fs from "fs";
+import fetch from "node-fetch";
 
 const app = express();
 
@@ -42,7 +43,45 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Simple API routes without external dependencies
+// Mobile upload endpoint - direct passthrough to production server
+app.post('/mobile-upload', async (req, res) => {
+  try {
+    const { frontImageData, backImageData, angledImageData, sessionId } = req.body;
+    
+    if (!frontImageData || !sessionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Front image and session ID are required"
+      });
+    }
+
+    // Direct call to production server
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': process.env.MOBILE_API_KEY || ''
+      },
+      body: JSON.stringify({
+        frontImageData,
+        backImageData,
+        angledImageData,
+        sessionId
+      })
+    });
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error('Mobile upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during pin authentication"
+    });
+  }
+});
+
+// API status endpoint
 app.get('/api/verify', (req, res) => {
   res.json({ 
     success: true, 
@@ -86,7 +125,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // Use Railway's PORT environment variable in production
-const port = process.env.PORT || 5000;
+const port = parseInt(process.env.PORT || "5000", 10);
 const server = createServer(app);
 
 server.listen(port, "0.0.0.0", () => {

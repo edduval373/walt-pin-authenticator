@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Railway build script with optimizations to prevent deployment warnings
+# Railway build script - simplified without CLI dependencies
 
-echo "Starting optimized build process..."
+echo "Starting build process..."
+
+# Install dependencies
+npm ci
 
 # Update browserslist data
 npx update-browserslist-db@latest
 
-# Build with production config and optimizations
-vite build --config vite.config.prod.js --mode production
+# Build frontend
+npm run build
 
-# Build server
-esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --minify
-
-echo "Build complete - optimized for Railway deployment"
+echo "Build complete"

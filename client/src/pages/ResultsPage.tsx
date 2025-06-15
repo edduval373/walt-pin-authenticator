@@ -180,13 +180,14 @@ export default function ResultsPage() {
       } else {
         console.log('No server response available, using fallback');
         // Set default server response structure
+        const resultData = parsedResult as any; // Type assertion for safe property access
         setServerResponse({
           success: true,
           message: 'Analysis completed',
-          analysis: parsedResult.rawAnalysisReport || '',
-          identification: parsedResult.result?.pinId || '',
-          pricing: parsedResult.result?.pricingInfo || '',
-          characters: parsedResult.result?.characters || ''
+          analysis: parsedResult.rawAnalysisReport || resultData.analysis || '',
+          identification: parsedResult.result?.pinId || parsedResult.pinId || resultData.identification || '',
+          pricing: parsedResult.result?.pricingInfo || resultData.pricing || '',
+          characters: parsedResult.result?.characters || resultData.characters || ''
         });
       }
       

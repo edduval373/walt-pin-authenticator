@@ -259,7 +259,27 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // Production static file serving with correct Docker paths
+    const path = require('path');
+    const fs = require('fs');
+    
+    const distPath = path.resolve(process.cwd(), "dist", "public");
+    log(`Looking for static files in: ${distPath}`, 'static');
+    
+    if (fs.existsSync(distPath)) {
+      log(`Serving static files from: ${distPath}`, 'static');
+      app.use(express.static(distPath));
+      
+      // SPA fallback to index.html
+      app.use("*", (_req, res) => {
+        res.sendFile(path.resolve(distPath, "index.html"));
+      });
+    } else {
+      log(`Build directory not found: ${distPath}`, 'static');
+      app.use("*", (_req, res) => {
+        res.status(500).json({ error: "Application not built properly" });
+      });
+    }
   }
 
   // Use Railway's PORT environment variable in production, fallback to 5000 for development

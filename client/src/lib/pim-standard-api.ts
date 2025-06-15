@@ -53,29 +53,32 @@ export async function analyzePinImagesWithPimStandard(
     const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
     
     console.log('ACTUAL REQUEST PACKET:', {
-      url: 'https://master.pinauth.com/mobile-upload',
+      url: '/api/analyze',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-      bodySize: JSON.stringify(requestData).length
+      headers: { 'Content-Type': 'application/json' },
+      bodySize: JSON.stringify({ frontImage, backImage, angledImage }).length
     });
 
-    console.log('Making request to production server...');
-    console.log('Request URL:', 'https://master.pinauth.com/mobile-upload');
-    console.log('API Key:', 'Configured from env');
+    console.log('Making request through backend proxy...');
+    console.log('Request URL:', '/api/analyze');
+    console.log('Backend will connect to master server with API key');
 
     // Set up a timeout for the fetch
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
-      // Make direct API request to master server (mobile optimized)
-      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      // Make API request through backend proxy (required for web browsers due to CORS)
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          frontImage: frontImage,
+          ...(backImage && { backImage }),
+          ...(angledImage && { angledImage })
+        }),
         signal: controller.signal
       });
       

@@ -2,13 +2,13 @@
 nixPkgs = ["nodejs_18", "npm"]
 
 [phases.install]
-cmds = ["npm ci", "npm install -g esbuild"]
+cmds = ["npm ci", "npm install -g vite esbuild"]
 
 [phases.build]
-cmds = ["npx vite build", "npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"]
+cmds = ["vite build", "esbuild server/production.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"]
 
 [phases.start]
-cmd = "NODE_ENV=production node dist/index.js"
+cmd = "NODE_ENV=production node dist/production.js"
 
 [variables]
 NODE_ENV = "production"

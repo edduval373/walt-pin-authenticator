@@ -1,19 +1,22 @@
 #!/bin/bash
 
-# Railway build script - optimized for deployment
+# Railway build script - with global tools
 
 echo "Starting build process..."
 
 # Install dependencies
 npm ci
 
+# Install build tools globally
+npm install -g vite esbuild
+
 # Update browserslist data
 npx update-browserslist-db@latest
 
-# Build frontend using npx to ensure vite is available
-npx vite build
+# Build frontend
+vite build
 
-# Build server using npx
-npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+# Build production server
+esbuild server/production.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
 echo "Build complete"

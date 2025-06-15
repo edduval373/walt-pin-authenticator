@@ -68,17 +68,14 @@ export async function analyzePinImagesWithPimStandard(
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
-      // Make the API request through our backend to avoid CORS
-      const response = await fetch('/api/analyze', {
+      // Make direct API request to master server (mobile optimized)
+      const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey
         },
-        body: JSON.stringify({
-          frontImage: frontImage,
-          ...(backImage && { backImage }),
-          ...(angledImage && { angledImage })
-        }),
+        body: JSON.stringify(requestData),
         signal: controller.signal
       });
       
@@ -87,14 +84,14 @@ export async function analyzePinImagesWithPimStandard(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Master API error:', response.status, errorText);
-        throw new Error(`Master service responded with status: ${response.status} - ${errorText}`);
+        console.error('Master server error:', response.status, errorText);
+        throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
       console.log('Pin analysis complete:', data);
       
-      // Convert master response to frontend format
+      // Convert master server response to frontend format
       return {
         confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
         authenticityScore: data.authenticityRating || 85,
@@ -114,7 +111,7 @@ export async function analyzePinImagesWithPimStandard(
           </div>
           <div class="ai-analysis">
             <h3>Analysis Details</h3>
-            <p>${data.analysis || 'Analysis completed with master server'}</p>
+            <p>${data.analysis || 'Direct connection to master server successful'}</p>
           </div>
         </div>`,
         backHtml: backImage ? `<div class="analysis-result">

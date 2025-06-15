@@ -126,6 +126,7 @@ export default function ResultsPage() {
   
   useEffect(() => {
     if (!analysisResultJson || !capturedImagesJson) {
+      console.log('Missing required data, redirecting to camera');
       setLocation('/camera');
       return;
     }
@@ -133,6 +134,14 @@ export default function ResultsPage() {
     try {
       const parsedResult = JSON.parse(analysisResultJson) as AnalysisResult;
       const parsedImages = JSON.parse(capturedImagesJson) as CapturedImages;
+      
+      // Ensure required fields exist
+      if (!parsedResult || !parsedImages || !parsedImages.front) {
+        console.error('Invalid data structure, redirecting to camera');
+        setLocation('/camera');
+        return;
+      }
+      
       setResult(parsedResult);
       setCapturedImages(parsedImages);
       
@@ -140,11 +149,45 @@ export default function ResultsPage() {
       if (serverResponseJson) {
         try {
           const parsedServerResponse = JSON.parse(serverResponseJson);
-          setServerResponse(parsedServerResponse);
           console.log("Parsed server response:", parsedServerResponse);
+          
+          // Ensure server response has the expected structure
+          if (parsedServerResponse && typeof parsedServerResponse === 'object') {
+            setServerResponse(parsedServerResponse);
+          } else {
+            console.warn('Invalid server response format, using default structure');
+            setServerResponse({
+              success: false,
+              message: 'Invalid response format',
+              analysis: '',
+              identification: '',
+              pricing: '',
+              characters: ''
+            });
+          }
         } catch (responseErr) {
           console.error('Failed to parse server response:', responseErr);
+          // Set default server response to prevent white screen
+          setServerResponse({
+            success: false,
+            message: 'Failed to parse server response',
+            analysis: '',
+            identification: '',
+            pricing: '',
+            characters: ''
+          });
         }
+      } else {
+        console.log('No server response available, using fallback');
+        // Set default server response structure
+        setServerResponse({
+          success: true,
+          message: 'Analysis completed',
+          analysis: parsedResult.rawAnalysisReport || '',
+          identification: parsedResult.result?.pinId || '',
+          pricing: parsedResult.result?.pricingInfo || '',
+          characters: parsedResult.result?.characters || ''
+        });
       }
       
       // Automatically crop image when loaded
@@ -167,6 +210,7 @@ export default function ResultsPage() {
       }
     } catch (err) {
       console.error('Failed to parse analysis result or images:', err);
+      console.error('Error details:', err);
       setLocation('/camera');
     }
   }, [analysisResultJson, capturedImagesJson, serverResponseJson, setLocation]);

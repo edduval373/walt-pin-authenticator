@@ -21,6 +21,18 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Store error details for debugging
+    try {
+      sessionStorage.setItem('lastError', JSON.stringify({
+        error: error.toString(),
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.error('Failed to store error details:', e);
+    }
   }
 
   render() {

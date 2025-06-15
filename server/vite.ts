@@ -43,6 +43,11 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    
+    // Skip frontend serving for API routes
+    if (url.startsWith('/api/') || url.startsWith('/mobile-upload') || url.startsWith('/health')) {
+      return next();
+    }
 
     try {
       const clientTemplate = path.resolve(

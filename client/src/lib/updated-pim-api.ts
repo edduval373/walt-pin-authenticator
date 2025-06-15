@@ -226,13 +226,7 @@ export async function analyzePinImagesWithPimStandard(
       throw error;
     }
     
-    // Return an empty response when actual API data is not available
-    return {
-      analysisReport: '',
-      confidence: 0,
-      authenticityScore: 0,
-      detectedPinId: '',
-      rawApiResponse: null
-    };
+    // Do not return fallback data - propagate the error to show connection issues
+    throw error;
   }
 }

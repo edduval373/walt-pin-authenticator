@@ -522,6 +522,15 @@ export default function ResultsPage() {
                     <p className="text-gray-700 font-mono">{serverResponse.id || 'No ID provided'}</p>
                   </div>
                   
+                  {serverResponse.characters && (
+                    <div className="bg-yellow-50 rounded-md p-4 border border-yellow-200">
+                      <h4 className="font-medium text-sm mb-2 text-yellow-800">Characters Field (Debug)</h4>
+                      <div className="text-xs bg-yellow-100 p-3 rounded overflow-auto max-h-48">
+                        <div className="text-yellow-900" dangerouslySetInnerHTML={{ __html: serverResponse.characters }} />
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="bg-gray-50 rounded-md p-4">
                     <h4 className="font-medium text-sm mb-2">Complete Response</h4>
                     <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-96 whitespace-pre-wrap">

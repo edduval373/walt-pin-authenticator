@@ -175,28 +175,25 @@ export async function analyzePinImagesWithPimStandard(
       existingResponseLogs.unshift(responseLog);
       sessionStorage.setItem('apiResponseLogs', JSON.stringify(existingResponseLogs.slice(0, 10))); // Keep the last 10 logs
       
-      // Map the new response format from your deployed server
+      // Map response exactly as received from production server
       return {
-        success: data.success || true,
+        success: data.success || false,
         message: data.message || 'Analysis complete',
-        id: data.id, // Preserve database ID from production endpoint
-        authentic: data.authentic !== undefined ? data.authentic : true,
-        authenticityRating: data.authenticityRating || 85,
+        id: data.id,
+        sessionId: data.sessionId || body.sessionId,
+        timestamp: data.timestamp || new Date().toISOString(),
+        authentic: data.authentic !== undefined ? data.authentic : false,
+        authenticityRating: data.authenticityRating || 0,
+        // Use exact field names from production server response
         analysis: data.analysis || '',
         identification: data.identification || '',
         pricing: data.pricing || '',
-        analysisReport: data.analysis || '',
-        aiFindings: data.characters || '',
-        pinId: data.identification || '',
-        pinIdHtml: data.identification || '',
-        pricingHtml: data.pricing || '',
-        sessionId: data.sessionId || body.sessionId,
-        timestamp: data.timestamp || new Date().toISOString(),
-        // New fields from your host's response format
         characters: data.characters || '',
-        frontUrl: data.frontUrl || '',
-        backUrl: data.backUrl || '',
-        angledUrl: data.angledUrl || '',
+        // Legacy compatibility fields
+        analysisReport: data.analysis || '',
+        confidence: (data.authenticityRating || 0) / 100,
+        authenticityScore: data.authenticityRating || 0,
+        detectedPinId: data.identification || '',
         rawApiResponse: data
       };
     } catch (fetchError) {

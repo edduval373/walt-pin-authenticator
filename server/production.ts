@@ -128,6 +128,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 const port = parseInt(process.env.PORT || "5000", 10);
 const server = createServer(app);
 
-server.listen(port, "0.0.0.0", () => {
+server.listen(port, () => {
   console.log(`Production server running on port ${port}`);
 });

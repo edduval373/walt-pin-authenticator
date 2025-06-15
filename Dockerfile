@@ -20,7 +20,7 @@ RUN npm install -g vite@latest esbuild@latest
 RUN vite build
 
 # Build production server with global esbuild
-RUN esbuild server/production.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+RUN esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
 # Remove dev dependencies to reduce image size
 RUN npm prune --production
@@ -28,8 +28,5 @@ RUN npm prune --production
 # Expose port
 EXPOSE 5000
 
-# Set environment to production
-ENV NODE_ENV=production
-
 # Start the production server
-CMD ["node", "dist/production.js"]
+CMD ["node", "dist/index.js"]

@@ -3,7 +3,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import path from "path";
 import fs from "fs";
-import fetch from "node-fetch";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const fetch = require("node-fetch");
 
 const app = express();
 

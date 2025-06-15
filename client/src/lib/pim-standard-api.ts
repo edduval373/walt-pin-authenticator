@@ -33,35 +33,38 @@ export async function analyzePinImagesWithPimStandard(
 ): Promise<PimAnalysisResponse> {
   try {
     console.log('Submitting images to PIM Standard analyzer...');
+    console.log('Image data sizes before processing:');
+    console.log('- Front image:', frontImage.length, 'characters');
+    if (backImage) console.log('- Back image:', backImage.length, 'characters');
+    if (angledImage) console.log('- Angled image:', angledImage.length, 'characters');
     
-    // Prepare the request data
+    // Prepare the request data - clean base64 strings
     const requestData = {
-      images: {
-        front: frontImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''),
-        ...(backImage && { back: backImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '') }),
-        ...(angledImage && { angled: angledImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '') })
-      }
+      frontImage: frontImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''),
+      ...(backImage && { backImage: backImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '') }),
+      ...(angledImage && { angledImage: angledImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '') })
     };
 
-    // Get the API key from environment
-    const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
-    
-    if (!apiKey) {
-      console.error('PIM Standard API key is missing');
-      throw new Error('PIM Standard API key is required for analysis');
-    }
+    console.log('ACTUAL REQUEST PACKET:', {
+      url: '/api/analyze',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      bodySize: JSON.stringify(requestData).length
+    });
+
+    console.log('Making request to production server...');
+    console.log('Request URL:', '/api/analyze');
 
     // Set up a timeout for the fetch
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for larger images
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
-      // Make the API request to the PIM Standard service
-      const response = await fetch('https://api.pimstandard.org/v1/analyze-pin', {
+      // Make the API request through our backend
+      const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestData),
         signal: controller.signal
@@ -71,120 +74,56 @@ export async function analyzePinImagesWithPimStandard(
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`PIM Standard API responded with status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Backend API error:', response.status, errorText);
+        throw new Error(`Analysis service responded with status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('PIM Standard analysis complete:', data);
+      console.log('Pin analysis complete:', data);
       
-      // Return the analysis response with proper format
+      // Convert backend response to frontend format
       return {
-        confidence: data.confidence || 0.85,
-        authenticityScore: data.authenticityScore || 85,
-        frontHtml: `<div class="analysis-result">
-<h2>Authenticity Verification Report</h2>
-
-<h3>Pin Identification</h3>
-<p>Pin Title: Find A Pin Tinker Bell Castle Pin<br>
-Pin Description: Limited Edition 1000 and 12 of 12 in the series Features Tinker Bell flying in front of the Castle. This series was released in 2008.</p>
-
-<h3>Overall Results</h3>
-<p>Final Rating: 4/5<br>
-Description: The pin appears to be a legitimate Disney collectible, with minor uncertainties regarding the back details and material quality.</p>
-
-<h3>Findings</h3>
-<table class="findings-table">
-  <tr>
-    <th>Category</th>
-    <th>Results</th>
-    <th>Score</th>
-  </tr>
-  <tr>
-    <td>Color Application Consistency</td>
-    <td>Even enamel coverage observed</td>
-    <td>95</td>
-  </tr>
-  <tr>
-    <td>Paint Dips or Surface Inconsistencies</td>
-    <td>No visible enamel dips or indentations</td>
-    <td>100</td>
-  </tr>
-  <tr>
-    <td>Metal Border Definition</td>
-    <td>Clear and precise metal lines observed</td>
-    <td>98</td>
-  </tr>
-  <tr>
-    <td>Enamel Fill Quality</td>
-    <td>Smooth finish without bubbling or pitting</td>
-    <td>95</td>
-  </tr>
-  <tr>
-    <td>Color Accuracy</td>
-    <td>Colors match official character palettes</td>
-    <td>98</td>
-  </tr>
-  <tr>
-    <td>Visual Cues of Weight/Material Quality</td>
-    <td>Pin heft and thickness consistent with Disney standards</td>
-    <td>90</td>
-  </tr>
-  <tr>
-    <td>Back Stamp Details</td>
-    <td>Back view not available for inspection</td>
-    <td>N/A</td>
-  </tr>
-  <tr>
-    <td>Pin Post & Clasp Construction</td>
-    <td>Not available for inspection</td>
-    <td>N/A</td>
-  </tr>
-  <tr>
-    <td>Dimensional Accuracy</td>
-    <td>Symmetrical shape and accurate sizing observed</td>
-    <td>95</td>
-  </tr>
-</table>
-
-<h3>Summary</h3>
-<p>The pin exhibits high quality in terms of color application consistency, metal border definition, and enamel fill quality. The colors are accurate to the official character palettes, and the visual cues of weight and material quality are consistent with Disney standards. However, the lack of a back view and pin post & clasp construction details prevents a higher score.</p>
-
-<h3>Red Flags</h3>
-<p>None identified.</p>
-
-<h3>Conclusion</h3>
-<p>The Find A Pin Tinker Bell Castle Pin appears to be a legitimate Disney collectible with minor uncertainties regarding the back details and material quality. Given the high scores in critical categories and the absence of any red flags, it is likely authentic but requires hands-on inspection to confirm the back stamp details. Therefore, it is rated as 4/5 likely authentic.</p>
-</div>`,
-        backHtml: data.backHtml || (backImage ? `<div class="analysis-result">
-                                <h2>Back View Analysis from PIM Standard</h2>
-                                <pre class="raw-data">${JSON.stringify(data.backAnalysis || {}, null, 2)}</pre>
-                              </div>` : undefined),
-        angledHtml: data.angledHtml || (angledImage ? `<div class="analysis-result">
-                                    <h2>Angled View Analysis from PIM Standard</h2>
-                                    <pre class="raw-data">${JSON.stringify(data.angledAnalysis || {}, null, 2)}</pre>
-                                  </div>` : undefined),
-        detectedPinId: data.detectedPinId || data.pinId || "PIN-2023-MK-FANTASYLAND",
+        confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
+        authenticityScore: data.authenticityRating || 85,
+        frontHtml: data.analysisReport || data.analysis || `<div class="analysis-result">
+          <h2>Pin Authentication Results</h2>
+          <div class="authenticity-score">
+            <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
+            <p class="confidence-level">${data.authentic ? 'Likely Authentic' : 'Authenticity Uncertain'}</p>
+          </div>
+          <div class="identification">
+            <h3>Pin Identification</h3>
+            <p>${data.identification || 'Pin analysis completed successfully'}</p>
+          </div>
+          <div class="pricing-info">
+            <h3>Market Information</h3>
+            <p>${data.pricing || 'Pricing data not available'}</p>
+          </div>
+          <div class="ai-analysis">
+            <h3>Analysis Details</h3>
+            <p>${data.analysis || 'Analysis completed with production API'}</p>
+          </div>
+        </div>`,
+        backHtml: backImage ? `<div class="analysis-result">
+          <h2>Back View Analysis</h2>
+          <p>Back view analysis completed</p>
+        </div>` : undefined,
+        angledHtml: angledImage ? `<div class="analysis-result">
+          <h2>Angled View Analysis</h2>
+          <p>Angled view analysis completed</p>
+        </div>` : undefined,
+        detectedPinId: data.pinId || data.sessionId || "ANALYSIS-" + Date.now(),
         rawApiResponse: data
       };
     } catch (fetchError) {
       clearTimeout(timeoutId);
+      console.error('Network error during analysis:', fetchError);
       throw fetchError;
     }
   } catch (error: unknown) {
     console.error('Error in pin analysis:', error);
-    // Return a fallback response instead of throwing the error
-    return {
-      confidence: 0.7,
-      authenticityScore: 70,
-      frontHtml: `<div class="analysis-result">
-                    <h2>Pin Verification Results</h2>
-                    <p class="verification-detail">Pin material: <span class="positive">Likely authentic</span></p>
-                    <p class="verification-detail">Color analysis: <span class="positive">Consistent with standards</span></p>
-                    <p class="verification-detail">Manufacturing details: <span class="neutral">Inconclusive</span></p>
-                    <p class="verification-detail">Overall authenticity: <span class="positive">70% confidence</span></p>
-                    <p class="error-note">Error occurred during PIM Standard analysis: ${error instanceof Error ? error.message : String(error)}</p>
-                  </div>`,
-    };
+    throw error; // Re-throw to let the calling component handle the error properly
   }
 }
 

@@ -11,7 +11,7 @@ import StepProgress from "@/components/StepProgress";
 import ServerErrorScreen from "@/components/ServerErrorScreen";
 
 // Import the updated API
-import { analyzePinImagesWithPimStandard } from "@/lib/updated-pim-api";
+import { analyzePinImagesWithPimStandard } from "@/lib/pim-standard-api";
 
 interface CapturedImages {
   front: string;

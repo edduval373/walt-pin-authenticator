@@ -1,12 +1,7 @@
-// Server startup - force correct environment variables to override any Replit secrets
-process.env.PIM_API_URL = "https://master.pinauth.com/mobile-upload";
-process.env.VITE_PIM_API_URL = "https://master.pinauth.com/mobile-upload";
+// Server startup - override environment variables to use correct URLs
+// Force override Replit secrets that may have outdated URLs
+process.env.PIM_API_URL = "https://master.pinauth.com";
 process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
-process.env.MOBILE_API_KEY = process.env.MOBILE_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
-process.env.VITE_MOBILE_API_KEY = process.env.VITE_MOBILE_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g";
-
-// CRITICAL: Load NeonDB protection system first
-import './neon-protection';
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
@@ -259,32 +254,15 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    // Production static file serving with correct Docker paths
-    const path = require('path');
-    const fs = require('fs');
-    
-    const distPath = path.resolve(process.cwd(), "dist", "public");
-    log(`Looking for static files in: ${distPath}`, 'static');
-    
-    if (fs.existsSync(distPath)) {
-      log(`Serving static files from: ${distPath}`, 'static');
-      app.use(express.static(distPath));
-      
-      // SPA fallback to index.html
-      app.use("*", (_req, res) => {
-        res.sendFile(path.resolve(distPath, "index.html"));
-      });
-    } else {
-      log(`Build directory not found: ${distPath}`, 'static');
-      app.use("*", (_req, res) => {
-        res.status(500).json({ error: "Application not built properly" });
-      });
-    }
+    serveStatic(app);
   }
 
   // Use Railway's PORT environment variable in production, fallback to 5000 for development
-  const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(port, "0.0.0.0", () => {
+  const port = process.env.PORT || 5000;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+  }, () => {
     log(`serving on port ${port}`);
   });
 })();

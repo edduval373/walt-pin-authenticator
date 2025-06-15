@@ -119,15 +119,22 @@ export async function analyzePinImagesWithPimStandard(
         bodySize: requestBody.length
       });
       
+      console.log('Making request to production server...');
+      console.log('Request URL:', 'https://master.pinauth.com/mobile-upload');
+      console.log('API Key:', import.meta.env.VITE_MOBILE_API_KEY ? 'Configured from env' : 'Using fallback');
+      
       const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
         mode: 'cors',
+        credentials: 'omit',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
         },
         body: requestBody
       });
+      
+      console.log('Response received:', response.status, response.statusText);
       
       clearTimeout(timeoutId);
       

@@ -6,8 +6,8 @@ cmds = ["npm ci"]
 
 [phases.build]
 cmds = [
-  "npx vite build --config vite.config.prod.js"
+  "npx vite build --config vite.config.static.js"
 ]
 
 [start]
-cmd = "npx vite preview --host 0.0.0.0 --port $PORT"
+cmd = "npx vite preview --host 0.0.0.0 --port $PORT --config vite.config.static.js"

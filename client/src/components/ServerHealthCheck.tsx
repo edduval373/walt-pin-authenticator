@@ -18,7 +18,7 @@ export default function ServerHealthCheck({ onSuccess, onError }: ServerHealthCh
     setIsChecking(true);
     setError(null);
 
-    // Use your redeployed server directly
+    // Connect directly to master server
     const healthUrl = 'https://master.pinauth.com/health';
 
     try {

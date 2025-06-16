@@ -1,5 +1,5 @@
 // Simple configuration for API endpoints
-export const API_KEY = process.env.PIM_STANDARD_API_KEY || "pim_0w3nfrt5ahgc";
+export const API_KEY = process.env.MOBILE_API_KEY || "pim_0w3nfrt5ahgc";
 export const PRIMARY_API_URL = "https://master.pinauth.com";
 export const FALLBACK_API_URL = "https://api.pinmaster.railway.app";
 

@@ -52,13 +52,13 @@ const PIM_STANDARD_DEBUG_API_URL = `${PIM_API_BASE_URL}/api/status`;
 const PIM_STANDARD_OLD_API_URL = `${PIM_API_BASE_URL}/api/mobile/minimal/verify`;
 
 // Use the API key from the selected environment or environment variable
-const PIM_STANDARD_API_KEY = process.env.MOBILE_API_KEY || apiConfig.apiKey;
+const MOBILE_API_KEY = process.env.MOBILE_API_KEY || apiConfig.apiKey;
 
 // Log API key status at startup
-if (PIM_STANDARD_API_KEY) {
-  log("PIM Standard API key configured successfully");
+if (MOBILE_API_KEY) {
+  log("Mobile API key configured successfully");
 } else {
-  log("WARNING: PIM Standard API key not configured");
+  log("WARNING: Mobile API key not configured");
 }
 
 // Timeout for API requests in ms (20 seconds)
@@ -90,9 +90,9 @@ interface PimStandardResponse {
  */
 async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: string, angledImageBase64?: string): Promise<PimStandardResponse> {
   // Ensure API key is configured
-  if (!PIM_STANDARD_API_KEY) {
-    log(`ERROR: PIM Standard API key not configured`);
-    throw new Error("PIM Standard API key not configured");
+  if (!MOBILE_API_KEY) {
+    log(`ERROR: Mobile API key not configured`);
+    throw new Error("Mobile API key not configured");
   }
   
   // Ensure the frontImageBase64 doesn't have the data prefix
@@ -121,7 +121,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
   log(`Image sizes - Front: ${cleanFrontImage.length} chars, Back: ${requestBody.backImageData ? requestBody.backImageData.length : 'N/A'} chars, Angled: ${requestBody.angledImageData ? requestBody.angledImageData.length : 'N/A'} chars`, 'express');
   
   // Log sample of image data and API key being used
-  log(`API Key from secrets: ${PIM_STANDARD_API_KEY ? PIM_STANDARD_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
+  log(`API Key from secrets: ${MOBILE_API_KEY ? MOBILE_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
   log(`Front image data sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
   
   // Make direct API call to master.pinauth.com - no fallbacks
@@ -135,7 +135,7 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': PIM_STANDARD_API_KEY
+        'x-api-key': MOBILE_API_KEY
       },
       body: JSON.stringify(requestBody)
     });
@@ -208,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         directVerify: '/mobile-upload',
         status: '/api/status'
       },
-      hasApiKey: !!PIM_STANDARD_API_KEY
+      hasApiKey: !!MOBILE_API_KEY
     });
   });
   
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Make a simple request to the API status endpoint
       const response = await fetch(PIM_STANDARD_DEBUG_API_URL, {
         headers: {
-          'X-API-Key': PIM_STANDARD_API_KEY || ''
+          'X-API-Key': MOBILE_API_KEY || ''
         }
       });
       

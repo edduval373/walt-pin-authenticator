@@ -123,17 +123,17 @@ app.post('/mobile-upload', async (req, res) => {
   }
 });
 
-// Simple static file serving - Railway will handle the frontend separately
-app.get('/', (req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'Walt Disney Pin Authentication API',
-    version: '1.0.0',
-    endpoints: {
-      health: '/health',
-      mobileUpload: '/mobile-upload'
-    }
-  });
+// Serve static files from built frontend
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html for all routes (SPA routing)
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/mobile-upload')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Error handler

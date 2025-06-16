@@ -52,16 +52,15 @@ export async function analyzePinImagesWithPimStandard(
 
     const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
     
-    console.log('ACTUAL REQUEST PACKET:', {
-      url: '/api/analyze',
+    console.log('DIRECT MASTER SERVER REQUEST:', {
+      url: 'https://master.pinauth.com/mobile-upload',
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      bodySize: JSON.stringify({ frontImage, backImage, angledImage }).length
+      headers: { 'Content-Type': 'application/json', 'x-api-key': '[HIDDEN]' },
+      sessionId: sessionId
     });
 
-    console.log('Making direct request to master server...');
-    console.log('Request URL:', 'https://master.pinauth.com/mobile-upload');
-    console.log('Using API key for authentication');
+    console.log('Connecting directly to https://master.pinauth.com/mobile-upload');
+    console.log('Session ID:', sessionId);
 
     // Set up a timeout for the fetch
     const controller = new AbortController();

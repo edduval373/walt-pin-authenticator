@@ -109,8 +109,51 @@ app.use((req, res, next) => {
         requestBody.angledImageData = `data:image/png;base64,${cleanAngledImage}`;
       }
       
-      // Create database record immediately for mobile app response
+      // Send to master app server with timeout handling
+      console.log(`[mobile-upload] Sending request to master server with sessionId: ${sessionId}`);
+      let analysisResult;
+      try {
+        const response = await Promise.race([
+          fetch('https://master.pinauth.com/mobile-upload', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+            },
+            body: JSON.stringify(requestBody)
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Master server timeout')), 30000)
+          )
+        ]) as any;
+        
+        console.log(`[mobile-upload] Master server response status: ${response.status}`);
+        
+        // Parse JSON response from production server
+        const jsonResponse = await response.json();
+        
+        // Extract analysis data from production JSON response
+        analysisResult = {
+          authentic: jsonResponse.authentic || false,
+          authenticityRating: jsonResponse.authenticityRating || 0,
+          analysis: jsonResponse.analysis || '',
+          identification: jsonResponse.identification || '',
+          pricing: jsonResponse.pricing || ''
+        };
+      } catch (error: any) {
+        console.log(`[mobile-upload] Master server error: ${error.message}`);
+        // Master server unavailable - return error instead of creating incomplete records
+        return res.status(503).json({
+          success: false,
+          error: "Master server unavailable - authentic analysis service not accessible",
+          message: "Please try again when the authentication service is available"
+        });
+      }
+      
+      // Import storage after dependencies are loaded
       const { storage } = await import('./storage');
+      
+      // Create database record BEFORE sending response
       const pinId = `pin_${sessionId}`;
       const pin = await storage.createPin({
         pinId,
@@ -121,74 +164,20 @@ app.use((req, res, next) => {
         dominantColors: [],
         similarPins: []
       });
-
-      // Send to master server with timeout handling
-      console.log(`[mobile-upload] Sending request to master server with sessionId: ${sessionId}`);
       
-      // Start master server request without blocking response
-      const masterRequest = fetch('https://master.pinauth.com/mobile-upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
-        },
-        body: JSON.stringify(requestBody)
+      // Return response with database ID
+      return res.json({
+        success: true,
+        message: "Pin analysis completed successfully",
+        sessionId,
+        id: pin.id, // Primary database ID
+        timestamp: new Date().toISOString(),
+        authentic: analysisResult.authentic,
+        authenticityRating: analysisResult.authenticityRating,
+        analysis: analysisResult.analysis,
+        identification: analysisResult.identification,
+        pricing: analysisResult.pricing
       });
-
-      // Try for quick response (15 seconds)
-      try {
-        const response = await Promise.race([
-          masterRequest,
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Quick timeout')), 8000)
-          )
-        ]) as any;
-        
-        console.log(`[mobile-upload] Master server quick response: ${response.status}`);
-        const jsonResponse = await response.json();
-        
-        return res.json({
-          success: true,
-          message: "Pin analysis completed successfully",
-          sessionId,
-          id: pin.id,
-          timestamp: new Date().toISOString(),
-          authentic: jsonResponse.authentic || false,
-          authenticityRating: jsonResponse.authenticityRating || 0,
-          analysis: jsonResponse.analysis || '',
-          identification: jsonResponse.identification || '',
-          pricing: jsonResponse.pricing || ''
-        });
-        
-      } catch (error: any) {
-        console.log(`[mobile-upload] Using processing response for mobile app`);
-        
-        // Continue processing in background but respond immediately
-        masterRequest.then(async (response) => {
-          if (response.ok) {
-            const data = await response.json();
-            console.log(`[mobile-upload] Background processing completed for ${sessionId}`);
-            // Could update database record here if needed
-          }
-        }).catch(err => {
-          console.log(`[mobile-upload] Background processing failed: ${err.message}`);
-        });
-        
-        // Return immediate response for mobile app
-        return res.json({
-          success: true,
-          message: "Pin analysis in progress",
-          sessionId,
-          id: pin.id,
-          timestamp: new Date().toISOString(),
-          authentic: null,
-          authenticityRating: null,
-          analysis: "Analysis in progress with authentic Perplexity API",
-          identification: "Processing...",
-          pricing: "Processing...",
-          status: "processing"
-        });
-      }
       
     } catch (error: any) {
       return res.status(500).json({

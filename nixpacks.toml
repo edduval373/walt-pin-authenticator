@@ -6,10 +6,8 @@ cmds = ["npm ci"]
 
 [phases.build]
 cmds = [
-  "npx vite build --config vite.config.prod.js",
-  "mkdir -p dist",
-  "cp server/production.js dist/server.js"
+  "npx vite build --config vite.config.prod.js"
 ]
 
 [start]
-cmd = "node dist/server.js"
+cmd = "npx vite preview --host 0.0.0.0 --port $PORT"

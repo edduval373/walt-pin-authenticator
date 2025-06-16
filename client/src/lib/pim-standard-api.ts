@@ -59,26 +59,23 @@ export async function analyzePinImagesWithPimStandard(
       bodySize: JSON.stringify({ frontImage, backImage, angledImage }).length
     });
 
-    console.log('Making request through backend proxy...');
-    console.log('Request URL:', '/api/analyze');
-    console.log('Backend will connect to master server with API key');
+    console.log('Making direct request to master server...');
+    console.log('Request URL:', 'https://master.pinauth.com/mobile-upload');
+    console.log('Using API key for authentication');
 
     // Set up a timeout for the fetch
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
-      // Make API request through backend proxy (required for web browsers due to CORS)
-      const response = await fetch('/api/analyze', {
+      // Make direct API request to master server
+      const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey || 'pim_0w3nfrt5ahgc'
         },
-        body: JSON.stringify({
-          frontImage: frontImage,
-          ...(backImage && { backImage }),
-          ...(angledImage && { angledImage })
-        }),
+        body: JSON.stringify(requestData),
         signal: controller.signal
       });
       

@@ -52,7 +52,7 @@ const PIM_STANDARD_DEBUG_API_URL = `${PIM_API_BASE_URL}/api/status`;
 const PIM_STANDARD_OLD_API_URL = `${PIM_API_BASE_URL}/api/mobile/minimal/verify`;
 
 // Use the API key from the selected environment or environment variable
-const PIM_STANDARD_API_KEY = process.env.PIM_STANDARD_API_KEY || apiConfig.apiKey;
+const PIM_STANDARD_API_KEY = process.env.MOBILE_API_KEY || apiConfig.apiKey;
 
 // Log API key status at startup
 if (PIM_STANDARD_API_KEY) {

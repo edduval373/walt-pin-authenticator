@@ -65,7 +65,8 @@ app.use((req, res, next) => {
       
       // Validate API key
       const apiKey = req.headers['x-api-key'];
-      if (apiKey !== 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g') {
+      const expectedApiKey = process.env.MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g';
+      if (apiKey !== expectedApiKey) {
         return res.status(401).json({
           success: false,
           error: "Invalid API key"
@@ -118,7 +119,7 @@ app.use((req, res, next) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+              'x-api-key': process.env.MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
             },
             body: JSON.stringify(requestBody)
           }),

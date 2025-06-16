@@ -117,12 +117,17 @@ app.post('/mobile-upload', async (req, res) => {
   }
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '../dist/public')));
-
-// Serve index.html for all other routes (SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+// Simple static file serving - Railway will handle the frontend separately
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Walt Disney Pin Authentication API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      mobileUpload: '/mobile-upload'
+    }
+  });
 });
 
 // Error handler

@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "npx vite build --config vite.config.prod.js && cp server/production.js dist/index.js && npm start"
+startCommand = "node dist/index.js"
 
 [env]
 NODE_ENV = "production"

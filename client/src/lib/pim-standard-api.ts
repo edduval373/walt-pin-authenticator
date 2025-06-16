@@ -16,6 +16,17 @@ export interface PimAnalysisResponse {
   authenticityScore: number; // Authenticity score (0-100)
   detectedPinId?: string; // ID of the detected pin if a match was found
   rawApiResponse?: any; // Raw API response for debugging
+  // Master server response fields for mobile app compatibility
+  id?: number;          // Database record ID
+  sessionId?: string;   // Session identifier
+  authentic?: boolean;  // Authenticity flag
+  authenticityRating?: number; // Authenticity percentage
+  characters?: string;  // Character analysis
+  identification?: string; // Pin identification
+  analysis?: string;    // Analysis details
+  pricing?: string;     // Pricing information
+  timestamp?: string;   // Response timestamp
+  message?: string;     // Response message
 }
 
 /**
@@ -42,12 +53,12 @@ export async function analyzePinImagesWithPimStandard(
     const now = new Date();
     const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
 
-    // Prepare the request data
+    // Prepare the request data - ensure data URL format with prefix as required by master server
     const requestData = {
       sessionId,
-      frontImageData: frontImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, ''),
-      ...(backImage && { backImageData: backImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '') }),
-      ...(angledImage && { angledImageData: angledImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '') })
+      frontImageData: frontImage.startsWith('data:') ? frontImage : `data:image/jpeg;base64,${frontImage}`,
+      ...(backImage && { backImageData: backImage.startsWith('data:') ? backImage : `data:image/jpeg;base64,${backImage}` }),
+      ...(angledImage && { angledImageData: angledImage.startsWith('data:') ? angledImage : `data:image/jpeg;base64,${angledImage}` })
     };
 
     const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
@@ -89,27 +100,49 @@ export async function analyzePinImagesWithPimStandard(
       const data = await response.json();
       console.log('Pin analysis complete:', data);
       
-      // Convert master server response to frontend format
+      // Use master server response format directly for mobile app compatibility
       return {
         confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
         authenticityScore: data.authenticityRating || 85,
-        frontHtml: data.analysis || data.identification || `<div class="analysis-result">
-          <h2>Pin Authentication Results</h2>
+        // Pass through all master server fields for mobile app compatibility
+        id: data.id,
+        sessionId: data.sessionId,
+        authentic: data.authentic,
+        authenticityRating: data.authenticityRating,
+        characters: data.characters,
+        identification: data.identification,
+        analysis: data.analysis,
+        pricing: data.pricing,
+        timestamp: data.timestamp,
+        message: data.message,
+        // Create HTML display from master server data
+        frontHtml: `<div class="analysis-result">
+          <h2>Disney Pin Authentication Results</h2>
           <div class="authenticity-score">
             <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
-            <p class="confidence-level">${data.authentic ? 'Likely Authentic' : 'Authenticity Uncertain'}</p>
+            <p class="confidence-level">${data.authentic ? 'Authentic Disney Pin' : 'Authenticity Uncertain'}</p>
+          </div>
+          <div class="characters">
+            <h3>Characters</h3>
+            <p>${data.characters || 'Character analysis in progress'}</p>
           </div>
           <div class="identification">
             <h3>Pin Identification</h3>
-            <p>${data.identification || 'Pin analysis completed successfully'}</p>
+            <p>${data.identification || 'Pin identification in progress'}</p>
           </div>
           <div class="pricing-info">
             <h3>Market Information</h3>
-            <p>${data.pricing || 'Pricing data not available'}</p>
+            <p>${data.pricing || 'Pricing analysis in progress'}</p>
           </div>
           <div class="ai-analysis">
             <h3>Analysis Details</h3>
-            <p>${data.analysis || 'Direct connection to master server successful'}</p>
+            <p>${data.analysis || 'Analysis in progress'}</p>
+          </div>
+          <div class="record-info">
+            <h3>Record Details</h3>
+            <p>Database ID: ${data.id}</p>
+            <p>Session: ${data.sessionId}</p>
+            <p>Timestamp: ${new Date(data.timestamp).toLocaleString()}</p>
           </div>
         </div>`,
         backHtml: backImage ? `<div class="analysis-result">

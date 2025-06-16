@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "./railway.build.sh && npm start"
+startCommand = "npx vite build --config vite.config.prod.js && cp server/production.js dist/index.js && npm start"
 
 [env]
 NODE_ENV = "production"

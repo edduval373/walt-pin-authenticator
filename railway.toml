@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "node static-server.js"
+startCommand = "npx serve dist -s -l $PORT"
 
 [env]
 NODE_ENV = "production"

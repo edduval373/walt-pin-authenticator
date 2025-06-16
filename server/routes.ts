@@ -43,13 +43,13 @@ const apiConfig = API_ENVIRONMENTS[currentEnv] || API_ENVIRONMENTS.development;
 
 // Log which environment we're using
 log(`Using PIM API environment: ${currentEnv}`, 'express');
-log(`Available API base URLs: ${apiConfig.baseUrls.join(', ')}`, 'express');
+log(`Using single API base URL: ${apiConfig.baseUrls[0]}`, 'express');
 
-// Create endpoint URLs (we'll try these in sequence if one fails)
-const PIM_API_BASE_URLS = apiConfig.baseUrls;
-const PIM_STANDARD_API_URLS = PIM_API_BASE_URLS.map(url => `${url}/mobile-upload`);
-const PIM_STANDARD_DEBUG_API_URL = `${PIM_API_BASE_URLS[0]}/api/status`;
-const PIM_STANDARD_OLD_API_URL = `${PIM_API_BASE_URLS[0]}/api/mobile/minimal/verify`;
+// Use only the primary endpoint - no fallbacks
+const PIM_API_BASE_URL = apiConfig.baseUrls[0];
+const PIM_STANDARD_API_URL = `${PIM_API_BASE_URL}/mobile-upload`;
+const PIM_STANDARD_DEBUG_API_URL = `${PIM_API_BASE_URL}/api/status`;
+const PIM_STANDARD_OLD_API_URL = `${PIM_API_BASE_URL}/api/mobile/minimal/verify`;
 
 // Use the API key from the selected environment or environment variable
 const PIM_STANDARD_API_KEY = process.env.PIM_STANDARD_API_KEY || apiConfig.apiKey;
@@ -86,8 +86,7 @@ interface PimStandardResponse {
 }
 
 /**
- * Analyze pin images using the PIM Standard API
- * Will try multiple endpoints if available
+ * Analyze pin images using the PIM Standard API - Direct connection only
  */
 async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: string, angledImageBase64?: string): Promise<PimStandardResponse> {
   // Ensure API key is configured
@@ -96,115 +95,87 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     throw new Error("PIM Standard API key not configured");
   }
   
-  try {
-    // Ensure the frontImageBase64 doesn't have the data prefix
-    const cleanFrontImage = frontImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-    
-    // Generate session ID in YYMMDDHHMMSS format (12 digits)
-    const now = new Date();
-    const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+  // Ensure the frontImageBase64 doesn't have the data prefix
+  const cleanFrontImage = frontImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+  
+  // Generate session ID in YYMMDDHHMMSS format (12 digits)
+  const now = new Date();
+  const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
 
-    // Prepare the request body according to deployed API format
-    const requestBody: Record<string, any> = {
-      sessionId: sessionId,
-      frontImageData: cleanFrontImage
+  // Prepare the request body according to deployed API format
+  const requestBody: Record<string, any> = {
+    sessionId: sessionId,
+    frontImageData: cleanFrontImage
+  };
+  
+  // Add back and angled images if provided
+  if (backImageBase64) {
+    requestBody.backImageData = backImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+  }
+  
+  if (angledImageBase64) {
+    requestBody.angledImageData = angledImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
+  }
+  
+  // Log the image sizes and data samples for debugging
+  log(`Image sizes - Front: ${cleanFrontImage.length} chars, Back: ${requestBody.backImageData ? requestBody.backImageData.length : 'N/A'} chars, Angled: ${requestBody.angledImageData ? requestBody.angledImageData.length : 'N/A'} chars`, 'express');
+  
+  // Log sample of image data and API key being used
+  log(`API Key from secrets: ${PIM_STANDARD_API_KEY ? PIM_STANDARD_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
+  log(`Front image data sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
+  
+  // Make direct API call to master.pinauth.com - no fallbacks
+  log(`Making direct API call to: ${PIM_STANDARD_API_URL}`, 'express');
+  log(`Session ID being sent: ${sessionId}`, 'express');
+  log(`Request body: ${JSON.stringify(requestBody).substring(0, 200)}...`, 'express');
+  
+  try {
+    // Make the API call to master.pinauth.com
+    const apiResponse = await fetch(PIM_STANDARD_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': PIM_STANDARD_API_KEY
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    log(`Response status: ${apiResponse.status}`, 'express');
+
+    // Check if the response is OK
+    if (!apiResponse.ok) {
+      const errorText = await apiResponse.text();
+      log(`API Error (${apiResponse.status}): ${errorText}`, 'express');
+      throw new Error(`API Error: ${apiResponse.status} ${errorText}`);
+    }
+    
+    // Parse the response
+    const data = await apiResponse.json() as PimStandardResponse;
+    log(`API Response success: ${data.success}, message: ${data.message}`, 'express');
+    log(`API Response record fields: recordNumber=${data.recordNumber}, recordId=${data.recordId}, sessionId=${data.sessionId}`, 'express');
+    log(`Full API Response: ${JSON.stringify(data, null, 2).substring(0, 500)}...`, 'express');
+    
+    // Return the response data
+    const response: PimStandardResponse = {
+      success: data.success,
+      message: data.message || "Verification completed",
+      sessionId: data.sessionId || sessionId,
+      recordNumber: data.recordNumber || data.recordId,
+      timestamp: data.timestamp || new Date().toISOString(),
+      authentic: data.authentic,
+      authenticityRating: data.authenticityRating,
+      analysis: data.analysis || data.characters || "",
+      identification: data.identification || "",
+      pricing: data.pricing || "",
+      analysisReport: data.analysisReport || data.analysis || "",
+      pinId: data.pinId || data.sessionId,
+      aiFindings: data.aiFindings || data.analysis,
+      pinIdHtml: data.pinIdHtml || data.identification,
+      pricingHtml: data.pricingHtml || data.pricing
     };
     
-    // Add back and angled images if provided
-    if (backImageBase64) {
-      requestBody.backImageData = backImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-    }
+    return response;
     
-    if (angledImageBase64) {
-      requestBody.angledImageData = angledImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-    }
-    
-    // Log the image sizes and data samples for debugging
-    log(`Image sizes - Front: ${cleanFrontImage.length} chars, Back: ${requestBody.backImageData ? requestBody.backImageData.length : 'N/A'} chars, Angled: ${requestBody.angledImageData ? requestBody.angledImageData.length : 'N/A'} chars`, 'express');
-    
-    // Log sample of image data and API key being used
-    log(`API Key from secrets: ${PIM_STANDARD_API_KEY ? PIM_STANDARD_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
-    log(`Front image data sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
-    
-    // Try each API endpoint in sequence until one succeeds
-    let lastError: Error | null = null;
-    
-    for (const apiUrl of PIM_STANDARD_API_URLS) {
-      try {
-        log(`Trying API endpoint: ${apiUrl}`, 'express');
-        log(`Session ID being sent: ${sessionId}`, 'express');
-        log(`Request body: ${JSON.stringify(requestBody).substring(0, 200)}...`, 'express');
-        
-        // Make the API call to this endpoint
-        const apiResponse = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': PIM_STANDARD_API_KEY
-          },
-          body: JSON.stringify(requestBody)
-        });
-        
-        log(`Response status: ${apiResponse.status}`, 'express');
-    
-        // Check if the response is OK
-        if (!apiResponse.ok) {
-          const errorText = await apiResponse.text();
-          log(`API Error (${apiResponse.status}): ${errorText}`, 'express');
-          log(`API Request details:
-            URL: ${apiUrl}
-            Method: POST
-            Headers: Content-Type: application/json, X-API-Key: ${PIM_STANDARD_API_KEY}
-            Body keys: ${Object.keys(requestBody).join(', ')}
-            Has image data: ${!!requestBody.frontImageBase64}
-            Front image data length: ${requestBody.frontImageBase64?.length || 0}
-          `, 'express');
-          
-          // Save this error but try the next endpoint
-          lastError = new Error(`API Error: ${apiResponse.status} ${errorText}`);
-          continue; // Try the next endpoint
-        }
-        
-        // Parse the response
-        const data = await apiResponse.json() as PimStandardResponse;
-        log(`API Response success: ${data.success}, message: ${data.message}`, 'express');
-        log(`API Response record fields: recordNumber=${data.recordNumber}, recordId=${data.recordId}, sessionId=${data.sessionId}`, 'express');
-        log(`Full API Response: ${JSON.stringify(data, null, 2).substring(0, 500)}...`, 'express');
-        
-        // Map the response to include necessary fields for our app
-        const response: PimStandardResponse = {
-          success: data.success,
-          message: data.message || "Verification completed",
-          sessionId: data.sessionId || `session_${Date.now()}`,
-          recordNumber: data.recordNumber || data.recordId,
-          timestamp: data.timestamp || new Date().toISOString(),
-          authentic: typeof data.authentic === 'boolean' ? data.authentic : true,
-          authenticityRating: data.authenticityRating !== undefined ? data.authenticityRating : 4,
-          
-          // Use provided data or fallback to formatting the response
-          analysis: data.analysis || data.aiFindings || "",
-          identification: data.identification || data.pinId || "",
-          pricing: data.pricing || "",
-          analysisReport: data.analysisReport || data.analysis || ""
-        };
-        
-        // We got a successful response, return it
-        return response;
-        
-      } catch (innerError: any) {
-        // Log the error but continue to the next endpoint
-        log(`Error with endpoint ${apiUrl}: ${innerError.message}`, 'express');
-        lastError = innerError;
-      }
-    }
-    
-    // If we reach here, all endpoints failed
-    if (lastError) {
-      log(`All API endpoints failed. Last error: ${lastError.message}`, 'express');
-      throw lastError;
-    } else {
-      throw new Error("All API endpoints failed with unknown errors");
-    }
   } catch (error: any) {
     log(`Error in PIM API call: ${error.message || error}`, 'express');
     throw error;
@@ -232,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/config', (req, res) => {
     res.json({
       environment: process.env.API_ENVIRONMENT || process.env.NODE_ENV || 'development',
-      baseUrl: PIM_API_BASE_URLS[0],
+      baseUrl: PIM_API_BASE_URL,
       endpoints: {
         directVerify: '/mobile-upload',
         status: '/api/status'

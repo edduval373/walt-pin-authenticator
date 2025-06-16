@@ -1,5 +1,8 @@
 [variables]
 NODE_ENV = "production"
 
+[phases.install]
+cmds = ["npm install express node-fetch"]
+
 [start]
 cmd = "node server/production.js"

@@ -236,6 +236,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Health check proxy endpoint
+  app.get('/api/proxy/health', async (req, res) => {
+    try {
+      const response = await fetch('https://master.pinauth.com/health', {
+        method: 'GET'
+      });
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      log(`Health check proxy error: ${errorMessage}`, 'express');
+      res.status(500).json({
+        success: false,
+        message: 'Health check failed',
+        error: errorMessage
+      });
+    }
+  });
   
   // Mobile API endpoints for app integration
   

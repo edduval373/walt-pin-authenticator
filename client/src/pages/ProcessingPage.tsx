@@ -156,9 +156,7 @@ export default function ProcessingPage() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        const healthResponse = await fetch('https://master.pinauth.com/health', {
-          mode: 'cors',
-          credentials: 'omit',
+        const healthResponse = await fetch('/api/proxy/health', {
           method: 'GET',
           signal: controller.signal
         }).catch(fetchError => {

@@ -156,7 +156,7 @@ export default function ProcessingPage() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
-        const healthResponse = await fetch('https://pim-master-library-edduval15.replit.app/health', {
+        const healthResponse = await fetch('/api/health', {
           method: 'GET',
           signal: controller.signal
         }).catch(fetchError => {

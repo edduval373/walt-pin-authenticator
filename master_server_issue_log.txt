@@ -1,0 +1,237 @@
+=== MASTER SERVER CONNECTION DIAGNOSTIC LOG ===
+Generated: Mon Jun 16 04:15:10 PM UTC 2025
+Target Server: https://master.pinauth.com
+
+=== 1. HEALTH CHECK ENDPOINT TEST ===
+Command: curl -s https://master.pinauth.com/health
+Result:
+{"status":"healthy","timestamp":"2025-06-16T16:15:10.740Z","port":"8080"}
+=== 2. API ENDPOINTS DISCOVERY ===
+Command: curl -s https://master.pinauth.com/
+Result:
+{"service":"Pin Master Library - Mobile API","status":"running","timestamp":"2025-06-16T16:15:10.927Z","endpoints":{"POST /mobile-upload":"Mobile pin upload endpoint","GET /health":"Health check endpoint"}}
+=== 3. CORS PREFLIGHT REQUEST TEST ===
+Command: curl -X OPTIONS https://master.pinauth.com/mobile-upload -H 'Origin: https://example.com' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type,x-api-key' -v
+Result:
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host master.pinauth.com:443 was resolved.
+* IPv6: 2606:4700:3030::6815:3001, 2606:4700:3030::6815:4001, 2606:4700:3030::6815:1001, 2606:4700:3030::6815:6001, 2606:4700:3030::6815:7001, 2606:4700:3030::6815:5001, 2606:4700:3030::6815:2001
+* IPv4: 104.21.16.1, 104.21.48.1, 104.21.32.1, 104.21.96.1, 104.21.80.1, 104.21.112.1, 104.21.64.1
+*   Trying [2606:4700:3030::6815:3001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:3001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:4001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:4001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:1001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:1001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:6001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:6001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:7001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:7001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:5001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:5001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:2001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:2001: Cannot assign requested address
+*   Trying 104.21.16.1:443...
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [19 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [2529 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [79 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: CN=pinauth.com
+*  start date: May 31 22:11:38 2025 GMT
+*  expire date: Aug 29 23:09:23 2025 GMT
+*  subjectAltName: host "master.pinauth.com" matched cert's "*.pinauth.com"
+*  issuer: C=US; O=Google Trust Services; CN=WE1
+*  SSL certificate verify ok.
+*   Certificate level 0: Public key type EC/prime256v1 (256/128 Bits/secBits), signed using ecdsa-with-SHA256
+*   Certificate level 1: Public key type EC/prime256v1 (256/128 Bits/secBits), signed using ecdsa-with-SHA384
+*   Certificate level 2: Public key type EC/secp384r1 (384/192 Bits/secBits), signed using ecdsa-with-SHA384
+* Connected to master.pinauth.com (104.21.16.1) port 443
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://master.pinauth.com/mobile-upload
+* [HTTP/2] [1] [:method: OPTIONS]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: master.pinauth.com]
+* [HTTP/2] [1] [:path: /mobile-upload]
+* [HTTP/2] [1] [user-agent: curl/8.11.1]
+* [HTTP/2] [1] [accept: */*]
+* [HTTP/2] [1] [origin: https://example.com]
+* [HTTP/2] [1] [access-control-request-method: POST]
+* [HTTP/2] [1] [access-control-request-headers: content-type,x-api-key]
+} [5 bytes data]
+> OPTIONS /mobile-upload HTTP/2
+> Host: master.pinauth.com
+> User-Agent: curl/8.11.1
+> Accept: */*
+> Origin: https://example.com
+> Access-Control-Request-Method: POST
+> Access-Control-Request-Headers: content-type,x-api-key
+> 
+* Request completely sent off
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [230 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [230 bytes data]
+< HTTP/2 404 
+< date: Mon, 16 Jun 2025 16:15:11 GMT
+< content-type: application/json
+< access-control-allow-origin: *
+< server: cloudflare
+< x-railway-edge: railway/us-east4
+< x-railway-request-id: 4Dc6obfIQYaxeIRII_kN5A
+< cf-cache-status: DYNAMIC
+< nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+< report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=C9oIInqCizuRnItJiNMh1bxIOSA6%2Bb9rG0qS8PNYTEuggHFlI%2FFYh8SA6VLSmYu1k8lG5wgOEWKaf40g2LmyB2EahEu2Hj8%2FcsNDyhgKJvUseA%3D%3D"}]}
+< cf-ray: 950b9abe8bfc4576-ATL
+< alt-svc: h3=":443"; ma=86400
+< 
+{ [5 bytes data]
+100   126    0   126    0     0    217      0 --:--:-- --:--:-- --:--:--   217100   126    0   126    0     0    215      0 --:--:-- --:--:-- --:--:--   215
+* Connection #0 to host master.pinauth.com left intact
+{"error":"Not found","message":"Route OPTIONS /mobile-upload not found","availableEndpoints":["/mobile-upload","/health","/"]}
+=== 4. MOBILE UPLOAD ENDPOINT CONNECTION TEST ===
+Command: curl -X POST https://master.pinauth.com/mobile-upload -H 'Content-Type: application/json' -H 'x-api-key: [REDACTED]' -d '{"sessionId":"test","frontImageData":"test"}' --connect-timeout 15 --max-time 30 -v
+Result:
+Note: Unnecessary use of -X or --request, POST is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host master.pinauth.com:443 was resolved.
+* IPv6: 2606:4700:3030::6815:7001, 2606:4700:3030::6815:5001, 2606:4700:3030::6815:3001, 2606:4700:3030::6815:1001, 2606:4700:3030::6815:6001, 2606:4700:3030::6815:4001, 2606:4700:3030::6815:2001
+* IPv4: 104.21.80.1, 104.21.112.1, 104.21.16.1, 104.21.48.1, 104.21.64.1, 104.21.96.1, 104.21.32.1
+*   Trying [2606:4700:3030::6815:7001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:7001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:5001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:5001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:3001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:3001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:1001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:1001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:6001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:6001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:4001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:4001: Cannot assign requested address
+*   Trying [2606:4700:3030::6815:2001]:443...
+* Immediate connect fail for 2606:4700:3030::6815:2001: Cannot assign requested address
+*   Trying 104.21.80.1:443...
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [122 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [19 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [2529 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [79 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+* ALPN: server accepted h2
+* Server certificate:
+*  subject: CN=pinauth.com
+*  start date: May 31 22:11:38 2025 GMT
+*  expire date: Aug 29 23:09:23 2025 GMT
+*  subjectAltName: host "master.pinauth.com" matched cert's "*.pinauth.com"
+*  issuer: C=US; O=Google Trust Services; CN=WE1
+*  SSL certificate verify ok.
+*   Certificate level 0: Public key type EC/prime256v1 (256/128 Bits/secBits), signed using ecdsa-with-SHA256
+*   Certificate level 1: Public key type EC/prime256v1 (256/128 Bits/secBits), signed using ecdsa-with-SHA384
+*   Certificate level 2: Public key type EC/secp384r1 (384/192 Bits/secBits), signed using ecdsa-with-SHA384
+* Connected to master.pinauth.com (104.21.80.1) port 443
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://master.pinauth.com/mobile-upload
+* [HTTP/2] [1] [:method: POST]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: master.pinauth.com]
+* [HTTP/2] [1] [:path: /mobile-upload]
+* [HTTP/2] [1] [user-agent: curl/8.11.1]
+* [HTTP/2] [1] [accept: */*]
+* [HTTP/2] [1] [content-type: application/json]
+* [HTTP/2] [1] [x-api-key: pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g]
+* [HTTP/2] [1] [content-length: 144]
+} [5 bytes data]
+> POST /mobile-upload HTTP/2
+> Host: master.pinauth.com
+> User-Agent: curl/8.11.1
+> Accept: */*
+> Content-Type: application/json
+> x-api-key: pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g
+> Content-Length: 144
+> 
+} [144 bytes data]
+* upload completely sent off: 144 bytes
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [230 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [230 bytes data]
+100   144    0     0  100   144      0    117  0:00:01  0:00:01 --:--:--   117100   144    0     0  100   144      0     64  0:00:02  0:00:02 --:--:--    64100   144    0     0  100   144      0     44  0:00:03  0:00:03 --:--:--    44100   144    0     0  100   144      0     33  0:00:04  0:00:04 --:--:--    33100   144    0     0  100   144      0     27  0:00:05  0:00:05 --:--:--    27100   144    0     0  100   144      0     22  0:00:06  0:00:06 --:--:--     0100   144    0     0  100   144      0     19  0:00:07  0:00:07 --:--:--     0100   144    0     0  100   144      0     19  0:00:07  0:00:07 --:--:--     0100   144    0     0  100   144      0     16  0:00:09  0:00:08  0:00:01     0100   144    0     0  100   144      0     15  0:00:09  0:00:09 --:--:--     0CONNECTION TIMEOUT - Mobile upload endpoint not responding within 30 seconds
+
+=== 5. API KEY FORMAT VERIFICATION ===
+API Key Length: 54 characters
+API Key Prefix: pim_mobi...
+
+=== 6. BROWSER CONSOLE ERRORS FROM CLIENT ===
+Error: TypeError: Failed to fetch
+Location: analyzePinImagesWithPimStandard function
+Request URL: https://master.pinauth.com/mobile-upload
+Request Method: POST
+Request Headers:
+  - Content-Type: application/json
+  - X-API-Key: [REDACTED]
+  - Mode: cors
+  - Credentials: omit
+
+=== 7. NETWORK ANALYSIS ===
+Health endpoint (/health) works correctly
+Root endpoint (/) returns proper API documentation
+Mobile upload endpoint (/mobile-upload) times out or fails to respond
+CORS headers present: access-control-allow-origin: *
+
+=== 8. TECHNICAL RECOMMENDATIONS FOR MASTER SERVER TEAM ===
+
+ISSUE SUMMARY:
+- Health endpoint responsive and working
+- Mobile upload endpoint timing out/not responding
+- Browser CORS preflight requests may be failing
+- Direct server-to-server calls via curl also timeout
+
+REQUIRED FIXES:
+1. Ensure /mobile-upload endpoint responds within 30 seconds
+2. Verify CORS preflight OPTIONS requests are handled properly
+3. Confirm API key validation is working for mobile keys
+4. Add proper CORS headers for all required methods and headers:
+   - Access-Control-Allow-Methods: POST, OPTIONS
+   - Access-Control-Allow-Headers: Content-Type, X-API-Key, x-api-key
+   - Access-Control-Allow-Origin: *
+
+CLIENT DETAILS:
+- Origin: Various (Replit development, Railway production)
+- Expected Response Format: JSON with success/failure status
+- Timeout Setting: 120 seconds (2 minutes)
+
+=== END OF DIAGNOSTIC LOG ===

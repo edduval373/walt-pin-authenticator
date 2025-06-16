@@ -53,12 +53,12 @@ export async function analyzePinImagesWithPimStandard(
     const now = new Date();
     const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
 
-    // Prepare the request data - ensure data URL format with prefix as required by master server
+    // Prepare the request data - extract base64 data only (no data URL prefix)
     const requestData = {
       sessionId,
-      frontImageData: frontImage.startsWith('data:') ? frontImage : `data:image/jpeg;base64,${frontImage}`,
-      ...(backImage && { backImageData: backImage.startsWith('data:') ? backImage : `data:image/jpeg;base64,${backImage}` }),
-      ...(angledImage && { angledImageData: angledImage.startsWith('data:') ? angledImage : `data:image/jpeg;base64,${angledImage}` })
+      frontImageData: frontImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, ''),
+      ...(backImage && { backImageData: backImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '') }),
+      ...(angledImage && { angledImageData: angledImage.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '') })
     };
 
     const apiKey = import.meta.env.VITE_MOBILE_API_KEY;

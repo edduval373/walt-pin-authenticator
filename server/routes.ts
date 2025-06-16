@@ -23,13 +23,13 @@ const API_ENVIRONMENTS = {
     baseUrls: [
       "https://master.pinauth.com"
     ],
-    apiKey: "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g"
+    apiKey: process.env.MOBILE_API_KEY
   },
   production: {
     baseUrls: [
       process.env.PIM_API_URL || "https://master.pinauth.com"
     ],
-    apiKey: process.env.PIM_API_KEY || "pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g"
+    apiKey: process.env.MOBILE_API_KEY
   },
   testing: {
     baseUrls: ["https://master.pinauth.com"],

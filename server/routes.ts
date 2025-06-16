@@ -234,12 +234,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/config', (req, res) => {
     res.json({
       environment: process.env.API_ENVIRONMENT || process.env.NODE_ENV || 'development',
-      baseUrl: PIM_API_BASE_URL,
+      baseUrl: PIM_API_BASE_URLS[0],
       endpoints: {
         directVerify: '/mobile-upload',
         status: '/api/status'
       },
-      hasApiKey: !!PIM_API_KEY
+      hasApiKey: !!PIM_STANDARD_API_KEY
     });
   });
   
@@ -564,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Make a simple request to the API status endpoint
       const response = await fetch(PIM_STANDARD_DEBUG_API_URL, {
         headers: {
-          'X-API-Key': PIM_API_KEY || ''
+          'X-API-Key': PIM_STANDARD_API_KEY || ''
         }
       });
       

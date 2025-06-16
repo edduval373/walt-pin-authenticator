@@ -68,13 +68,10 @@ export async function analyzePinImagesWithPimStandard(
     
     try {
       // Make direct API request to master server with proper CORS handling
-      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      const response = await fetch('/api/proxy/mobile-upload', {
         method: 'POST',
-        mode: 'cors',
-        credentials: 'omit',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey || 'pim_0w3nfrt5ahgc'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestData),
         signal: controller.signal

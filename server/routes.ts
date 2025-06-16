@@ -211,6 +211,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       hasApiKey: !!MOBILE_API_KEY
     });
   });
+
+  // Temporary CORS proxy endpoint for master server until OPTIONS handler is implemented
+  app.post('/api/proxy/mobile-upload', async (req, res) => {
+    try {
+      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
+        },
+        body: JSON.stringify(req.body)
+      });
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      log(`Proxy error: ${errorMessage}`, 'express');
+      res.status(500).json({
+        success: false,
+        message: 'Proxy request failed',
+        error: errorMessage
+      });
+    }
+  });
   
   // Mobile API endpoints for app integration
   

@@ -157,6 +157,8 @@ export default function ProcessingPage() {
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         
         const healthResponse = await fetch('https://master.pinauth.com/health', {
+          mode: 'cors',
+          credentials: 'omit',
           method: 'GET',
           signal: controller.signal
         }).catch(fetchError => {

@@ -67,12 +67,14 @@ export async function analyzePinImagesWithPimStandard(
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
-      // Make direct API request to master server
+      // Make direct API request to master server with proper CORS handling
       const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey || 'pim_0w3nfrt5ahgc'
+          'X-API-Key': apiKey || 'pim_0w3nfrt5ahgc'
         },
         body: JSON.stringify(requestData),
         signal: controller.signal

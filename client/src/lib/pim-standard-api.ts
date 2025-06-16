@@ -74,7 +74,7 @@ export async function analyzePinImagesWithPimStandard(
         credentials: 'omit',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': apiKey || 'pim_0w3nfrt5ahgc'
+          'x-api-key': apiKey || 'pim_0w3nfrt5ahgc'
         },
         body: JSON.stringify(requestData),
         signal: controller.signal

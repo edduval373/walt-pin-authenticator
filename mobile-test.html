@@ -109,14 +109,9 @@
             }
         }
         
-        // Auto-test based on device type
-        if (isMobile) {
-            log('Mobile device detected - testing direct connection first...');
-            setTimeout(testDirectConnection, 1000);
-        } else {
-            log('Desktop device detected - testing proxy connection first...');
-            setTimeout(testProxyConnection, 1000);
-        }
+        // Auto-test for mobile direct connection validation
+        log('Testing mobile direct connection capability...');
+        setTimeout(testDirectConnection, 500);
     </script>
 </body>
 </html>

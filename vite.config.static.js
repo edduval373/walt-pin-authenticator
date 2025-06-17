@@ -18,6 +18,22 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-toast'],
+          icons: ['lucide-react']
+        },
+      },
+    },
+    target: 'es2020',
+    minify: 'esbuild',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+  },
+  esbuild: {
+    target: 'es2020',
   },
   server: {
     host: '0.0.0.0',
@@ -26,5 +42,8 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0',
     port: process.env.PORT || 5173,
+  },
+  define: {
+    'process.env.NODE_ENV': '"production"',
   },
 });

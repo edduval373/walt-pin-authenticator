@@ -78,8 +78,8 @@ export async function analyzePinImagesWithPimStandard(
     console.log(`Device type: ${isMobile ? 'Mobile (streaming)' : 'Desktop (single response)'}`);
     
     if (isMobile) {
-      // Mobile devices try direct connection first, fallback to proxy
-      return await handleMobileWithFallback(requestData, sessionId);
+      // Mobile devices connect directly to master server
+      return await handleMobileDirectConnection(requestData, sessionId);
     } else {
       // Desktop uses proxy for CORS handling
       return await handleDesktopResponse(requestData, sessionId);

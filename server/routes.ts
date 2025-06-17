@@ -212,43 +212,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Temporary CORS proxy endpoint for master server until OPTIONS handler is implemented
+  // Streaming proxy endpoint that splits master server response into packets for mobile compatibility
   app.post('/api/proxy/mobile-upload', async (req, res) => {
     const startTime = Date.now();
     const userAgent = req.headers['user-agent'] || 'Unknown';
     const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const sessionId = req.body.sessionId || `session_${Date.now()}`;
     
     log(`Proxy request from ${isMobile ? 'MOBILE' : 'DESKTOP'} device: ${userAgent.substring(0, 50)}...`, 'express');
     
     try {
-      const response = await fetch('https://master.pinauth.com/mobile-upload', {
-        method: 'POST',
-        headers: {
+      // For mobile devices, use streaming response to avoid cellular timeouts
+      if (isMobile) {
+        // Set up streaming response headers
+        res.writeHead(200, {
           'Content-Type': 'application/json',
-          'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
-        },
-        body: JSON.stringify(req.body),
-        // Add timeout for server-side request
-        signal: AbortSignal.timeout(90000) // 90 second server timeout
-      });
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        });
+        
+        // Send initial packet - connection established
+        const packet1 = {
+          packetType: 'connection',
+          packetNumber: 1,
+          totalPackets: 4,
+          sessionId,
+          message: 'Connected to master server, processing images...',
+          timestamp: new Date().toISOString()
+        };
+        res.write(JSON.stringify(packet1) + '\n');
+        
+        // Make request to master server
+        const response = await fetch('https://master.pinauth.com/mobile-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(90000)
+        });
 
-      const data = await response.json();
-      const processingTime = Date.now() - startTime;
+        const data = await response.json();
+        const processingTime = Date.now() - startTime;
+        
+        // Send packet 2 - basic results
+        const packet2 = {
+          packetType: 'basic_results',
+          packetNumber: 2,
+          totalPackets: 4,
+          sessionId,
+          success: data.success,
+          authentic: data.authentic,
+          authenticityRating: data.authenticityRating,
+          id: data.id,
+          timestamp: data.timestamp,
+          message: data.message
+        };
+        res.write(JSON.stringify(packet2) + '\n');
+        
+        // Send packet 3 - character and identification data
+        const packet3 = {
+          packetType: 'identification',
+          packetNumber: 3,
+          totalPackets: 4,
+          sessionId,
+          characters: data.characters,
+          identification: data.identification
+        };
+        res.write(JSON.stringify(packet3) + '\n');
+        
+        // Send packet 4 - analysis and pricing (final packet)
+        const packet4 = {
+          packetType: 'analysis_complete',
+          packetNumber: 4,
+          totalPackets: 4,
+          sessionId,
+          analysis: data.analysis,
+          pricing: data.pricing,
+          frontHtml: data.frontHtml,
+          backHtml: data.backHtml,
+          angledHtml: data.angledHtml,
+          processingTime,
+          complete: true
+        };
+        res.write(JSON.stringify(packet4) + '\n');
+        
+        // End the streaming response
+        res.end();
+        
+        log(`Proxy MOBILE streaming success: ${processingTime}ms (4 packets)`, 'express');
+        
+      } else {
+        // Desktop - send full response at once (existing behavior)
+        const response = await fetch('https://master.pinauth.com/mobile-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
+          },
+          body: JSON.stringify(req.body),
+          signal: AbortSignal.timeout(90000)
+        });
+
+        const data = await response.json();
+        const processingTime = Date.now() - startTime;
+        
+        log(`Proxy DESKTOP success: ${processingTime}ms`, 'express');
+        res.json(data);
+      }
       
-      log(`Proxy ${isMobile ? 'MOBILE' : 'DESKTOP'} success: ${processingTime}ms`, 'express');
-      res.json(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const processingTime = Date.now() - startTime;
       
       log(`Proxy ${isMobile ? 'MOBILE' : 'DESKTOP'} error after ${processingTime}ms: ${errorMessage}`, 'express');
-      res.status(500).json({
-        success: false,
-        message: 'Proxy request failed',
-        error: errorMessage,
-        processingTime,
-        deviceType: isMobile ? 'mobile' : 'desktop'
-      });
+      
+      if (isMobile && res.headersSent) {
+        // If streaming already started, send error packet
+        const errorPacket = {
+          packetType: 'error',
+          packetNumber: -1,
+          sessionId: req.body.sessionId,
+          success: false,
+          message: 'Connection failed',
+          error: errorMessage,
+          processingTime
+        };
+        res.write(JSON.stringify(errorPacket) + '\n');
+        res.end();
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Proxy request failed',
+          error: errorMessage,
+          processingTime,
+          deviceType: isMobile ? 'mobile' : 'desktop'
+        });
+      }
     }
   });
 

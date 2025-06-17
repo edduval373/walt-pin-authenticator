@@ -73,39 +73,186 @@ export async function analyzePinImagesWithPimStandard(
     console.log('Connecting directly to https://master.pinauth.com/mobile-upload');
     console.log('Session ID:', sessionId);
 
-    // Set up a timeout for the fetch - 2 minutes for all devices
-    const controller = new AbortController();
-    const timeoutDuration = 120000; // 2 minutes for all devices
-    const timeoutId = setTimeout(() => {
-      console.log('Request timeout - aborting...');
-      controller.abort();
-    }, timeoutDuration);
+    // Detect mobile device for streaming response handling
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log(`Device type: ${isMobile ? 'Mobile (streaming)' : 'Desktop (single response)'}`);
+    
+    if (isMobile) {
+      // Handle mobile streaming response (4 packets)
+      return await handleMobileStreamingResponse(requestData, sessionId);
+    } else {
+      // Handle desktop single response
+      return await handleDesktopResponse(requestData, sessionId);
+    }
+  } catch (error: unknown) {
+    console.error('Error in pin analysis:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle streaming response for mobile devices (4 packets)
+ */
+async function handleMobileStreamingResponse(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.log('Mobile streaming timeout - aborting...');
+    controller.abort();
+  }, 120000); // 2 minute total timeout for all packets
+
+  try {
+    const response = await fetch('/api/proxy/mobile-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+
+    // Read streaming response
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Stream reader not available');
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const packets: any[] = [];
+    
+    console.log('Reading mobile streaming packets...');
     
     try {
-      // Make direct API request to master server with proper CORS handling
-      const response = await fetch('/api/proxy/mobile-upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestData),
-        signal: controller.signal
-      });
-      
-      // Clear the timeout when the fetch is complete
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Master server error:', response.status, errorText);
-        throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const packet = JSON.parse(line);
+              packets.push(packet);
+              console.log(`Received packet ${packet.packetNumber}/${packet.totalPackets}: ${packet.packetType}`);
+              
+              if (packet.packetType === 'error') {
+                throw new Error(packet.message || 'Stream error');
+              }
+            } catch (parseError) {
+              console.warn('Failed to parse packet:', line);
+            }
+          }
+        }
       }
+    } finally {
+      reader.releaseLock();
+      clearTimeout(timeoutId);
+    }
 
-      const data = await response.json();
-      console.log('Pin analysis complete:', data);
-      
-      // Use master server response format directly for mobile app compatibility
-      return {
+    // Combine packets into final response
+    const combinedData = combineStreamingPackets(packets);
+    console.log('Mobile streaming complete - packets combined:', packets.length);
+    
+    return formatPimResponse(combinedData, requestData);
+    
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error('Mobile streaming error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Handle single response for desktop devices
+ */
+async function handleDesktopResponse(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.log('Desktop request timeout - aborting...');
+    controller.abort();
+  }, 120000);
+
+  try {
+    const response = await fetch('/api/proxy/mobile-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Master server error:', response.status, errorText);
+      throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Pin analysis complete:', data);
+    
+    return formatPimResponse(data, requestData);
+    
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error('Desktop request error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Combine streaming packets into a single response object
+ */
+function combineStreamingPackets(packets: any[]): any {
+  const combinedData: any = {
+    success: true,
+    sessionId: packets[0]?.sessionId
+  };
+  
+  for (const packet of packets) {
+    if (packet.packetType === 'basic_results') {
+      Object.assign(combinedData, {
+        success: packet.success,
+        authentic: packet.authentic,
+        authenticityRating: packet.authenticityRating,
+        id: packet.id,
+        timestamp: packet.timestamp,
+        message: packet.message
+      });
+    } else if (packet.packetType === 'identification') {
+      Object.assign(combinedData, {
+        characters: packet.characters,
+        identification: packet.identification
+      });
+    } else if (packet.packetType === 'analysis_complete') {
+      Object.assign(combinedData, {
+        analysis: packet.analysis,
+        pricing: packet.pricing,
+        frontHtml: packet.frontHtml,
+        backHtml: packet.backHtml,
+        angledHtml: packet.angledHtml,
+        processingTime: packet.processingTime
+      });
+    }
+  }
+  
+  return combinedData;
+}
+
+/**
+ * Format the response data into PimAnalysisResponse format
+ */
+function formatPimResponse(data: any, requestData: any): PimAnalysisResponse {
+  return {
         confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
         authenticityScore: data.authenticityRating || 85,
         // Pass through all master server fields for mobile app compatibility

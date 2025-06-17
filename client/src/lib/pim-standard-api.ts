@@ -73,10 +73,9 @@ export async function analyzePinImagesWithPimStandard(
     console.log('Connecting directly to https://master.pinauth.com/mobile-upload');
     console.log('Session ID:', sessionId);
 
-    // Set up a timeout for the fetch - extended timeout for mobile devices
+    // Set up a timeout for the fetch - 2 minutes for all devices
     const controller = new AbortController();
-    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const timeoutDuration = isMobile ? 80000 : 120000; // 80 seconds for mobile, 2 minutes for desktop
+    const timeoutDuration = 120000; // 2 minutes for all devices
     const timeoutId = setTimeout(() => {
       console.log('Request timeout - aborting...');
       controller.abort();

@@ -78,7 +78,7 @@ export async function analyzePinImagesWithPimStandard(
     console.log(`Device type: ${isMobile ? 'Mobile (streaming)' : 'Desktop (single response)'}`);
     
     if (isMobile) {
-      // Handle mobile streaming response (4 packets)
+      // Handle mobile streaming response (flexible packets)
       return await handleMobileStreamingResponse(requestData, sessionId);
     } else {
       // Handle desktop single response
@@ -91,7 +91,7 @@ export async function analyzePinImagesWithPimStandard(
 }
 
 /**
- * Handle streaming response for mobile devices (4 packets)
+ * Handle streaming response for mobile devices (flexible packet order)
  */
 async function handleMobileStreamingResponse(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
   const controller = new AbortController();
@@ -140,7 +140,7 @@ async function handleMobileStreamingResponse(requestData: any, sessionId: string
             try {
               const packet = JSON.parse(line);
               packets.push(packet);
-              console.log(`Received packet ${packet.packetNumber}/${packet.totalPackets}: ${packet.packetType}`);
+              console.log(`Received packet: ${packet.packetType}`);
               
               if (packet.packetType === 'error') {
                 throw new Error(packet.message || 'Stream error');
@@ -211,6 +211,7 @@ async function handleDesktopResponse(requestData: any, sessionId: string): Promi
 
 /**
  * Combine streaming packets into a single response object
+ * Packets can arrive in any order with clear type identifiers
  */
 function combineStreamingPackets(packets: any[]): any {
   const combinedData: any = {
@@ -219,29 +220,63 @@ function combineStreamingPackets(packets: any[]): any {
   };
   
   for (const packet of packets) {
-    if (packet.packetType === 'basic_results') {
-      Object.assign(combinedData, {
-        success: packet.success,
-        authentic: packet.authentic,
-        authenticityRating: packet.authenticityRating,
-        id: packet.id,
-        timestamp: packet.timestamp,
-        message: packet.message
-      });
-    } else if (packet.packetType === 'identification') {
-      Object.assign(combinedData, {
-        characters: packet.characters,
-        identification: packet.identification
-      });
-    } else if (packet.packetType === 'analysis_complete') {
-      Object.assign(combinedData, {
-        analysis: packet.analysis,
-        pricing: packet.pricing,
-        frontHtml: packet.frontHtml,
-        backHtml: packet.backHtml,
-        angledHtml: packet.angledHtml,
-        processingTime: packet.processingTime
-      });
+    switch (packet.packetType) {
+      case 'CONNECTION_ESTABLISHED':
+        // Connection info - no data to merge
+        break;
+        
+      case 'PROCESSING_STARTED':
+        // Processing status - no data to merge
+        break;
+        
+      case 'AUTHENTICATION_RESULT':
+        Object.assign(combinedData, {
+          authentic: packet.authentic,
+          authenticityRating: packet.authenticityRating,
+          confidence: packet.confidence
+        });
+        break;
+        
+      case 'CHARACTER_IDENTIFICATION':
+        Object.assign(combinedData, {
+          characters: packet.characters,
+          identification: packet.identification
+        });
+        break;
+        
+      case 'PRICING_ANALYSIS':
+        Object.assign(combinedData, {
+          pricing: packet.pricing
+        });
+        break;
+        
+      case 'DETAILED_ANALYSIS':
+        Object.assign(combinedData, {
+          analysis: packet.analysis
+        });
+        break;
+        
+      case 'HTML_DISPLAY_DATA':
+        Object.assign(combinedData, {
+          frontHtml: packet.frontHtml,
+          backHtml: packet.backHtml,
+          angledHtml: packet.angledHtml
+        });
+        break;
+        
+      case 'ANALYSIS_COMPLETE':
+        Object.assign(combinedData, {
+          success: packet.success,
+          id: packet.id,
+          message: packet.message,
+          processingTime: packet.processingTime,
+          timestamp: packet.timestamp,
+          complete: packet.complete
+        });
+        break;
+        
+      default:
+        console.warn('Unknown packet type:', packet.packetType);
     }
   }
   
@@ -253,91 +288,58 @@ function combineStreamingPackets(packets: any[]): any {
  */
 function formatPimResponse(data: any, requestData: any): PimAnalysisResponse {
   return {
-        confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
-        authenticityScore: data.authenticityRating || 85,
-        // Pass through all master server fields for mobile app compatibility
-        id: data.id,
-        sessionId: data.sessionId,
-        authentic: data.authentic,
-        authenticityRating: data.authenticityRating,
-        characters: data.characters,
-        identification: data.identification,
-        analysis: data.analysis,
-        pricing: data.pricing,
-        timestamp: data.timestamp,
-        message: data.message,
-        // Create HTML display from master server data
-        frontHtml: `<div class="analysis-result">
-          <h2>Disney Pin Authentication Results</h2>
-          <div class="authenticity-score">
-            <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
-            <p class="confidence-level">${data.authentic ? 'Authentic Disney Pin' : 'Authenticity Uncertain'}</p>
-          </div>
-          <div class="characters">
-            <h3>Characters</h3>
-            <p>${data.characters || 'Character analysis in progress'}</p>
-          </div>
-          <div class="identification">
-            <h3>Pin Identification</h3>
-            <p>${data.identification || 'Pin identification in progress'}</p>
-          </div>
-          <div class="pricing-info">
-            <h3>Market Information</h3>
-            <p>${data.pricing || 'Pricing analysis in progress'}</p>
-          </div>
-          <div class="ai-analysis">
-            <h3>Analysis Details</h3>
-            <p>${data.analysis || 'Analysis in progress'}</p>
-          </div>
-          <div class="record-info">
-            <h3>Record Details</h3>
-            <p>Database ID: ${data.id}</p>
-            <p>Session: ${data.sessionId}</p>
-            <p>Timestamp: ${new Date(data.timestamp).toLocaleString()}</p>
-          </div>
-        </div>`,
-        backHtml: backImage ? `<div class="analysis-result">
-          <h2>Back View Analysis</h2>
-          <p>Back view analysis completed</p>
-        </div>` : undefined,
-        angledHtml: angledImage ? `<div class="analysis-result">
-          <h2>Angled View Analysis</h2>
-          <p>Angled view analysis completed</p>
-        </div>` : undefined,
-        detectedPinId: data.sessionId || sessionId,
-        rawApiResponse: data
-      };
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      
-      // Enhanced mobile debugging
-      const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
-      const isTimeout = fetchError instanceof Error && fetchError.name === 'AbortError';
-      const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const connectionInfo = (navigator as any).connection;
-      
-      console.error('MOBILE DEBUG - Network error:', {
-        error: errorMessage,
-        isTimeout,
-        isMobileDevice,
-        isOnline: navigator.onLine,
-        connectionType: connectionInfo?.effectiveType || 'unknown',
-        downlink: connectionInfo?.downlink || 'unknown',
-        rtt: connectionInfo?.rtt || 'unknown',
-        saveData: connectionInfo?.saveData || false
-      });
-      
-      if (isTimeout && isMobileDevice) {
-        throw new Error('Mobile timeout: Try WiFi instead of cellular data, or move to area with stronger signal');
-      }
-      
-      console.error('Network error during analysis:', fetchError);
-      throw fetchError;
-    }
-  } catch (error: unknown) {
-    console.error('Error in pin analysis:', error);
-    throw error;
-  }
+    confidence: data.confidence || (data.authenticityRating ? data.authenticityRating / 100 : 0.85),
+    authenticityScore: data.authenticityRating || 85,
+    id: data.id,
+    sessionId: data.sessionId,
+    authentic: data.authentic,
+    authenticityRating: data.authenticityRating,
+    characters: data.characters,
+    identification: data.identification,
+    analysis: data.analysis,
+    pricing: data.pricing,
+    timestamp: data.timestamp,
+    message: data.message,
+    frontHtml: data.frontHtml || `<div class="analysis-result">
+      <h2>Disney Pin Authentication Results</h2>
+      <div class="authenticity-score">
+        <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
+        <p class="confidence-level">${data.authentic ? 'Authentic Disney Pin' : 'Authenticity Uncertain'}</p>
+      </div>
+      <div class="characters">
+        <h3>Characters</h3>
+        <p>${data.characters || 'Character analysis in progress'}</p>
+      </div>
+      <div class="identification">
+        <h3>Pin Identification</h3>
+        <p>${data.identification || 'Pin identification in progress'}</p>
+      </div>
+      <div class="pricing-info">
+        <h3>Market Information</h3>
+        <p>${data.pricing || 'Pricing analysis in progress'}</p>
+      </div>
+      <div class="ai-analysis">
+        <h3>Analysis Details</h3>
+        <p>${data.analysis || 'Analysis in progress'}</p>
+      </div>
+      <div class="record-info">
+        <h3>Record Details</h3>
+        <p>Database ID: ${data.id}</p>
+        <p>Session: ${data.sessionId}</p>
+        <p>Timestamp: ${data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Processing...'}</p>
+      </div>
+    </div>`,
+    backHtml: data.backHtml || (requestData.backImageData ? `<div class="analysis-result">
+      <h2>Back View Analysis</h2>
+      <p>Back view analysis completed</p>
+    </div>` : undefined),
+    angledHtml: data.angledHtml || (requestData.angledImageData ? `<div class="analysis-result">
+      <h2>Angled View Analysis</h2>
+      <p>Angled view analysis completed</p>
+    </div>` : undefined),
+    detectedPinId: data.sessionId || requestData.sessionId,
+    rawApiResponse: data
+  };
 }
 
 /**

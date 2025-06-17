@@ -233,16 +233,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Access-Control-Allow-Headers': 'Content-Type, Authorization'
         });
         
-        // Send initial packet - connection established
-        const packet1 = {
-          packetType: 'connection',
-          packetNumber: 1,
-          totalPackets: 4,
+        // Send connection packet immediately
+        const connectionPacket = {
+          packetType: 'CONNECTION_ESTABLISHED',
           sessionId,
-          message: 'Connected to master server, processing images...',
+          message: 'Connected to master server, starting analysis...',
           timestamp: new Date().toISOString()
         };
-        res.write(JSON.stringify(packet1) + '\n');
+        res.write(JSON.stringify(connectionPacket) + '\n');
+        
+        // Send processing started packet
+        const processingPacket = {
+          packetType: 'PROCESSING_STARTED',
+          sessionId,
+          message: 'Image analysis in progress...',
+          timestamp: new Date().toISOString()
+        };
+        res.write(JSON.stringify(processingPacket) + '\n');
         
         // Make request to master server
         const response = await fetch('https://master.pinauth.com/mobile-upload', {
@@ -255,50 +262,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
           signal: AbortSignal.timeout(90000)
         });
 
-        const data = await response.json();
+        const data: any = await response.json();
         const processingTime = Date.now() - startTime;
         
-        // Send packet 2 - basic results
-        const packet2 = {
-          packetType: 'basic_results',
-          packetNumber: 2,
-          totalPackets: 4,
+        // Send authentication results packet (can arrive first)
+        if (data.authentic !== undefined || data.authenticityRating !== undefined) {
+          const authPacket = {
+            packetType: 'AUTHENTICATION_RESULT',
+            sessionId,
+            authentic: data.authentic,
+            authenticityRating: data.authenticityRating,
+            confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
+            timestamp: new Date().toISOString()
+          };
+          res.write(JSON.stringify(authPacket) + '\n');
+        }
+        
+        // Send character identification packet (can arrive in any order)
+        if (data.characters || data.identification) {
+          const identificationPacket = {
+            packetType: 'CHARACTER_IDENTIFICATION',
+            sessionId,
+            characters: data.characters,
+            identification: data.identification,
+            timestamp: new Date().toISOString()
+          };
+          res.write(JSON.stringify(identificationPacket) + '\n');
+        }
+        
+        // Send pricing analysis packet (can arrive in any order)
+        if (data.pricing) {
+          const pricingPacket = {
+            packetType: 'PRICING_ANALYSIS',
+            sessionId,
+            pricing: data.pricing,
+            timestamp: new Date().toISOString()
+          };
+          res.write(JSON.stringify(pricingPacket) + '\n');
+        }
+        
+        // Send detailed analysis packet (can arrive in any order)
+        if (data.analysis) {
+          const analysisPacket = {
+            packetType: 'DETAILED_ANALYSIS',
+            sessionId,
+            analysis: data.analysis,
+            timestamp: new Date().toISOString()
+          };
+          res.write(JSON.stringify(analysisPacket) + '\n');
+        }
+        
+        // Send HTML display data packet (can arrive in any order)
+        if (data.frontHtml || data.backHtml || data.angledHtml) {
+          const htmlPacket = {
+            packetType: 'HTML_DISPLAY_DATA',
+            sessionId,
+            frontHtml: data.frontHtml,
+            backHtml: data.backHtml,
+            angledHtml: data.angledHtml,
+            timestamp: new Date().toISOString()
+          };
+          res.write(JSON.stringify(htmlPacket) + '\n');
+        }
+        
+        // Send completion packet (always last)
+        const completionPacket = {
+          packetType: 'ANALYSIS_COMPLETE',
           sessionId,
           success: data.success,
-          authentic: data.authentic,
-          authenticityRating: data.authenticityRating,
           id: data.id,
-          timestamp: data.timestamp,
-          message: data.message
-        };
-        res.write(JSON.stringify(packet2) + '\n');
-        
-        // Send packet 3 - character and identification data
-        const packet3 = {
-          packetType: 'identification',
-          packetNumber: 3,
-          totalPackets: 4,
-          sessionId,
-          characters: data.characters,
-          identification: data.identification
-        };
-        res.write(JSON.stringify(packet3) + '\n');
-        
-        // Send packet 4 - analysis and pricing (final packet)
-        const packet4 = {
-          packetType: 'analysis_complete',
-          packetNumber: 4,
-          totalPackets: 4,
-          sessionId,
-          analysis: data.analysis,
-          pricing: data.pricing,
-          frontHtml: data.frontHtml,
-          backHtml: data.backHtml,
-          angledHtml: data.angledHtml,
+          message: data.message,
           processingTime,
+          timestamp: data.timestamp,
           complete: true
         };
-        res.write(JSON.stringify(packet4) + '\n');
+        res.write(JSON.stringify(completionPacket) + '\n');
         
         // End the streaming response
         res.end();

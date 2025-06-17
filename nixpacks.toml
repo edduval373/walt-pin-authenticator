@@ -2,15 +2,12 @@
 NODE_ENV = "production"
 
 [phases.install]
-cmds = ["npm ci --only=production"]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = [
-  "mkdir -p dist",
-  "cp -r client/index.html dist/",
-  "cp -r client/public/* dist/ 2>/dev/null || true",
-  "echo 'Build complete - serving React app directly'"
+  "npm run build"
 ]
 
 [start]
-cmd = "npx serve client -s -l $PORT"
+cmd = "npm start"

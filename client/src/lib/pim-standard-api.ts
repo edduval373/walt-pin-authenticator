@@ -73,251 +73,98 @@ export async function analyzePinImagesWithPimStandard(
     console.log('Connecting directly to https://master.pinauth.com/mobile-upload');
     console.log('Session ID:', sessionId);
 
-    // Detect mobile device for streaming response handling
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log(`Device type: ${isMobile ? 'Mobile (streaming)' : 'Desktop (single response)'}`);
+    // Set up a timeout for the fetch
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
-    if (isMobile) {
-      // Mobile devices connect directly to master server
-      return await handleMobileDirectConnection(requestData, sessionId);
-    } else {
-      // Desktop uses proxy for CORS handling
-      return await handleDesktopResponse(requestData, sessionId);
+    try {
+      // Make direct API request to master server with proper CORS handling
+      const response = await fetch('/api/proxy/mobile-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData),
+        signal: controller.signal
+      });
+      
+      // Clear the timeout when the fetch is complete
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Master server error:', response.status, errorText);
+        throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Pin analysis complete:', data);
+      
+      // Use master server response format directly for mobile app compatibility
+      return {
+        confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
+        authenticityScore: data.authenticityRating || 85,
+        // Pass through all master server fields for mobile app compatibility
+        id: data.id,
+        sessionId: data.sessionId,
+        authentic: data.authentic,
+        authenticityRating: data.authenticityRating,
+        characters: data.characters,
+        identification: data.identification,
+        analysis: data.analysis,
+        pricing: data.pricing,
+        timestamp: data.timestamp,
+        message: data.message,
+        // Create HTML display from master server data
+        frontHtml: `<div class="analysis-result">
+          <h2>Disney Pin Authentication Results</h2>
+          <div class="authenticity-score">
+            <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
+            <p class="confidence-level">${data.authentic ? 'Authentic Disney Pin' : 'Authenticity Uncertain'}</p>
+          </div>
+          <div class="characters">
+            <h3>Characters</h3>
+            <p>${data.characters || 'Character analysis in progress'}</p>
+          </div>
+          <div class="identification">
+            <h3>Pin Identification</h3>
+            <p>${data.identification || 'Pin identification in progress'}</p>
+          </div>
+          <div class="pricing-info">
+            <h3>Market Information</h3>
+            <p>${data.pricing || 'Pricing analysis in progress'}</p>
+          </div>
+          <div class="ai-analysis">
+            <h3>Analysis Details</h3>
+            <p>${data.analysis || 'Analysis in progress'}</p>
+          </div>
+          <div class="record-info">
+            <h3>Record Details</h3>
+            <p>Database ID: ${data.id}</p>
+            <p>Session: ${data.sessionId}</p>
+            <p>Timestamp: ${new Date(data.timestamp).toLocaleString()}</p>
+          </div>
+        </div>`,
+        backHtml: backImage ? `<div class="analysis-result">
+          <h2>Back View Analysis</h2>
+          <p>Back view analysis completed</p>
+        </div>` : undefined,
+        angledHtml: angledImage ? `<div class="analysis-result">
+          <h2>Angled View Analysis</h2>
+          <p>Angled view analysis completed</p>
+        </div>` : undefined,
+        detectedPinId: data.sessionId || sessionId,
+        rawApiResponse: data
+      };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      console.error('Network error during analysis:', fetchError);
+      throw fetchError;
     }
   } catch (error: unknown) {
     console.error('Error in pin analysis:', error);
     throw error;
   }
-}
-
-/**
- * Handle direct connection for mobile devices (bypass proxy, connect directly to master server)
- */
-async function handleMobileDirectConnection(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.log('Mobile direct connection timeout - aborting...');
-    controller.abort();
-  }, 120000); // 2 minute timeout for direct connection
-
-  try {
-    console.log('MOBILE DIRECT CONNECTION: Bypassing proxy, connecting directly to master server');
-    console.log('Request data size:', JSON.stringify(requestData).length, 'characters');
-    
-    const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
-    console.log('Using API key:', apiKey ? 'Environment key configured' : 'Using fallback key');
-    
-    const response = await fetch('https://master.pinauth.com/mobile-upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey || 'pim_0w3nfrt5ahgc',
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      body: JSON.stringify(requestData),
-      signal: controller.signal,
-      mode: 'cors',
-      credentials: 'omit'
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Master server direct error:', response.status, errorText);
-      throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('Mobile direct connection success:', data);
-    
-    return formatPimResponse(data, requestData);
-    
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Mobile direct connection error:', error);
-    
-    // If direct connection fails, provide helpful error message
-    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-      throw new Error('Direct connection to master server failed. Check your internet connection and try again.');
-    }
-    
-    throw error;
-  }
-}
-
-/**
- * Handle single response for desktop devices
- */
-async function handleDesktopResponse(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.log('Desktop request timeout - aborting...');
-    controller.abort();
-  }, 120000);
-
-  try {
-    const response = await fetch('/api/proxy/mobile-upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestData),
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Master server error:', response.status, errorText);
-      throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('Pin analysis complete:', data);
-    
-    return formatPimResponse(data, requestData);
-    
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Desktop request error:', error);
-    throw error;
-  }
-}
-
-/**
- * Combine streaming packets into a single response object
- * Packets can arrive in any order with clear type identifiers
- */
-function combineStreamingPackets(packets: any[]): any {
-  const combinedData: any = {
-    success: true,
-    sessionId: packets[0]?.sessionId
-  };
-  
-  for (const packet of packets) {
-    switch (packet.packetType) {
-      case 'CONNECTION_ESTABLISHED':
-        // Connection info - no data to merge
-        break;
-        
-      case 'PROCESSING_STARTED':
-        // Processing status - no data to merge
-        break;
-        
-      case 'AUTHENTICATION_RESULT':
-        Object.assign(combinedData, {
-          authentic: packet.authentic,
-          authenticityRating: packet.authenticityRating,
-          confidence: packet.confidence
-        });
-        break;
-        
-      case 'CHARACTER_IDENTIFICATION':
-        Object.assign(combinedData, {
-          characters: packet.characters,
-          identification: packet.identification
-        });
-        break;
-        
-      case 'PRICING_ANALYSIS':
-        Object.assign(combinedData, {
-          pricing: packet.pricing
-        });
-        break;
-        
-      case 'DETAILED_ANALYSIS':
-        Object.assign(combinedData, {
-          analysis: packet.analysis
-        });
-        break;
-        
-      case 'HTML_DISPLAY_DATA':
-        Object.assign(combinedData, {
-          frontHtml: packet.frontHtml,
-          backHtml: packet.backHtml,
-          angledHtml: packet.angledHtml
-        });
-        break;
-        
-      case 'ANALYSIS_COMPLETE':
-        Object.assign(combinedData, {
-          success: packet.success,
-          id: packet.id,
-          message: packet.message,
-          processingTime: packet.processingTime,
-          timestamp: packet.timestamp,
-          complete: packet.complete
-        });
-        break;
-        
-      default:
-        console.warn('Unknown packet type:', packet.packetType);
-    }
-  }
-  
-  return combinedData;
-}
-
-/**
- * Format the response data into PimAnalysisResponse format
- */
-function formatPimResponse(data: any, requestData: any): PimAnalysisResponse {
-  return {
-    confidence: data.confidence || (data.authenticityRating ? data.authenticityRating / 100 : 0.85),
-    authenticityScore: data.authenticityRating || 85,
-    id: data.id,
-    sessionId: data.sessionId,
-    authentic: data.authentic,
-    authenticityRating: data.authenticityRating,
-    characters: data.characters,
-    identification: data.identification,
-    analysis: data.analysis,
-    pricing: data.pricing,
-    timestamp: data.timestamp,
-    message: data.message,
-    frontHtml: data.frontHtml || `<div class="analysis-result">
-      <h2>Disney Pin Authentication Results</h2>
-      <div class="authenticity-score">
-        <h3>Authenticity Rating: ${data.authenticityRating || 85}%</h3>
-        <p class="confidence-level">${data.authentic ? 'Authentic Disney Pin' : 'Authenticity Uncertain'}</p>
-      </div>
-      <div class="characters">
-        <h3>Characters</h3>
-        <p>${data.characters || 'Character analysis in progress'}</p>
-      </div>
-      <div class="identification">
-        <h3>Pin Identification</h3>
-        <p>${data.identification || 'Pin identification in progress'}</p>
-      </div>
-      <div class="pricing-info">
-        <h3>Market Information</h3>
-        <p>${data.pricing || 'Pricing analysis in progress'}</p>
-      </div>
-      <div class="ai-analysis">
-        <h3>Analysis Details</h3>
-        <p>${data.analysis || 'Analysis in progress'}</p>
-      </div>
-      <div class="record-info">
-        <h3>Record Details</h3>
-        <p>Database ID: ${data.id}</p>
-        <p>Session: ${data.sessionId}</p>
-        <p>Timestamp: ${data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Processing...'}</p>
-      </div>
-    </div>`,
-    backHtml: data.backHtml || (requestData.backImageData ? `<div class="analysis-result">
-      <h2>Back View Analysis</h2>
-      <p>Back view analysis completed</p>
-    </div>` : undefined),
-    angledHtml: data.angledHtml || (requestData.angledImageData ? `<div class="analysis-result">
-      <h2>Angled View Analysis</h2>
-      <p>Angled view analysis completed</p>
-    </div>` : undefined),
-    detectedPinId: data.sessionId || requestData.sessionId,
-    rawApiResponse: data
-  };
 }
 
 /**

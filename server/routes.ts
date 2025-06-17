@@ -212,184 +212,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Streaming proxy endpoint that splits master server response into packets for mobile compatibility
+  // Temporary CORS proxy endpoint for master server until OPTIONS handler is implemented
   app.post('/api/proxy/mobile-upload', async (req, res) => {
-    const startTime = Date.now();
-    const userAgent = req.headers['user-agent'] || 'Unknown';
-    const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-    const sessionId = req.body.sessionId || `session_${Date.now()}`;
-    
-    log(`Proxy request from ${isMobile ? 'MOBILE' : 'DESKTOP'} device: ${userAgent.substring(0, 50)}...`, 'express');
-    
     try {
-      // For mobile devices, use streaming response to avoid cellular timeouts
-      if (isMobile) {
-        // Set up streaming response headers
-        res.writeHead(200, {
+      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+        method: 'POST',
+        headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        });
-        
-        // Send connection packet immediately
-        const connectionPacket = {
-          packetType: 'CONNECTION_ESTABLISHED',
-          sessionId,
-          message: 'Connected to master server, starting analysis...',
-          timestamp: new Date().toISOString()
-        };
-        res.write(JSON.stringify(connectionPacket) + '\n');
-        
-        // Send processing started packet
-        const processingPacket = {
-          packetType: 'PROCESSING_STARTED',
-          sessionId,
-          message: 'Image analysis in progress...',
-          timestamp: new Date().toISOString()
-        };
-        res.write(JSON.stringify(processingPacket) + '\n');
-        
-        // Make request to master server
-        const response = await fetch('https://master.pinauth.com/mobile-upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
-          },
-          body: JSON.stringify(req.body),
-          signal: AbortSignal.timeout(90000)
-        });
+          'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
+        },
+        body: JSON.stringify(req.body)
+      });
 
-        const data: any = await response.json();
-        const processingTime = Date.now() - startTime;
-        
-        // Send authentication results packet (can arrive first)
-        if (data.authentic !== undefined || data.authenticityRating !== undefined) {
-          const authPacket = {
-            packetType: 'AUTHENTICATION_RESULT',
-            sessionId,
-            authentic: data.authentic,
-            authenticityRating: data.authenticityRating,
-            confidence: data.authenticityRating ? data.authenticityRating / 100 : 0.85,
-            timestamp: new Date().toISOString()
-          };
-          res.write(JSON.stringify(authPacket) + '\n');
-        }
-        
-        // Send character identification packet (can arrive in any order)
-        if (data.characters || data.identification) {
-          const identificationPacket = {
-            packetType: 'CHARACTER_IDENTIFICATION',
-            sessionId,
-            characters: data.characters,
-            identification: data.identification,
-            timestamp: new Date().toISOString()
-          };
-          res.write(JSON.stringify(identificationPacket) + '\n');
-        }
-        
-        // Send pricing analysis packet (can arrive in any order)
-        if (data.pricing) {
-          const pricingPacket = {
-            packetType: 'PRICING_ANALYSIS',
-            sessionId,
-            pricing: data.pricing,
-            timestamp: new Date().toISOString()
-          };
-          res.write(JSON.stringify(pricingPacket) + '\n');
-        }
-        
-        // Send detailed analysis packet (can arrive in any order)
-        if (data.analysis) {
-          const analysisPacket = {
-            packetType: 'DETAILED_ANALYSIS',
-            sessionId,
-            analysis: data.analysis,
-            timestamp: new Date().toISOString()
-          };
-          res.write(JSON.stringify(analysisPacket) + '\n');
-        }
-        
-        // Send HTML display data packet (can arrive in any order)
-        if (data.frontHtml || data.backHtml || data.angledHtml) {
-          const htmlPacket = {
-            packetType: 'HTML_DISPLAY_DATA',
-            sessionId,
-            frontHtml: data.frontHtml,
-            backHtml: data.backHtml,
-            angledHtml: data.angledHtml,
-            timestamp: new Date().toISOString()
-          };
-          res.write(JSON.stringify(htmlPacket) + '\n');
-        }
-        
-        // Send completion packet (always last)
-        const completionPacket = {
-          packetType: 'ANALYSIS_COMPLETE',
-          sessionId,
-          success: data.success,
-          id: data.id,
-          message: data.message,
-          processingTime,
-          timestamp: data.timestamp,
-          complete: true
-        };
-        res.write(JSON.stringify(completionPacket) + '\n');
-        
-        // End the streaming response
-        res.end();
-        
-        log(`Proxy MOBILE streaming success: ${processingTime}ms (4 packets)`, 'express');
-        
-      } else {
-        // Desktop - send full response at once (existing behavior)
-        const response = await fetch('https://master.pinauth.com/mobile-upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
-          },
-          body: JSON.stringify(req.body),
-          signal: AbortSignal.timeout(90000)
-        });
-
-        const data = await response.json();
-        const processingTime = Date.now() - startTime;
-        
-        log(`Proxy DESKTOP success: ${processingTime}ms`, 'express');
-        res.json(data);
-      }
-      
+      const data = await response.json();
+      res.json(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const processingTime = Date.now() - startTime;
-      
-      log(`Proxy ${isMobile ? 'MOBILE' : 'DESKTOP'} error after ${processingTime}ms: ${errorMessage}`, 'express');
-      
-      if (isMobile && res.headersSent) {
-        // If streaming already started, send error packet
-        const errorPacket = {
-          packetType: 'error',
-          packetNumber: -1,
-          sessionId: req.body.sessionId,
-          success: false,
-          message: 'Connection failed',
-          error: errorMessage,
-          processingTime
-        };
-        res.write(JSON.stringify(errorPacket) + '\n');
-        res.end();
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Proxy request failed',
-          error: errorMessage,
-          processingTime,
-          deviceType: isMobile ? 'mobile' : 'desktop'
-        });
-      }
+      log(`Proxy error: ${errorMessage}`, 'express');
+      res.status(500).json({
+        success: false,
+        message: 'Proxy request failed',
+        error: errorMessage
+      });
     }
   });
 

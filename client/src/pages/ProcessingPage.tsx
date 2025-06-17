@@ -296,68 +296,70 @@ ${JSON.stringify(result, null, 2)}`;
       }
       
     } catch (error) {
-      console.error("CRITICAL ERROR in processing:", error);
-      console.error("Error details:", {
-        message: error instanceof Error ? error.message : String(error),
-        name: error instanceof Error ? error.name : 'Unknown',
-        stack: error instanceof Error ? error.stack : 'No stack',
-        type: typeof error,
-        userAgent: navigator.userAgent,
-        isOnline: navigator.onLine,
-        timestamp: new Date().toISOString(),
-        location: window.location.href
-      });
-      
-      // Store error for debugging
-      sessionStorage.setItem('lastError', JSON.stringify({
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack',
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        isOnline: navigator.onLine
-      }));
-      
-      // Generate session ID for logging
+      console.log("Error in processing:", error);
+      // Generate session ID for logging (same format as server)
       const now = new Date();
       const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
       
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      // Log error with detailed information
+      // Capture raw request data for failed attempts
+      const rawRequest = `POST /mobile-upload HTTP/1.1
+Host: ${(import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload').replace('https://', '')}
+
+Headers: {
+  "Content-Type": "application/json",
+  "x-api-key": "${import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'}"
+}
+
+Body: {
+  "sessionId": "${sessionId}",
+  "frontImageData": "[BASE64_IMAGE_DATA_${capturedImages?.front?.length || 0}_CHARS]"${capturedImages?.back ? `,
+  "backImageData": "[BASE64_IMAGE_DATA_${capturedImages.back.length}_CHARS]"` : ''}${capturedImages?.angled ? `,
+  "angledImageData": "[BASE64_IMAGE_DATA_${capturedImages.angled.length}_CHARS]"` : ''}
+}`;
+
+      // Capture raw error response
+      const rawResponse = `HTTP/1.1 500 Internal Server Error
+Content-Type: application/json
+
+{
+  "success": false,
+  "error": "${error instanceof Error ? error.message : String(error)}"
+}`;
+
       transmissionLogger.logImageUpload(
         'failed', 
-        `Mobile processing error: ${errorMessage}`, 
-        '/api/proxy/mobile-upload',
-        `Mobile Error: ${errorMessage} | UA: ${navigator.userAgent} | Online: ${navigator.onLine}`,
+        'Image upload failed', 
+        import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload',
+        error instanceof Error ? error.message : String(error),
         undefined,
-        'mobile_debug',
+        import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
         sessionId,
-        { 'Error-Type': error instanceof Error ? error.name : 'Unknown' },
-        `Mobile Debug Info: ${JSON.stringify({ errorMessage, userAgent: navigator.userAgent, isOnline: navigator.onLine })}`,
-        `Error: ${errorMessage}`
+        {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+        },
+        rawRequest,
+        rawResponse
       );
       
-      // Check error type for appropriate handling
-      const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('Failed to fetch');
-      const isServerError = errorMessage.includes('Server unavailable') || errorMessage.includes('404') || errorMessage.includes('timeout');
+      // Check if it's a server connection error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const isServerError = (error as any)?.isServerError || 
+                           errorMessage.includes('Server unavailable') ||
+                           errorMessage.includes('404') || 
+                           errorMessage.includes('fetch') || 
+                           errorMessage.includes('network') || 
+                           errorMessage.includes('timeout') || 
+                           errorMessage.includes('Not found');
       
-      // Graceful error handling with user-friendly messages
-      if (!navigator.onLine) {
-        setError("No internet connection. Please check your connection and try again.");
-        setStatusMessage("Connection lost - Check internet");
-      } else if (isNetworkError) {
-        setError("Connection issue detected. Please try again.");
-        setStatusMessage("Connection failed - Retrying available");
-      } else if (isServerError) {
+      if (isServerError) {
         setShowServerError(true);
-        return;
       } else {
-        setError("Processing failed. Please try again.");
-        setStatusMessage("Analysis failed - Ready to retry");
+        setError("An error occurred during processing. Please try again.");
+        setStatusMessage("Processing failed - Please retry");
+        setProgress(0);
+        setShowRetryButton(true);
       }
-      
-      setProgress(0);
-      setShowRetryButton(true);
       isProcessing.current = false;
     }
   };

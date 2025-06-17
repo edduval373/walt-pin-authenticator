@@ -162,6 +162,28 @@ export async function analyzePinImagesWithPimStandard(
       };
     } catch (fetchError) {
       clearTimeout(timeoutId);
+      
+      // Enhanced mobile debugging
+      const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+      const isTimeout = fetchError instanceof Error && fetchError.name === 'AbortError';
+      const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const connectionInfo = (navigator as any).connection;
+      
+      console.error('MOBILE DEBUG - Network error:', {
+        error: errorMessage,
+        isTimeout,
+        isMobileDevice,
+        isOnline: navigator.onLine,
+        connectionType: connectionInfo?.effectiveType || 'unknown',
+        downlink: connectionInfo?.downlink || 'unknown',
+        rtt: connectionInfo?.rtt || 'unknown',
+        saveData: connectionInfo?.saveData || false
+      });
+      
+      if (isTimeout && isMobileDevice) {
+        throw new Error('Mobile timeout: Try WiFi instead of cellular data, or move to area with stronger signal');
+      }
+      
       console.error('Network error during analysis:', fetchError);
       throw fetchError;
     }

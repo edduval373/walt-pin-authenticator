@@ -214,6 +214,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Temporary CORS proxy endpoint for master server until OPTIONS handler is implemented
   app.post('/api/proxy/mobile-upload', async (req, res) => {
+    const startTime = Date.now();
+    const userAgent = req.headers['user-agent'] || 'Unknown';
+    const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    log(`Proxy request from ${isMobile ? 'MOBILE' : 'DESKTOP'} device: ${userAgent.substring(0, 50)}...`, 'express');
+    
     try {
       const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
@@ -221,18 +227,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Type': 'application/json',
           'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
         },
-        body: JSON.stringify(req.body)
+        body: JSON.stringify(req.body),
+        // Add timeout for server-side request
+        signal: AbortSignal.timeout(90000) // 90 second server timeout
       });
 
       const data = await response.json();
+      const processingTime = Date.now() - startTime;
+      
+      log(`Proxy ${isMobile ? 'MOBILE' : 'DESKTOP'} success: ${processingTime}ms`, 'express');
       res.json(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      log(`Proxy error: ${errorMessage}`, 'express');
+      const processingTime = Date.now() - startTime;
+      
+      log(`Proxy ${isMobile ? 'MOBILE' : 'DESKTOP'} error after ${processingTime}ms: ${errorMessage}`, 'express');
       res.status(500).json({
         success: false,
         message: 'Proxy request failed',
-        error: errorMessage
+        error: errorMessage,
+        processingTime,
+        deviceType: isMobile ? 'mobile' : 'desktop'
       });
     }
   });

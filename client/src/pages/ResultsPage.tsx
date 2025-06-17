@@ -153,7 +153,14 @@ export default function ResultsPage() {
           
           // Ensure server response has the expected structure
           if (parsedServerResponse && typeof parsedServerResponse === 'object') {
-            setServerResponse(parsedServerResponse);
+            // Fix status determination - use actual response data to determine success
+            const actualSuccess = parsedServerResponse.success !== false && 
+                                 (parsedServerResponse.id || parsedServerResponse.authenticityRating || parsedServerResponse.message);
+            
+            setServerResponse({
+              ...parsedServerResponse,
+              success: actualSuccess
+            });
           } else {
             console.warn('Invalid server response format, using default structure');
             setServerResponse({

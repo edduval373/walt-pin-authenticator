@@ -78,10 +78,10 @@ export async function analyzePinImagesWithPimStandard(
     console.log(`Device type: ${isMobile ? 'Mobile (streaming)' : 'Desktop (single response)'}`);
     
     if (isMobile) {
-      // Handle mobile streaming response (flexible packets)
-      return await handleMobileStreamingResponse(requestData, sessionId);
+      // Mobile devices try direct connection first, fallback to proxy
+      return await handleMobileWithFallback(requestData, sessionId);
     } else {
-      // Handle desktop single response
+      // Desktop uses proxy for CORS handling
       return await handleDesktopResponse(requestData, sessionId);
     }
   } catch (error: unknown) {
@@ -91,80 +91,58 @@ export async function analyzePinImagesWithPimStandard(
 }
 
 /**
- * Handle streaming response for mobile devices (flexible packet order)
+ * Handle direct connection for mobile devices (bypass proxy, connect directly to master server)
  */
-async function handleMobileStreamingResponse(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
+async function handleMobileDirectConnection(requestData: any, sessionId: string): Promise<PimAnalysisResponse> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
-    console.log('Mobile streaming timeout - aborting...');
+    console.log('Mobile direct connection timeout - aborting...');
     controller.abort();
-  }, 120000); // 2 minute total timeout for all packets
+  }, 120000); // 2 minute timeout for direct connection
 
   try {
-    const response = await fetch('/api/proxy/mobile-upload', {
+    console.log('MOBILE DIRECT CONNECTION: Bypassing proxy, connecting directly to master server');
+    console.log('Request data size:', JSON.stringify(requestData).length, 'characters');
+    
+    const apiKey = import.meta.env.VITE_MOBILE_API_KEY;
+    console.log('Using API key:', apiKey ? 'Environment key configured' : 'Using fallback key');
+    
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey || 'pim_0w3nfrt5ahgc',
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
       },
       body: JSON.stringify(requestData),
-      signal: controller.signal
+      signal: controller.signal,
+      mode: 'cors',
+      credentials: 'omit'
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Master server direct error:', response.status, errorText);
+      throw new Error(`Master server responded with status: ${response.status} - ${errorText}`);
     }
 
-    // Read streaming response
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('Stream reader not available');
-    }
-
-    const decoder = new TextDecoder();
-    let buffer = '';
-    const packets: any[] = [];
+    const data = await response.json();
+    console.log('Mobile direct connection success:', data);
     
-    console.log('Reading mobile streaming packets...');
-    
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
-        
-        for (const line of lines) {
-          if (line.trim()) {
-            try {
-              const packet = JSON.parse(line);
-              packets.push(packet);
-              console.log(`Received packet: ${packet.packetType}`);
-              
-              if (packet.packetType === 'error') {
-                throw new Error(packet.message || 'Stream error');
-              }
-            } catch (parseError) {
-              console.warn('Failed to parse packet:', line);
-            }
-          }
-        }
-      }
-    } finally {
-      reader.releaseLock();
-      clearTimeout(timeoutId);
-    }
-
-    // Combine packets into final response
-    const combinedData = combineStreamingPackets(packets);
-    console.log('Mobile streaming complete - packets combined:', packets.length);
-    
-    return formatPimResponse(combinedData, requestData);
+    return formatPimResponse(data, requestData);
     
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error('Mobile streaming error:', error);
+    console.error('Mobile direct connection error:', error);
+    
+    // If direct connection fails, provide helpful error message
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      throw new Error('Direct connection to master server failed. Check your internet connection and try again.');
+    }
+    
     throw error;
   }
 }

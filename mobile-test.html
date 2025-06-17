@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mobile Direct Connection Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Mobile Direct Connection Test</h1>
+    <p>User Agent: <span id="userAgent"></span></p>
+    <p>Device Type: <span id="deviceType"></span></p>
+    
+    <button onclick="testDirectConnection()">Test Direct Connection to Master Server</button>
+    <button onclick="testProxyConnection()">Test Proxy Connection</button>
+    
+    <div id="logs"></div>
+
+    <script>
+        // Display device info
+        document.getElementById('userAgent').textContent = navigator.userAgent;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        document.getElementById('deviceType').textContent = isMobile ? 'Mobile' : 'Desktop';
+        
+        function log(message) {
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log';
+            logDiv.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            document.getElementById('logs').appendChild(logDiv);
+            console.log(message);
+        }
+
+        async function testDirectConnection() {
+            log('Testing direct connection to master.pinauth.com...');
+            
+            const sessionId = '250617' + Math.floor(Date.now() / 1000);
+            const testData = {
+                sessionId: sessionId,
+                frontImageData: 'test_image_data_here'
+            };
+            
+            try {
+                const response = await fetch('https://master.pinauth.com/mobile-upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'pim_0w3nfrt5ahgc',
+                        'User-Agent': navigator.userAgent,
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify(testData),
+                    mode: 'cors'
+                });
+                
+                log(`Direct connection response: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('Direct connection SUCCESS: ' + JSON.stringify(data).substring(0, 200) + '...');
+                } else {
+                    const errorText = await response.text();
+                    log('Direct connection FAILED: ' + errorText.substring(0, 200));
+                }
+                
+            } catch (error) {
+                log('Direct connection ERROR: ' + error.message);
+                
+                if (error.message.includes('CORS')) {
+                    log('CORS error detected - master server may not allow direct browser connections');
+                } else if (error.message.includes('Failed to fetch')) {
+                    log('Network error - unable to reach master server');
+                }
+            }
+        }
+
+        async function testProxyConnection() {
+            log('Testing proxy connection through our server...');
+            
+            const sessionId = '250617' + Math.floor(Date.now() / 1000);
+            const testData = {
+                sessionId: sessionId,
+                frontImageData: 'test_image_data_here'
+            };
+            
+            try {
+                const response = await fetch('/api/proxy/mobile-upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                log(`Proxy connection response: ${response.status} ${response.statusText}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('Proxy connection SUCCESS: ' + JSON.stringify(data).substring(0, 200) + '...');
+                } else {
+                    const errorText = await response.text();
+                    log('Proxy connection FAILED: ' + errorText.substring(0, 200));
+                }
+                
+            } catch (error) {
+                log('Proxy connection ERROR: ' + error.message);
+            }
+        }
+        
+        // Auto-test based on device type
+        if (isMobile) {
+            log('Mobile device detected - testing direct connection first...');
+            setTimeout(testDirectConnection, 1000);
+        } else {
+            log('Desktop device detected - testing proxy connection first...');
+            setTimeout(testProxyConnection, 1000);
+        }
+    </script>
+</body>
+</html>

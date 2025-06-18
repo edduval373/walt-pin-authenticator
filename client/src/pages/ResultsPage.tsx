@@ -550,9 +550,9 @@ export default function ResultsPage() {
                   <div className="bg-gray-50 rounded-md p-4">
                     <h4 className="font-medium text-sm mb-2">Status</h4>
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${serverResponse.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className={serverResponse.success ? 'text-green-700' : 'text-red-700'}>
-                        {serverResponse.success ? 'Success' : 'Failed'}
+                      <div className={`w-3 h-3 rounded-full ${serverResponse.message?.includes('successfully') || serverResponse.id ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className={serverResponse.message?.includes('successfully') || serverResponse.id ? 'text-green-700' : 'text-red-700'}>
+                        {serverResponse.message?.includes('successfully') || serverResponse.id ? 'Success' : 'Failed'}
                       </span>
                     </div>
                   </div>

@@ -4,28 +4,15 @@
  */
 
 export interface WorkingPimResponse {
-  analysisReport: string;
-  confidence?: number;
-  authenticityScore?: number;
-  detectedPinId?: string;
-  result?: {
-    title?: string;
-    authenticityRating?: number;
-    characters?: string;
-    aiFindings?: string;
-    pinId?: string;
-    pricingInfo?: string;
-  };
-  // Master server specification - four HTML-formatted response fields
-  characters?: string;    // HTML content for character identification
-  analysis?: string;      // HTML content for AI analysis findings
-  identification?: string; // HTML content for pin identification
-  pricing?: string;       // HTML content for pricing information
-  // Additional fields for compatibility
+  // Master server specification - authentic data only
   id?: number;
   sessionId?: string;
   authentic?: boolean;
   authenticityRating?: number;
+  characters?: string;    // HTML content for character identification
+  identification?: string; // HTML content for pin identification
+  analysis?: string;      // HTML content for AI analysis findings
+  pricing?: string;       // HTML content for pricing information
   timestamp?: string;
   message?: string;
 }
@@ -139,18 +126,8 @@ export async function callWorkingMobileApi(
       throw new Error(data.error);
     }
     
-    // Parse the authenticity rating from the report
-    let authenticityRating = 0;
-    if (data.analysisReport) {
-      const ratingMatch = data.analysisReport.match(/Final Rating:\s*(\d+)\/5/);
-      if (ratingMatch && ratingMatch[1]) {
-        authenticityRating = parseInt(ratingMatch[1], 10);
-      }
-    }
-    
     // Return only authentic master server data - no synthetic generation
     return {
-      // Pass through only the actual master server response
       id: data.id,
       sessionId: data.sessionId,
       authentic: data.authentic,
@@ -160,8 +137,7 @@ export async function callWorkingMobileApi(
       analysis: data.analysis,
       pricing: data.pricing,
       timestamp: data.timestamp,
-      message: data.message,
-      success: data.success
+      message: data.message
     };
   } catch (error: unknown) {
     console.error('Working mobile API error:', error);

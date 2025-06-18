@@ -110,8 +110,12 @@ export async function callWorkingMobileApi(
     
     console.log('Direct connection to master server (working backup approach)');
     
-    // Direct connection exactly as it worked in the backup
-    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+    // Use local server endpoint which proxies to master server
+    const apiUrl = window.location.origin === 'http://localhost:5000' 
+      ? 'https://master.pinauth.com/mobile-upload'  // Direct connection in development
+      : '/mobile-upload';  // Use local proxy in production
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

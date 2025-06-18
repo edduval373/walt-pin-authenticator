@@ -1,10 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import "./assets/analysis-styles.css";
-import "./assets/verification-report.css";
-import "./assets/exact-report.css";
-import { errorLogger } from "./lib/error-logger";
 
 // Set title
 document.title = "Disney Pin Authenticator";
@@ -18,12 +14,10 @@ document.head.appendChild(meta);
 // Global error handling to prevent white screens
 window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
-  errorLogger.logError('Global window error', event.error);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
-  errorLogger.logError('Unhandled promise rejection', event.reason);
 });
 
 // Enhanced mobile debugging and error reporting
@@ -71,15 +65,15 @@ try {
     }).catch(() => {}); // Silent fail for tracking
   }
   
-} catch (error) {
+} catch (error: any) {
   console.error('CRITICAL: Failed to render React app:', error);
   
   const errorDetails = {
     ...debugInfo,
     error: {
-      name: error?.name,
-      message: error?.message,
-      stack: error?.stack
+      name: (error as Error)?.name || 'Unknown',
+      message: (error as Error)?.message || 'Unknown error',
+      stack: (error as Error)?.stack || 'No stack trace'
     }
   };
   
@@ -112,7 +106,7 @@ try {
           <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin: 20px 0; font-size: 14px; text-align: left;">
             <div><strong>Device:</strong> ${debugInfo.isMobile ? 'Mobile' : 'Desktop'}</div>
             <div><strong>Size:</strong> ${debugInfo.viewport}</div>
-            <div><strong>Error:</strong> ${error?.message || 'Unknown error'}</div>
+            <div><strong>Error:</strong> ${(error as Error)?.message || 'Unknown error'}</div>
             <div><strong>Time:</strong> ${new Date().toLocaleTimeString()}</div>
           </div>
           

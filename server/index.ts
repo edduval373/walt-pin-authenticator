@@ -132,6 +132,34 @@ app.use((req, res, next) => {
     }
   });
 
+  // Mobile detection and routing - must be before other middleware
+  app.get('/', (req, res, next) => {
+    const userAgent = req.get('user-agent') || '';
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    if (isMobile) {
+      return res.redirect('/mobile-app.html');
+    }
+    
+    // Continue to React app for desktop
+    next();
+  });
+
+  // Serve mobile HTML directly
+  app.get('/mobile-app.html', async (req, res) => {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const mobileHtmlPath = path.resolve(import.meta.dirname, '..', 'dist', 'public', 'mobile-app.html');
+      const mobileHtml = await fs.promises.readFile(mobileHtmlPath, 'utf-8');
+      res.set('Content-Type', 'text/html').send(mobileHtml);
+    } catch (error: any) {
+      log(`Mobile HTML not found: ${error?.message || 'Unknown error'}`);
+      res.status(404).send('Mobile interface not available');
+    }
+  });
+
   // Add mobile verify endpoint before production server
   app.post('/api/verify', async (req, res) => {
     try {
@@ -177,7 +205,7 @@ app.use((req, res, next) => {
         body: formData
       });
 
-      const result = await response.json();
+      const result = await response.json() as any;
       log(`Mobile verification complete: ${result.success ? 'success' : 'failed'}`);
       
       res.json(result);

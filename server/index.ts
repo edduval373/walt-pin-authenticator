@@ -151,11 +151,35 @@ app.use((req, res, next) => {
       const fs = await import('fs');
       const path = await import('path');
       
-      const mobileHtmlPath = path.resolve(import.meta.dirname, '..', 'dist', 'public', 'mobile-app.html');
-      const mobileHtml = await fs.promises.readFile(mobileHtmlPath, 'utf-8');
-      res.set('Content-Type', 'text/html').send(mobileHtml);
+      // Try multiple possible paths for the mobile HTML file
+      const possiblePaths = [
+        path.resolve(process.cwd(), 'dist', 'public', 'mobile-app.html'),
+        path.resolve(process.cwd(), 'dist', 'mobile-app.html'),
+        path.resolve(process.cwd(), 'mobile-app.html'),
+        path.resolve(__dirname, '..', 'dist', 'public', 'mobile-app.html')
+      ];
+      
+      let mobileHtml = null;
+      let foundPath = null;
+      
+      for (const filePath of possiblePaths) {
+        try {
+          mobileHtml = await fs.promises.readFile(filePath, 'utf-8');
+          foundPath = filePath;
+          break;
+        } catch (e) {
+          continue;
+        }
+      }
+      
+      if (mobileHtml) {
+        log(`Mobile HTML served from: ${foundPath}`);
+        res.set('Content-Type', 'text/html').send(mobileHtml);
+      } else {
+        throw new Error('Mobile HTML file not found in any expected location');
+      }
     } catch (error: any) {
-      log(`Mobile HTML not found: ${error?.message || 'Unknown error'}`);
+      log(`Mobile HTML error: ${error?.message || 'Unknown error'}`);
       res.status(404).send('Mobile interface not available');
     }
   });

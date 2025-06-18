@@ -492,9 +492,9 @@ export default function ResultsPage() {
           <TabsContent value="identification" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pin Identification</h3>
-              {serverResponse?.identification ? (
+              {(serverResponse?.identification || serverResponse?.result?.pinId) ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.identification) }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.identification || serverResponse?.result?.pinId || '') }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -509,9 +509,9 @@ export default function ResultsPage() {
           <TabsContent value="analysis" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Authenticity Analysis</h3>
-              {serverResponse?.analysis ? (
+              {(serverResponse?.analysis || serverResponse?.result?.aiFindings) ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.analysis) }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.analysis || serverResponse?.result?.aiFindings || '') }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -526,9 +526,9 @@ export default function ResultsPage() {
           <TabsContent value="characters" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Character Information</h3>
-              {serverResponse?.characters ? (
+              {(serverResponse?.characters || serverResponse?.result?.characters) ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.characters) }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.characters || serverResponse?.result?.characters || '') }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -543,9 +543,9 @@ export default function ResultsPage() {
           <TabsContent value="pricing" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pricing & Market Value</h3>
-              {serverResponse?.pricing ? (
+              {(serverResponse?.pricing || serverResponse?.result?.pricingInfo) ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.pricing) }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.pricing || serverResponse?.result?.pricingInfo || '') }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">

@@ -577,7 +577,40 @@ export default function ResultsPage() {
                   )}
                   
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Complete Response</h4>
+                    <h4 className="font-medium text-sm mb-2">Combined Response Fields</h4>
+                    <div className="text-xs bg-white p-3 rounded overflow-auto max-h-96 border">
+                      {serverResponse.identification && (
+                        <div className="mb-4">
+                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">IDENTIFICATION</div>
+                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.identification }} />
+                        </div>
+                      )}
+                      
+                      {serverResponse.analysis && (
+                        <div className="mb-4">
+                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">ANALYSIS</div>
+                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.analysis }} />
+                        </div>
+                      )}
+                      
+                      {serverResponse.pricing && (
+                        <div className="mb-4">
+                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">PRICING</div>
+                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.pricing }} />
+                        </div>
+                      )}
+                      
+                      {serverResponse.characters && (
+                        <div className="mb-4">
+                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">CHARACTERS</div>
+                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.characters }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-md p-4">
+                    <h4 className="font-medium text-sm mb-2">Raw JSON Response</h4>
                     <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-96 whitespace-pre-wrap">
                       {JSON.stringify(serverResponse, null, 2)}
                     </pre>

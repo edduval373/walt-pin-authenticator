@@ -100,6 +100,38 @@ app.use((req, res, next) => {
     });
   });
 
+  // Add missing health proxy endpoint
+  app.get('/api/proxy/health', async (req, res) => {
+    try {
+      const fetch = (await import('node-fetch')).default;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('https://master.pinauth.com/health', {
+        method: 'GET',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        res.json(data);
+      } else {
+        res.status(response.status).json({
+          status: 'error',
+          message: `Master server health check failed with status ${response.status}`
+        });
+      }
+    } catch (error) {
+      res.status(503).json({
+        status: 'error',
+        message: 'Unable to reach master server',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Import production server as middleware
   const productionApp = (await import("./production-server")).default;
   app.use(productionApp);

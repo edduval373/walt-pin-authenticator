@@ -146,7 +146,7 @@ app.get('*', (req, res) => {
 // Start server if this file is run directly (for Railway deployment)
 if (import.meta.url === `file://${process.argv[1]}`) {
   const PORT = parseInt(process.env.PORT || '5000', 10);
-  app.listen(PORT, '0.0.0.0', () => {
+  app.listen(PORT, () => {
     console.log(`Production server running on port ${PORT}`);
   });
 }

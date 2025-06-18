@@ -26,26 +26,123 @@ window.addEventListener('unhandledrejection', (event) => {
   errorLogger.logError('Unhandled promise rejection', event.reason);
 });
 
-// Render with error handling
+// Enhanced mobile debugging and error reporting
+const debugInfo = {
+  userAgent: navigator.userAgent,
+  isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+  viewport: `${window.innerWidth}x${window.innerHeight}`,
+  timestamp: new Date().toISOString(),
+  url: window.location.href,
+  reactVersion: '18.2.0'
+};
+
+console.log('Disney Pin Auth - React initialization starting...', debugInfo);
+
+// Render with comprehensive error handling
 try {
-  createRoot(document.getElementById("root")!).render(<App />);
-} catch (error) {
-  console.error('Failed to render app:', error);
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
   
-  // Fallback UI for critical errors
+  console.log('Root element found, creating React root...');
+  const root = createRoot(rootElement);
+  
+  console.log('React root created, rendering App component...');
+  root.render(<App />);
+  
+  console.log('React app rendered successfully');
+  
+  // Report successful render to server for mobile tracking
+  if (debugInfo.isMobile) {
+    fetch('/api/client-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        error: null,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString(),
+        additionalInfo: {
+          ...debugInfo,
+          status: 'react_render_success'
+        }
+      })
+    }).catch(() => {}); // Silent fail for tracking
+  }
+  
+} catch (error) {
+  console.error('CRITICAL: Failed to render React app:', error);
+  
+  const errorDetails = {
+    ...debugInfo,
+    error: {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack
+    }
+  };
+  
+  // Report error to server
+  fetch('/api/client-error', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      error: errorDetails.error,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString(),
+      additionalInfo: {
+        ...errorDetails,
+        status: 'react_render_failed'
+      }
+    })
+  }).catch(() => {});
+  
+  // Enhanced fallback UI with detailed error information
   const rootElement = document.getElementById("root");
   if (rootElement) {
     rootElement.innerHTML = `
-      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f9fafb; font-family: system-ui, -apple-system, sans-serif;">
-        <div style="max-width: 400px; width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 24px; text-align: center;">
-          <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-          <h2 style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">App Loading Failed</h2>
-          <p style="color: #6b7280; margin-bottom: 16px;">Please refresh the page to try again.</p>
-          <button onclick="window.location.reload()" style="background: #6366f1; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;">
-            Refresh Page
-          </button>
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: white; padding: 20px;">
+        <div style="max-width: 500px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 20px; backdrop-filter: blur(10px); padding: 30px; text-align: center;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">🐛</div>
+          <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 16px;">React Loading Error</h2>
+          <p style="margin-bottom: 20px; opacity: 0.9;">The main application failed to start. Debug information:</p>
+          
+          <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin: 20px 0; font-size: 14px; text-align: left;">
+            <div><strong>Device:</strong> ${debugInfo.isMobile ? 'Mobile' : 'Desktop'}</div>
+            <div><strong>Size:</strong> ${debugInfo.viewport}</div>
+            <div><strong>Error:</strong> ${error?.message || 'Unknown error'}</div>
+            <div><strong>Time:</strong> ${new Date().toLocaleTimeString()}</div>
+          </div>
+          
+          <div style="margin: 20px 0;">
+            <button onclick="window.location.reload()" style="background: #4f46e5; color: white; padding: 12px 24px; border: none; border-radius: 50px; cursor: pointer; margin: 5px; font-size: 16px;">
+              Refresh Page
+            </button>
+            <button onclick="copyErrorInfo()" style="background: #6b7280; color: white; padding: 12px 24px; border: none; border-radius: 50px; cursor: pointer; margin: 5px; font-size: 16px;">
+              Copy Error Info
+            </button>
+          </div>
+          
+          <p style="font-size: 12px; opacity: 0.7; margin-top: 20px;">
+            This error has been automatically reported to help improve the app.
+          </p>
         </div>
       </div>
+      
+      <script>
+        function copyErrorInfo() {
+          const errorInfo = ${JSON.stringify(errorDetails, null, 2)};
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(JSON.stringify(errorInfo, null, 2));
+            alert('Error information copied to clipboard');
+          } else {
+            console.log('Error Info:', errorInfo);
+            alert('Error information logged to console');
+          }
+        }
+      </script>
     `;
   }
 }

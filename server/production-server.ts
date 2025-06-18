@@ -22,6 +22,33 @@ app.get('/health', (req, res) => {
   });
 });
 
+// API proxy health check endpoint
+app.get('/api/proxy/health', async (req, res) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const response = await fetch('https://master.pinauth.com/health', {
+      method: 'GET',
+      timeout: 5000
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      res.status(response.status).json({
+        status: 'error',
+        message: `Master server health check failed with status ${response.status}`
+      });
+    }
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      message: 'Unable to reach master server',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Mobile upload endpoint - direct proxy to master server
 app.post('/mobile-upload', async (req, res) => {
   try {

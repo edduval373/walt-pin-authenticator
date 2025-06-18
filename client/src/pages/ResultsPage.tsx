@@ -577,35 +577,16 @@ export default function ResultsPage() {
                   )}
                   
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Combined Response Fields</h4>
-                    <div className="text-xs bg-white p-3 rounded overflow-auto max-h-96 border">
-                      {serverResponse.identification && (
-                        <div className="mb-4">
-                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">IDENTIFICATION</div>
-                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.identification }} />
+                    <h4 className="font-medium text-sm mb-2">Exact Fields Received From Master Server</h4>
+                    <div className="text-xs bg-white p-3 rounded overflow-auto max-h-96 border space-y-3">
+                      {Object.entries(serverResponse).map(([key, value], index) => (
+                        <div key={key} className="border-b border-gray-200 pb-2 last:border-b-0">
+                          <div className="font-bold text-blue-800 mb-1">{key.toUpperCase()}</div>
+                          <div className="text-gray-700 font-mono text-xs">
+                            {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                          </div>
                         </div>
-                      )}
-                      
-                      {serverResponse.analysis && (
-                        <div className="mb-4">
-                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">ANALYSIS</div>
-                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.analysis }} />
-                        </div>
-                      )}
-                      
-                      {serverResponse.pricing && (
-                        <div className="mb-4">
-                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">PRICING</div>
-                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.pricing }} />
-                        </div>
-                      )}
-                      
-                      {serverResponse.characters && (
-                        <div className="mb-4">
-                          <div className="font-bold text-blue-800 border-b border-gray-300 pb-1 mb-2">CHARACTERS</div>
-                          <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: serverResponse.characters }} />
-                        </div>
-                      )}
+                      ))}
                     </div>
                   </div>
                   

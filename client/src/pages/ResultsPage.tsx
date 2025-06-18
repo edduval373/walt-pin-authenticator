@@ -561,51 +561,13 @@ export default function ResultsPage() {
           {/* Server Response Tab */}
           <TabsContent value="server-response" className="p-4 bg-indigo-50">
             <div className="server-response-content">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Raw Server Response</h3>
+              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Master Server Response</h3>
               
               {serverResponse ? (
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Status</h4>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${serverResponse.message?.includes('successfully') || serverResponse.id ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className={serverResponse.message?.includes('successfully') || serverResponse.id ? 'text-green-700' : 'text-red-700'}>
-                        {serverResponse.message?.includes('successfully') || serverResponse.id ? 'Success' : 'Failed'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Message</h4>
-                    <p className="text-gray-700">{serverResponse.message || 'No message provided'}</p>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">ID</h4>
-                    <p className="text-gray-700 font-mono">{serverResponse.id || 'No ID provided'}</p>
-                  </div>
-                  
-                  {serverResponse.characters && (
-                    <div className="bg-yellow-50 rounded-md p-4 border border-yellow-200">
-                      <h4 className="font-medium text-sm mb-2 text-yellow-800">Characters Field (Debug)</h4>
-                      <div className="text-xs bg-yellow-100 p-3 rounded overflow-auto max-h-48">
-                        <div className="text-yellow-900" dangerouslySetInnerHTML={{ __html: serverResponse.characters }} />
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Exact Fields Received From Master Server</h4>
-                    <div className="text-xs bg-white p-3 rounded overflow-auto max-h-96 border space-y-3">
-                      {Object.entries(serverResponse).map(([key, value], index) => (
-                        <div key={key} className="border-b border-gray-200 pb-2 last:border-b-0">
-                          <div className="font-bold text-blue-800 mb-1">{key.toUpperCase()}</div>
-                          <div className="text-gray-700 font-mono text-xs">
-                            {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <h4 className="font-medium text-sm mb-2">Master Server ID</h4>
+                    <p className="text-gray-700 font-mono text-lg">{serverResponse.id || 'No ID received'}</p>
                   </div>
                   
                   <div className="bg-gray-50 rounded-md p-4">

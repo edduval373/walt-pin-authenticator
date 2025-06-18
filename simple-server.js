@@ -1,6 +1,10 @@
-const express = require('express');
-const path = require('path');
-const fetch = require('node-fetch');
+import express from 'express';
+import path from 'path';
+import fetch from 'node-fetch';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 

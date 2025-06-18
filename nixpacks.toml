@@ -1,0 +1,8 @@
+[variables]
+NODE_ENV = "production"
+
+[phases.install]
+cmds = ["npm ci"]
+
+[start]
+cmd = "node simple-server.js"

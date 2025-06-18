@@ -135,17 +135,17 @@ app.post('/mobile-upload', async (req, res) => {
   }
 });
 
-// Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, '../dist')));
+// Serve static files from the correct Vite build directory
+app.use(express.static(path.join(__dirname, '../dist/public')));
 
 // Catch-all handler for SPA routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../dist/public', 'index.html'));
 });
 
 // Start server if this file is run directly (for Railway deployment)
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const PORT = process.env.PORT || 5000;
+  const PORT = parseInt(process.env.PORT || '5000', 10);
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Production server running on port ${PORT}`);
   });

@@ -38,6 +38,33 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       
       sessionStorage.setItem('lastError', JSON.stringify(errorDetails));
       
+      // Report error to server for centralized logging
+      fetch('/api/client-error', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          },
+          url: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          additionalInfo: {
+            componentStack: errorInfo.componentStack,
+            isMobile,
+            viewport: `${window.innerWidth}x${window.innerHeight}`,
+            localStorage: Object.keys(localStorage).length,
+            sessionStorage: Object.keys(sessionStorage).length
+          }
+        })
+      }).catch(reportError => {
+        console.error('Failed to report error to server:', reportError);
+      });
+      
       // Log mobile-specific errors
       if (isMobile) {
         console.error('Mobile-specific error detected:', errorDetails);

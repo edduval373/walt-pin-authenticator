@@ -761,6 +761,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Debug logs endpoint for viewing server-side error information
+  app.get('/api/debug/logs', (req, res) => {
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      apiKey: MOBILE_API_KEY ? 'configured' : 'missing',
+      apiUrl: PIM_STANDARD_API_URL,
+      serverStatus: 'running',
+      memoryUsage: process.memoryUsage(),
+      uptime: process.uptime()
+    };
+    
+    res.json({
+      success: true,
+      debugInfo,
+      message: "Server debug information retrieved"
+    });
+  });
+
   // Client error reporting endpoint
   app.post('/api/client-error', (req, res) => {
     const { error, url, userAgent, timestamp, additionalInfo } = req.body;
@@ -780,7 +799,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
     
     log(`CLIENT ERROR REPORT: ${JSON.stringify(errorReport, null, 2)}`, 'client-error');
-    console.error("Client Error Report:", errorReport);
+    console.error("=== CLIENT ERROR REPORT ===");
+    console.error("Timestamp:", errorReport.timestamp);
+    console.error("URL:", errorReport.clientUrl);
+    console.error("User Agent:", errorReport.userAgent);
+    console.error("Error:", errorReport.error);
+    console.error("Additional Info:", errorReport.additionalInfo);
+    console.error("========================");
     
     res.json({ success: true, errorId: Date.now() });
   });

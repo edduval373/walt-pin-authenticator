@@ -26,9 +26,9 @@ export default function CameraView({ onCapture }: CameraViewProps) {
     startCamera();
     
     return () => {
-      delete (window as any).triggerDemoCapture;
+      stopCamera();
     };
-  }, [onCapture]);
+  }, [startCamera, stopCamera]);
   
   // Set a timer to show help message if camera doesn't initialize quickly (after 3 seconds)
   useEffect(() => {
@@ -134,22 +134,7 @@ export default function CameraView({ onCapture }: CameraViewProps) {
         onCapture(imageData);
       } catch (error) {
         console.error("Error capturing image:", error);
-        
-        // If drawing fails, try a fallback approach - create a dummy colored image
-        try {
-          // Create a simple colored rectangle as fallback for testing
-          ctx.fillStyle = '#0070d1'; // Disney blue
-          ctx.fillRect(0, 0, width, height);
-          ctx.fillStyle = 'white';
-          ctx.font = '20px Arial';
-          ctx.fillText('Camera capture simulation', 20, height/2);
-          
-          const fallbackImage = canvas.toDataURL('image/jpeg');
-          console.log("Generated fallback image");
-          onCapture(fallbackImage);
-        } catch (fallbackError) {
-          console.error("Fallback image also failed:", fallbackError);
-        }
+        setIsCapturing(false);
       } finally {
         setIsCapturing(false);
       }
@@ -273,43 +258,10 @@ export default function CameraView({ onCapture }: CameraViewProps) {
                 </button>
                 
                 <button
-                  onClick={() => {
-                    // Create a demo image if user wants to skip troubleshooting
-                    const canvas = canvasRef.current;
-                    if (canvas) {
-                      canvas.width = 640;
-                      canvas.height = 480;
-                      const ctx = canvas.getContext('2d');
-                      if (ctx) {
-                        // Create a gradient background 
-                        const bgGradient = ctx.createLinearGradient(0, 0, 0, 480);
-                        bgGradient.addColorStop(0, '#1a237e');  // Dark blue
-                        bgGradient.addColorStop(1, '#0070d1');  // Disney blue
-                        ctx.fillStyle = bgGradient;
-                        ctx.fillRect(0, 0, 640, 480);
-                        
-                        // Draw Mickey silhouette
-                        ctx.beginPath();
-                        ctx.arc(320, 240, 100, 0, Math.PI * 2); // Main head
-                        ctx.arc(250, 170, 60, 0, Math.PI * 2); // Left ear
-                        ctx.arc(390, 170, 60, 0, Math.PI * 2); // Right ear
-                        ctx.fillStyle = 'black';
-                        ctx.fill();
-                        
-                        // Demo text
-                        ctx.fillStyle = 'white';
-                        ctx.font = 'bold 32px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('Disney Pin Demo', 320, 380);
-                        
-                        const testImage = canvas.toDataURL('image/jpeg');
-                        onCapture(testImage);
-                      }
-                    }
-                  }}
+                  onClick={() => setShowCameraHelp(false)}
                   className="px-4 py-2 bg-gray-200 rounded-lg text-gray-700 text-sm font-medium flex-1"
                 >
-                  Use Demo Mode
+                  Close Help
                 </button>
               </div>
             </div>

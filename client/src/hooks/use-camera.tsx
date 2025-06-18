@@ -129,23 +129,7 @@ export function useCamera(videoRef: RefObject<HTMLVideoElement>): CameraHookResu
       }
     } catch (err) {
       console.error("Camera access error:", err);
-      
-      // Try fallback to any camera if first attempt failed
-      try {
-        console.log("Trying fallback with basic constraint");
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        
-        streamRef.current = mediaStream;
-        setStream(mediaStream);
-        
-        const success = await initializeVideo(mediaStream);
-        if (!success) {
-          setError("Video initialization failed with fallback camera");
-        }
-      } catch (fallbackErr) {
-        console.error("Fallback camera access also failed:", fallbackErr);
-        setError(`Could not access camera: ${err instanceof Error ? err.message : String(err)}`);
-      }
+      setError(`Could not access camera: ${err instanceof Error ? err.message : String(err)}`);
     }
   }, [videoRef]);
   

@@ -761,13 +761,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Setup global error handler
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    log(`ERROR: ${err.message}`);
-    return res.status(500).json({
+  // Client error reporting endpoint
+  app.post('/api/client-error', (req, res) => {
+    const { error, url, userAgent, timestamp, additionalInfo } = req.body;
+    
+    const errorReport = {
+      timestamp: timestamp || new Date().toISOString(),
+      clientUrl: url,
+      userAgent,
+      clientIP: req.ip,
+      error: {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      },
+      additionalInfo,
+      serverTime: new Date().toISOString()
+    };
+    
+    log(`CLIENT ERROR REPORT: ${JSON.stringify(errorReport, null, 2)}`, 'client-error');
+    console.error("Client Error Report:", errorReport);
+    
+    res.json({ success: true, errorId: Date.now() });
+  });
+
+  // Enhanced global error handler with detailed logging
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    const errorDetails = {
+      timestamp: new Date().toISOString(),
+      method: req.method,
+      url: req.url,
+      headers: {
+        userAgent: req.get('user-agent'),
+        contentType: req.get('content-type'),
+        accept: req.get('accept'),
+        referer: req.get('referer')
+      },
+      body: req.body ? JSON.stringify(req.body).substring(0, 1000) : null,
+      query: req.query,
+      params: req.params,
+      ip: req.ip,
+      error: {
+        name: err.name,
+        message: err.message,
+        stack: err.stack
+      }
+    };
+    
+    log(`CRITICAL SERVER ERROR: ${JSON.stringify(errorDetails, null, 2)}`, 'server-error');
+    console.error("Detailed Server Error:", errorDetails);
+    
+    res.status(500).json({
       success: false,
-      message: "Internal server error",
-      error: err.message
+      message: "Server error - detailed logs available",
+      errorId: Date.now(),
+      debug: process.env.NODE_ENV === 'development' ? {
+        error: err.message,
+        url: req.url,
+        method: req.method,
+        timestamp: errorDetails.timestamp
+      } : undefined
     });
   });
   

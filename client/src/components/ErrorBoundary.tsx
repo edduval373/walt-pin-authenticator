@@ -49,28 +49,80 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   render() {
     if (this.state.hasError) {
+      const errorDetails = this.state.error ? {
+        message: this.state.error.message,
+        stack: this.state.error.stack,
+        name: this.state.error.name,
+        toString: this.state.error.toString()
+      } : null;
+      
+      const debugInfo = {
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+        localStorage: Object.keys(localStorage).length,
+        sessionStorage: Object.keys(sessionStorage).length,
+        cookiesEnabled: navigator.cookieEnabled,
+        onLine: navigator.onLine
+      };
+
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Something went wrong</h2>
-            <p className="text-gray-600 mb-4">
-              The application encountered an error. Please refresh the page.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Refresh Page
-            </button>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="mt-4 text-left">
-                <summary className="cursor-pointer text-gray-500">Error Details</summary>
-                <pre className="mt-2 text-xs text-red-600 overflow-auto">
-                  {this.state.error.toString()}
-                </pre>
-              </details>
-            )}
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+          <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-6">
+            <div className="text-red-500 text-4xl mb-4 text-center">🐛</div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2 text-center">Debug Information</h2>
+            
+            <div className="space-y-4">
+              {errorDetails && (
+                <div className="bg-red-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-red-800 mb-2">Error Details:</h3>
+                  <div className="text-sm text-red-700 space-y-1">
+                    <div><strong>Type:</strong> {errorDetails.name}</div>
+                    <div><strong>Message:</strong> {errorDetails.message}</div>
+                    {errorDetails.stack && (
+                      <details className="mt-2">
+                        <summary className="cursor-pointer">Stack Trace</summary>
+                        <pre className="mt-2 text-xs bg-red-100 p-2 rounded overflow-auto">
+                          {errorDetails.stack}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">Environment:</h3>
+                <div className="text-sm text-blue-700 space-y-1">
+                  <div><strong>Device:</strong> {debugInfo.isMobile ? 'Mobile' : 'Desktop'}</div>
+                  <div><strong>Online:</strong> {debugInfo.onLine ? 'Yes' : 'No'}</div>
+                  <div><strong>Viewport:</strong> {debugInfo.viewport}</div>
+                  <div><strong>URL:</strong> {debugInfo.url}</div>
+                  <div><strong>User Agent:</strong> {debugInfo.userAgent}</div>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Refresh Page
+                </button>
+                <button
+                  onClick={() => {
+                    const debugData = { errorDetails, debugInfo };
+                    navigator.clipboard?.writeText(JSON.stringify(debugData, null, 2));
+                    alert('Debug info copied to clipboard');
+                  }}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Copy Debug Info
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       );

@@ -26,10 +26,15 @@ app.get('/health', (req, res) => {
 app.get('/api/proxy/health', async (req, res) => {
   try {
     const fetch = (await import('node-fetch')).default;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch('https://master.pinauth.com/health', {
       method: 'GET',
-      timeout: 5000
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     if (response.ok) {
       const data = await response.json();
@@ -130,7 +135,21 @@ app.post('/mobile-upload', async (req, res) => {
   }
 });
 
-// Static file serving handled by main server - no duplicate serving needed
+// Serve static files from the dist directory
+app.use(express.static(path.join(__dirname, '../dist')));
 
-// Export app as middleware - no standalone server startup
+// Catch-all handler for SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
+
+// Start server if this file is run directly (for Railway deployment)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Production server running on port ${PORT}`);
+  });
+}
+
+// Also export as middleware for development
 export default app;

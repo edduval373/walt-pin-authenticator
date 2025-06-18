@@ -761,6 +761,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Mobile detection and routing
+  app.get('/', (req, res, next) => {
+    const userAgent = req.get('user-agent') || '';
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    
+    if (isMobile) {
+      return res.redirect('/mobile-app.html');
+    }
+    
+    // Continue to React app for desktop
+    next();
+  });
+
+  // Serve mobile HTML directly
+  app.get('/mobile-app.html', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    
+    try {
+      const mobileHtmlPath = path.resolve(__dirname, '..', 'dist', 'public', 'mobile-app.html');
+      const mobileHtml = fs.readFileSync(mobileHtmlPath, 'utf-8');
+      res.set('Content-Type', 'text/html').send(mobileHtml);
+    } catch (error: any) {
+      log(`Mobile HTML not found: ${error?.message || 'Unknown error'}`);
+      res.status(404).send('Mobile interface not available');
+    }
+  });
+
   // Debug logs endpoint for viewing server-side error information
   app.get('/api/debug/logs', (req, res) => {
     const debugInfo = {

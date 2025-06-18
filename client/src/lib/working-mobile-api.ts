@@ -163,15 +163,15 @@ export async function callWorkingMobileApi(
         pricingInfo: data.result?.pricingInfo || createPricingHtml(data.analysisReport || ''),
       },
       
-      // Additional fields
+      // Additional fields - use HTML content directly from master server
       id: data.id,
       sessionId: data.sessionId,
       authentic: data.authentic !== undefined ? data.authentic : authenticityRating >= 3,
       authenticityRating: data.authenticityRating || authenticityRating * 20,
-      characters: data.characters,
-      identification: data.identification,
-      analysis: data.analysis,
-      pricing: data.pricing,
+      characters: data.characters || '<p>No character information available</p>',
+      identification: data.identification || '<p>No identification information available</p>',
+      analysis: data.analysis || '<p>No analysis information available</p>',
+      pricing: data.pricing || '<p>No pricing information available</p>',
       timestamp: data.timestamp,
       message: data.message
     };

@@ -16,15 +16,16 @@ export interface WorkingPimResponse {
     pinId?: string;
     pricingInfo?: string;
   };
+  // Master server specification - four HTML-formatted response fields
+  characters?: string;    // HTML content for character identification
+  analysis?: string;      // HTML content for AI analysis findings
+  identification?: string; // HTML content for pin identification
+  pricing?: string;       // HTML content for pricing information
   // Additional fields for compatibility
   id?: number;
   sessionId?: string;
   authentic?: boolean;
   authenticityRating?: number;
-  characters?: string;
-  identification?: string;
-  analysis?: string;
-  pricing?: string;
   timestamp?: string;
   message?: string;
 }
@@ -90,23 +91,24 @@ export async function callWorkingMobileApi(
   try {
     console.log('Using working mobile API from backup...');
     
-    // Generate session ID for mobile upload
-    const sessionId = Date.now().toString().slice(-12);
+    // Generate session ID in YYMMDDHHMMSS format (exactly 12 digits as required)
+    const now = new Date();
+    const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
     
-    // Prepare request payload - using correct field names for mobile-upload endpoint
-    const payload: any = {
+    // Remove data URI prefixes from base64 strings as required by master server
+    const cleanFrontImage = frontImage.replace(/^data:image\/[a-z]+;base64,/, '');
+    const cleanBackImage = backImage ? backImage.replace(/^data:image\/[a-z]+;base64,/, '') : null;
+    const cleanAngledImage = angledImage ? angledImage.replace(/^data:image\/[a-z]+;base64,/, '') : null;
+    
+    // Prepare request payload exactly as specified by master app
+    const payload = {
       sessionId: sessionId,
-      frontImageData: frontImage.includes('data:') ? frontImage : `data:image/jpeg;base64,${frontImage}`
+      frontImageData: cleanFrontImage,
+      backImageData: cleanBackImage,
+      angledImageData: cleanAngledImage,
+      requireApproval: false,
+      prompts: {}
     };
-    
-    // Add optional images if provided
-    if (backImage) {
-      payload.backImageData = backImage.includes('data:') ? backImage : `data:image/jpeg;base64,${backImage}`;
-    }
-    
-    if (angledImage) {
-      payload.angledImageData = angledImage.includes('data:') ? angledImage : `data:image/jpeg;base64,${angledImage}`;
-    }
     
     console.log('Direct connection to master server (working backup approach)');
     
@@ -121,7 +123,9 @@ export async function callWorkingMobileApi(
         'Content-Type': 'application/json',
         'x-api-key': import.meta.env.VITE_MOBILE_API_KEY
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      // Set 180-second timeout as specified by master app
+      signal: AbortSignal.timeout(180000)
     });
     
     if (!response.ok) {

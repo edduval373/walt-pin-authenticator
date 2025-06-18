@@ -42,26 +42,27 @@ app.post('/mobile-upload', async (req, res) => {
       });
     }
     
-    // Prepare request to master server
-    const requestBody: any = {
+    // Remove data URI prefixes from base64 strings as required by master server
+    const cleanFrontImage = frontImageData.replace(/^data:image\/[a-z]+;base64,/, '');
+    const cleanBackImage = backImageData ? backImageData.replace(/^data:image\/[a-z]+;base64,/, '') : null;
+    const cleanAngledImage = angledImageData ? angledImageData.replace(/^data:image\/[a-z]+;base64,/, '') : null;
+    
+    // Prepare request exactly as specified by master app
+    const requestBody = {
       sessionId,
-      frontImageData
+      frontImageData: cleanFrontImage,
+      backImageData: cleanBackImage,
+      angledImageData: cleanAngledImage,
+      requireApproval: false,
+      prompts: {}
     };
-    
-    if (backImageData) {
-      requestBody.backImageData = backImageData;
-    }
-    
-    if (angledImageData) {
-      requestBody.angledImageData = angledImageData;
-    }
     
     // Forward to master server with streaming support and end-of-transmission protocol
     const fetch = (await import('node-fetch')).default;
     
-    // Set up streaming response with extended timeout
+    // Set up streaming response with 180-second timeout as specified by master app
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout for AI processing
     
     try {
       const response = await fetch('https://master.pinauth.com/mobile-upload', {

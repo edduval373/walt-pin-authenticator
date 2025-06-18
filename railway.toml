@@ -2,5 +2,5 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "npm run dev"
+startCommand = "npm run start"
 restartPolicyType = "ON_FAILURE"

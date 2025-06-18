@@ -10,7 +10,11 @@ const app = express();
 
 // Middleware
 app.use(express.json({ limit: '100mb' }));
-app.use(express.static('client'));
+
+// Serve React app static files
+app.use(express.static(path.join(__dirname, 'client')));
+app.use('/src', express.static(path.join(__dirname, 'client/src')));
+app.use('/assets', express.static(path.join(__dirname, 'attached_assets')));
 
 // Mobile upload endpoint
 app.post('/mobile-upload', async (req, res) => {
@@ -44,8 +48,18 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// API routes first
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 // Serve React app for all other routes
 app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/') || req.path.startsWith('/mobile-upload')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  
   res.sendFile(path.join(__dirname, 'client', 'index.html'));
 });
 

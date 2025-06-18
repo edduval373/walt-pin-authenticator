@@ -103,16 +103,7 @@ app.post('/mobile-upload', async (req, res) => {
   }
 });
 
-// Serve static files from dist/public
-const distPath = path.resolve(__dirname, '..', 'dist', 'public');
-app.use(express.static(distPath));
+// Static file serving handled by main server - no duplicate serving needed
 
-// SPA fallback - serve index.html for all non-API routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'));
-});
-
-const port = parseInt(process.env.PORT || '5000', 10);
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Production server running on port ${port}`);
-});
+// Export app as middleware - no standalone server startup
+export default app;

@@ -100,8 +100,13 @@ app.use((req, res, next) => {
     });
   });
 
-  // Register API routes BEFORE Vite middleware
-  const server = await registerRoutes(app);
+  // Import production server as middleware
+  const productionApp = (await import("./production-server")).default;
+  app.use(productionApp);
+  
+  // Create HTTP server
+  const { createServer } = await import("http");
+  const server = createServer(app);
   
   // Keep other API routes for web app functionality
   app.use('/mobile', mobileApiRouter);

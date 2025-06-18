@@ -438,6 +438,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mobile API endpoint for pin verification
+  app.post('/api/verify', async (req, res) => {
+    try {
+      const { frontImage, backImage, angledImage } = req.body;
+      
+      // Validate front image is provided
+      if (!frontImage) {
+        return res.status(400).json({
+          success: false,
+          message: "Front image is required for analysis"
+        });
+      }
+      
+      log(`Processing mobile pin verification - Front image: ${frontImage.length} chars`);
+      
+      // Call the PIM Standard API to analyze the images
+      const analysisResult: PimStandardResponse = await analyzeImageForPin(
+        frontImage,
+        backImage,
+        angledImage
+      );
+      
+      log(`Mobile verification complete`);
+      
+      return res.json({
+        success: true,
+        authentic: analysisResult.authentic,
+        authenticityRating: analysisResult.authenticityRating,
+        analysis: analysisResult.analysis,
+        identification: analysisResult.identification,
+        pricing: analysisResult.pricing,
+        message: analysisResult.message || "Pin verification complete"
+      });
+      
+    } catch (error: any) {
+      log(`Error in mobile pin verification: ${error.message}`);
+      return res.status(500).json({
+        success: false,
+        message: "Verification failed",
+        error: error.message
+      });
+    }
+  });
+
   // Frontend API endpoint for pin analysis
   app.post('/api/analyze', async (req, res) => {
     try {

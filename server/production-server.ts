@@ -56,19 +56,43 @@ app.post('/mobile-upload', async (req, res) => {
       requestBody.angledImageData = angledImageData;
     }
     
-    // Forward to master server
+    // Forward to master server with streaming support and end-of-transmission protocol
     const fetch = (await import('node-fetch')).default;
-    const response = await fetch('https://master.pinauth.com/mobile-upload', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
-      },
-      body: JSON.stringify(requestBody)
-    });
     
-    const result = await response.json();
-    res.json(result);
+    // Set up streaming response with extended timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+    
+    try {
+      const response = await fetch('https://master.pinauth.com/mobile-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
+          'Accept': 'application/json',
+          'Connection': 'keep-alive'
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Master server responded with status ${response.status}`);
+      }
+      
+      // Wait for complete response - master server will send EOT marker when done
+      const result = await response.json();
+      
+      // Log the complete response for debugging
+      console.log('Master server complete response:', JSON.stringify(result, null, 2));
+      
+      res.json(result);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
   } catch (error: any) {
     console.error('Mobile upload error:', error);
     res.status(500).json({

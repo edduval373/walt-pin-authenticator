@@ -22,14 +22,26 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     
-    // Store error details for debugging
+    // Store error details for debugging with mobile-specific detection
     try {
-      sessionStorage.setItem('lastError', JSON.stringify({
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const errorDetails = {
         error: error.toString(),
         stack: error.stack,
         componentStack: errorInfo.componentStack,
-        timestamp: new Date().toISOString()
-      }));
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        isMobile,
+        url: window.location.href,
+        viewport: `${window.innerWidth}x${window.innerHeight}`
+      };
+      
+      sessionStorage.setItem('lastError', JSON.stringify(errorDetails));
+      
+      // Log mobile-specific errors
+      if (isMobile) {
+        console.error('Mobile-specific error detected:', errorDetails);
+      }
     } catch (e) {
       console.error('Failed to store error details:', e);
     }

@@ -22,32 +22,10 @@ export default function CameraView({ onCapture }: CameraViewProps) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [showCameraHelp, setShowCameraHelp] = useState(false);
   
-  // Immediately provide a simple test function for demo mode
-  // This ensures the app is usable even if camera access is completely blocked
   useEffect(() => {
-    // Attach a global function for demo mode
-    (window as any).triggerDemoCapture = () => {
-      // Create a simple colored rectangle as fallback for testing
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-        canvas.width = 640;
-        canvas.height = 480;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.fillStyle = '#0070d1'; // Disney blue
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = 'white';
-          ctx.font = '20px Arial';
-          ctx.fillText('Demo Mode - No Camera', 180, 240);
-          
-          const testImage = canvas.toDataURL('image/jpeg');
-          onCapture(testImage);
-        }
-      }
-    };
+    startCamera();
     
     return () => {
-      // Clean up the global function
       delete (window as any).triggerDemoCapture;
     };
   }, [onCapture]);

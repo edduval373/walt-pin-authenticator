@@ -112,10 +112,8 @@ export async function callWorkingMobileApi(
     
     console.log('Direct connection to master server (working backup approach)');
     
-    // Use local server endpoint which proxies to master server
-    const apiUrl = window.location.origin === 'http://localhost:5000' 
-      ? 'https://master.pinauth.com/mobile-upload'  // Direct connection in development
-      : '/mobile-upload';  // Use local proxy in production
+    // Always use local production server which has correct master server integration
+    const apiUrl = '/mobile-upload';
     
     const response = await fetch(apiUrl, {
       method: 'POST',

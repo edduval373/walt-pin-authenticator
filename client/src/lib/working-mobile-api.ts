@@ -90,23 +90,22 @@ export async function callWorkingMobileApi(
   try {
     console.log('Using working mobile API from backup...');
     
-    // Prepare request payload - following the React Native mobile pattern
-    const payload = {
-      pinId: 1,
-      frontImageBase64: frontImage.replace(/^data:image\/[a-z]+;base64,/, '')
+    // Generate session ID for mobile upload
+    const sessionId = Date.now().toString().slice(-12);
+    
+    // Prepare request payload - using correct field names for mobile-upload endpoint
+    const payload: any = {
+      sessionId: sessionId,
+      frontImageData: frontImage.includes('data:') ? frontImage : `data:image/jpeg;base64,${frontImage}`
     };
     
     // Add optional images if provided
     if (backImage) {
-      Object.assign(payload, { 
-        backImageBase64: backImage.replace(/^data:image\/[a-z]+;base64,/, '') 
-      });
+      payload.backImageData = backImage.includes('data:') ? backImage : `data:image/jpeg;base64,${backImage}`;
     }
     
     if (angledImage) {
-      Object.assign(payload, { 
-        angledImageBase64: angledImage.replace(/^data:image\/[a-z]+;base64,/, '') 
-      });
+      payload.angledImageData = angledImage.includes('data:') ? angledImage : `data:image/jpeg;base64,${angledImage}`;
     }
     
     console.log('Direct connection to master server (working backup approach)');

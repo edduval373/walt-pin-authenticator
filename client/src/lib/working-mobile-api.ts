@@ -132,7 +132,8 @@ export async function callWorkingMobileApi(
     const data = await response.json();
     console.log('Working mobile API success:', data);
     
-    if (!data.success && data.error) {
+    // Check for explicit error responses only
+    if (data.error && !data.message) {
       throw new Error(data.error);
     }
     

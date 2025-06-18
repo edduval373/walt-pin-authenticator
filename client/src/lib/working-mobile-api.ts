@@ -148,122 +148,23 @@ export async function callWorkingMobileApi(
       }
     }
     
-    // Return exactly the same format as the working backup
+    // Return only authentic master server data - no synthetic generation
     return {
-      analysisReport: data.analysisReport || '',
-      confidence: data.confidence || authenticityRating * 20 || 85,
-      authenticityScore: data.authenticityScore || authenticityRating * 20 || 85,
-      detectedPinId: data.pinId?.toString() || '',
-      
-      // Structure for compatibility
-      result: {
-        title: data.result?.title || "Analysis Results",
-        authenticityRating: data.result?.authenticityRating || authenticityRating || 4,
-        characters: data.result?.characters || createCharactersHtml(data.analysisReport || ''),
-        aiFindings: data.result?.aiFindings || createFindingsHtml(data.analysisReport || ''),
-        pinId: data.result?.pinId || createIdentificationHtml(data.analysisReport || ''),
-        pricingInfo: data.result?.pricingInfo || createPricingHtml(data.analysisReport || ''),
-      },
-      
-      // Additional fields - use only actual data from master server
+      // Pass through only the actual master server response
       id: data.id,
       sessionId: data.sessionId,
-      authentic: data.authentic !== undefined ? data.authentic : authenticityRating >= 3,
-      authenticityRating: data.authenticityRating || authenticityRating * 20,
-      characters: data.result?.characters || null,
-      identification: data.result?.pinId || null,
-      analysis: data.result?.aiFindings || null,
-      pricing: data.result?.pricingInfo || null,
+      authentic: data.authentic,
+      authenticityRating: data.authenticityRating,
+      characters: data.characters,
+      identification: data.identification,
+      analysis: data.analysis,
+      pricing: data.pricing,
       timestamp: data.timestamp,
-      message: data.message
+      message: data.message,
+      success: data.success
     };
   } catch (error: unknown) {
     console.error('Working mobile API error:', error);
     throw error;
   }
-}
-
-function createCharactersHtml(report: string): string {
-  if (!report) return '<p>No character information available</p>';
-  
-  const colorMatch = report.match(/Color Accuracy[^\n]*\n[^\n]*/);
-  const designMatch = report.match(/Metal Border Definition[^\n]*\n[^\n]*/);
-  
-  let html = '<div class="character-analysis">';
-  html += '<h2>Character Analysis</h2>';
-  
-  if (colorMatch || designMatch) {
-    html += '<ul>';
-    if (colorMatch) {
-      html += `<li><strong>Color Accuracy:</strong> ${colorMatch[0].replace('Color Accuracy', '')}</li>`;
-    }
-    if (designMatch) {
-      html += `<li><strong>Design Features:</strong> ${designMatch[0].replace('Metal Border Definition', '')}</li>`;
-    }
-    html += '</ul>';
-  } else {
-    html += '<p>Detailed character analysis not available in this report.</p>';
-  }
-  
-  html += '</div>';
-  return html;
-}
-
-function createFindingsHtml(report: string): string {
-  if (!report) return '<p>No analysis information available</p>';
-  
-  const findingsMatch = report.match(/Findings([\s\S]*?)(?=Summary|$)/);
-  
-  let html = '<div class="findings-analysis">';
-  html += '<h2>AI Analysis Findings</h2>';
-  
-  if (findingsMatch && findingsMatch[1]) {
-    html += '<div class="findings-content">';
-    html += findingsMatch[1].replace(/\n/g, '<br>');
-    html += '</div>';
-  } else {
-    html += '<p>Detailed analysis findings not available in this report.</p>';
-  }
-  
-  html += '</div>';
-  return html;
-}
-
-function createIdentificationHtml(report: string): string {
-  if (!report) return '<p>No identification information available</p>';
-  
-  const idMatch = report.match(/Pin Identification([\s\S]*?)(?=Overall Results|$)/);
-  
-  let html = '<div class="pin-identification">';
-  html += '<h2>Pin Identification</h2>';
-  
-  if (idMatch && idMatch[1]) {
-    const idInfo = idMatch[1].trim();
-    const titleMatch = idInfo.match(/Pin Title:[^\n]*/);
-    const descMatch = idInfo.match(/Pin Description:[^\n]*/);
-    
-    html += '<div class="id-details">';
-    if (titleMatch) {
-      html += `<p><strong>Title:</strong> ${titleMatch[0].replace('Pin Title:', '')}</p>`;
-    }
-    if (descMatch) {
-      html += `<p><strong>Description:</strong> ${descMatch[0].replace('Pin Description:', '')}</p>`;
-    }
-    html += '</div>';
-  } else {
-    html += '<p>Detailed identification information not available in this report.</p>';
-  }
-  
-  html += '</div>';
-  return html;
-}
-
-function createPricingHtml(report: string): string {
-  return `
-    <div class="pricing-info">
-      <h2>Pricing Information</h2>
-      <p>Pricing information is not available for this pin in the current report version.</p>
-      <p>Please refer to collector resources for current market values.</p>
-    </div>
-  `;
 }

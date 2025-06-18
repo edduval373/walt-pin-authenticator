@@ -155,23 +155,26 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     log(`API Response record fields: recordNumber=${data.recordNumber}, recordId=${data.recordId}, sessionId=${data.sessionId}`, 'express');
     log(`Full API Response: ${JSON.stringify(data, null, 2).substring(0, 500)}...`, 'express');
     
-    // Return the response data
+    // Return only authentic master server data - no synthetic fields
     const response: PimStandardResponse = {
       success: data.success,
-      message: data.message || "Verification completed",
-      sessionId: data.sessionId || sessionId,
-      recordNumber: data.recordNumber || data.recordId,
-      timestamp: data.timestamp || new Date().toISOString(),
+      message: data.message,
+      sessionId: data.sessionId,
+      recordNumber: data.recordNumber,
+      recordId: data.recordId,
+      timestamp: data.timestamp,
       authentic: data.authentic,
       authenticityRating: data.authenticityRating,
-      analysis: data.analysis || data.characters || "",
-      identification: data.identification || "",
-      pricing: data.pricing || "",
-      analysisReport: data.analysisReport || data.analysis || "",
-      pinId: data.pinId || data.sessionId,
-      aiFindings: data.aiFindings || data.analysis,
-      pinIdHtml: data.pinIdHtml || data.identification,
-      pricingHtml: data.pricingHtml || data.pricing
+      analysis: data.analysis,
+      identification: data.identification,
+      pricing: data.pricing,
+      characters: data.characters,
+      // Only include additional fields if they exist in master server response
+      ...(data.analysisReport && { analysisReport: data.analysisReport }),
+      ...(data.pinId && { pinId: data.pinId }),
+      ...(data.aiFindings && { aiFindings: data.aiFindings }),
+      ...(data.pinIdHtml && { pinIdHtml: data.pinIdHtml }),
+      ...(data.pricingHtml && { pricingHtml: data.pricingHtml })
     };
     
     return response;

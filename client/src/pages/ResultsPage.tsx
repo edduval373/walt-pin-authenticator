@@ -483,7 +483,6 @@ export default function ResultsPage() {
           <TabsList className="flex w-full bg-indigo-100 border-b border-indigo-200">
             <TabsTrigger value="analysis" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Analysis</TabsTrigger>
             <TabsTrigger value="identification" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Identification</TabsTrigger>
-            <TabsTrigger value="characters" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Characters</TabsTrigger>
             <TabsTrigger value="pricing" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Pricing</TabsTrigger>
             <TabsTrigger value="server-response" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Response</TabsTrigger>
           </TabsList>
@@ -492,9 +491,9 @@ export default function ResultsPage() {
           <TabsContent value="identification" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pin Identification</h3>
-              {(serverResponse?.identification || serverResponse?.result?.pinId) ? (
+              {serverResponse?.identification ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.identification || serverResponse?.result?.pinId || '') }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.identification) }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -509,9 +508,9 @@ export default function ResultsPage() {
           <TabsContent value="analysis" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Authenticity Analysis</h3>
-              {(serverResponse?.analysis || serverResponse?.result?.aiFindings) ? (
+              {serverResponse?.analysis ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.analysis || serverResponse?.result?.aiFindings || '') }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.analysis) }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -522,30 +521,13 @@ export default function ResultsPage() {
             </div>
           </TabsContent>
           
-          {/* Characters Tab - Third */}
-          <TabsContent value="characters" className="p-4 bg-indigo-50">
-            <div className="analysis-result">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Character Information</h3>
-              {(serverResponse?.characters || serverResponse?.result?.characters) ? (
-                <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.characters || serverResponse?.result?.characters || '') }} />
-                </div>
-              ) : (
-                <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
-                  <p className="font-medium">No character data available</p>
-                  <p className="text-sm mt-1">The server did not return character information.</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-          
-          {/* Pricing Tab - Fourth */}
+          {/* Pricing Tab - Third */}
           <TabsContent value="pricing" className="p-4 bg-indigo-50">
             <div className="analysis-result">
               <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pricing & Market Value</h3>
-              {(serverResponse?.pricing || serverResponse?.result?.pricingInfo) ? (
+              {serverResponse?.pricing ? (
                 <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse?.pricing || serverResponse?.result?.pricingInfo || '') }} />
+                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.pricing) }} />
                 </div>
               ) : (
                 <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
@@ -561,17 +543,41 @@ export default function ResultsPage() {
           {/* Server Response Tab */}
           <TabsContent value="server-response" className="p-4 bg-indigo-50">
             <div className="server-response-content">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Master Server Response</h3>
+              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Raw Server Response</h3>
               
               {serverResponse ? (
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Master Server ID</h4>
-                    <p className="text-gray-700 font-mono text-lg">{serverResponse.id || 'No ID received'}</p>
+                    <h4 className="font-medium text-sm mb-2">Status</h4>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${serverResponse.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className={serverResponse.success ? 'text-green-700' : 'text-red-700'}>
+                        {serverResponse.success ? 'Success' : 'Failed'}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Raw JSON Response</h4>
+                    <h4 className="font-medium text-sm mb-2">Message</h4>
+                    <p className="text-gray-700">{serverResponse.message || 'No message provided'}</p>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-md p-4">
+                    <h4 className="font-medium text-sm mb-2">ID</h4>
+                    <p className="text-gray-700 font-mono">{serverResponse.id || 'No ID provided'}</p>
+                  </div>
+                  
+                  {serverResponse.characters && (
+                    <div className="bg-yellow-50 rounded-md p-4 border border-yellow-200">
+                      <h4 className="font-medium text-sm mb-2 text-yellow-800">Characters Field (Debug)</h4>
+                      <div className="text-xs bg-yellow-100 p-3 rounded overflow-auto max-h-48">
+                        <div className="text-yellow-900" dangerouslySetInnerHTML={{ __html: serverResponse.characters }} />
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="bg-gray-50 rounded-md p-4">
+                    <h4 className="font-medium text-sm mb-2">Complete Response</h4>
                     <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-96 whitespace-pre-wrap">
                       {JSON.stringify(serverResponse, null, 2)}
                     </pre>

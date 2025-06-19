@@ -10,8 +10,8 @@ import { transmissionLogger } from "@/lib/transmission-logger";
 import StepProgress from "@/components/StepProgress";
 import ServerErrorScreen from "@/components/ServerErrorScreen";
 
-// Import the working mobile API from backup
-import { callWorkingMobileApi } from "@/lib/working-mobile-api";
+// Import the updated API
+import { analyzePinImagesWithPimStandard } from "@/lib/pim-standard-api";
 
 interface CapturedImages {
   front: string;
@@ -217,19 +217,13 @@ export default function ProcessingPage() {
         
         setStatusMessage("Processing images with PIM Standard analyzer...");
         
+        const { analyzePinImagesWithPimStandard } = await import('@/lib/pim-standard-api');
+        
         if (!capturedImages.front) {
           throw new Error("No front image available");
         }
         
-        // Log exactly what images are being sent
-        console.log("=== PROCESSING PAGE IMAGE TRANSMISSION ===");
-        console.log(`Front image: ${capturedImages.front ? `${capturedImages.front.length} chars` : 'NOT PROVIDED'}`);
-        console.log(`Back image: ${capturedImages.back ? `${capturedImages.back.length} chars` : 'NOT PROVIDED'}`);  
-        console.log(`Angled image: ${capturedImages.angled ? `${capturedImages.angled.length} chars` : 'NOT PROVIDED'}`);
-        console.log(`Total images being transmitted: ${[capturedImages.front, capturedImages.back, capturedImages.angled].filter(Boolean).length}`);
-        
-        // Use the working mobile API from backup that was proven to work
-        const result = await callWorkingMobileApi(
+        const result = await analyzePinImagesWithPimStandard(
           capturedImages.front,
           capturedImages.back || undefined,
           capturedImages.angled || undefined

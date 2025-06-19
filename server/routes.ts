@@ -117,17 +117,12 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     requestBody.angledImageData = angledImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
   }
   
-  // Log detailed information about images being sent
-  log(`=== IMAGE TRANSMISSION DETAILS ===`, 'express');
-  log(`Front image: ${cleanFrontImage.length} chars`, 'express');
-  log(`Back image: ${requestBody.backImageData ? `${requestBody.backImageData.length} chars` : 'NOT PROVIDED'}`, 'express');
-  log(`Angled image: ${requestBody.angledImageData ? `${requestBody.angledImageData.length} chars` : 'NOT PROVIDED'}`, 'express');
-  log(`Total images being sent: ${1 + (requestBody.backImageData ? 1 : 0) + (requestBody.angledImageData ? 1 : 0)}`, 'express');
-  log(`Request body fields: ${Object.keys(requestBody).join(', ')}`, 'express');
+  // Log the image sizes and data samples for debugging
+  log(`Image sizes - Front: ${cleanFrontImage.length} chars, Back: ${requestBody.backImageData ? requestBody.backImageData.length : 'N/A'} chars, Angled: ${requestBody.angledImageData ? requestBody.angledImageData.length : 'N/A'} chars`, 'express');
   
-  // Log API key status
-  log(`API Key configured: ${MOBILE_API_KEY ? 'YES' : 'NO'}`, 'express');
-  log(`Front image sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
+  // Log sample of image data and API key being used
+  log(`API Key from secrets: ${MOBILE_API_KEY ? MOBILE_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
+  log(`Front image data sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
   
   // Make direct API call to master.pinauth.com - no fallbacks
   log(`Making direct API call to: ${PIM_STANDARD_API_URL}`, 'express');
@@ -160,26 +155,23 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     log(`API Response record fields: recordNumber=${data.recordNumber}, recordId=${data.recordId}, sessionId=${data.sessionId}`, 'express');
     log(`Full API Response: ${JSON.stringify(data, null, 2).substring(0, 500)}...`, 'express');
     
-    // Return only authentic master server data - no synthetic fields
+    // Return the response data
     const response: PimStandardResponse = {
       success: data.success,
-      message: data.message,
-      sessionId: data.sessionId,
-      recordNumber: data.recordNumber,
-      recordId: data.recordId,
-      timestamp: data.timestamp,
+      message: data.message || "Verification completed",
+      sessionId: data.sessionId || sessionId,
+      recordNumber: data.recordNumber || data.recordId,
+      timestamp: data.timestamp || new Date().toISOString(),
       authentic: data.authentic,
       authenticityRating: data.authenticityRating,
-      analysis: data.analysis,
-      identification: data.identification,
-      pricing: data.pricing,
-      characters: data.characters,
-      // Only include additional fields if they exist in master server response
-      ...(data.analysisReport && { analysisReport: data.analysisReport }),
-      ...(data.pinId && { pinId: data.pinId }),
-      ...(data.aiFindings && { aiFindings: data.aiFindings }),
-      ...(data.pinIdHtml && { pinIdHtml: data.pinIdHtml }),
-      ...(data.pricingHtml && { pricingHtml: data.pricingHtml })
+      analysis: data.analysis || data.characters || "",
+      identification: data.identification || "",
+      pricing: data.pricing || "",
+      analysisReport: data.analysisReport || data.analysis || "",
+      pinId: data.pinId || data.sessionId,
+      aiFindings: data.aiFindings || data.analysis,
+      pinIdHtml: data.pinIdHtml || data.identification,
+      pricingHtml: data.pricingHtml || data.pricing
     };
     
     return response;
@@ -438,50 +430,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({
         success: false,
         message: "Failed to retrieve provisional pins",
-        error: error.message
-      });
-    }
-  });
-
-  // Mobile API endpoint for pin verification
-  app.post('/api/verify', async (req, res) => {
-    try {
-      const { frontImage, backImage, angledImage } = req.body;
-      
-      // Validate front image is provided
-      if (!frontImage) {
-        return res.status(400).json({
-          success: false,
-          message: "Front image is required for analysis"
-        });
-      }
-      
-      log(`Processing mobile pin verification - Front image: ${frontImage.length} chars`);
-      
-      // Call the PIM Standard API to analyze the images
-      const analysisResult: PimStandardResponse = await analyzeImageForPin(
-        frontImage,
-        backImage,
-        angledImage
-      );
-      
-      log(`Mobile verification complete`);
-      
-      return res.json({
-        success: true,
-        authentic: analysisResult.authentic,
-        authenticityRating: analysisResult.authenticityRating,
-        analysis: analysisResult.analysis,
-        identification: analysisResult.identification,
-        pricing: analysisResult.pricing,
-        message: analysisResult.message || "Pin verification complete"
-      });
-      
-    } catch (error: any) {
-      log(`Error in mobile pin verification: ${error.message}`);
-      return res.status(500).json({
-        success: false,
-        message: "Verification failed",
         error: error.message
       });
     }
@@ -810,119 +758,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Mobile detection and routing
-  app.get('/', (req, res, next) => {
-    const userAgent = req.get('user-agent') || '';
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-    
-    if (isMobile) {
-      return res.redirect('/mobile-app.html');
-    }
-    
-    // Continue to React app for desktop
-    next();
-  });
-
-  // Serve mobile HTML directly
-  app.get('/mobile-app.html', (req, res) => {
-    const fs = require('fs');
-    const path = require('path');
-    
-    try {
-      const mobileHtmlPath = path.resolve(__dirname, '..', 'dist', 'public', 'mobile-app.html');
-      const mobileHtml = fs.readFileSync(mobileHtmlPath, 'utf-8');
-      res.set('Content-Type', 'text/html').send(mobileHtml);
-    } catch (error: any) {
-      log(`Mobile HTML not found: ${error?.message || 'Unknown error'}`);
-      res.status(404).send('Mobile interface not available');
-    }
-  });
-
-  // Debug logs endpoint for viewing server-side error information
-  app.get('/api/debug/logs', (req, res) => {
-    const debugInfo = {
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
-      apiKey: MOBILE_API_KEY ? 'configured' : 'missing',
-      apiUrl: PIM_STANDARD_API_URL,
-      serverStatus: 'running',
-      memoryUsage: process.memoryUsage(),
-      uptime: process.uptime()
-    };
-    
-    res.json({
-      success: true,
-      debugInfo,
-      message: "Server debug information retrieved"
-    });
-  });
-
-  // Client error reporting endpoint
-  app.post('/api/client-error', (req, res) => {
-    const { error, url, userAgent, timestamp, additionalInfo } = req.body;
-    
-    const errorReport = {
-      timestamp: timestamp || new Date().toISOString(),
-      clientUrl: url,
-      userAgent,
-      clientIP: req.ip,
-      error: {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name
-      },
-      additionalInfo,
-      serverTime: new Date().toISOString()
-    };
-    
-    log(`CLIENT ERROR REPORT: ${JSON.stringify(errorReport, null, 2)}`, 'client-error');
-    console.error("=== CLIENT ERROR REPORT ===");
-    console.error("Timestamp:", errorReport.timestamp);
-    console.error("URL:", errorReport.clientUrl);
-    console.error("User Agent:", errorReport.userAgent);
-    console.error("Error:", errorReport.error);
-    console.error("Additional Info:", errorReport.additionalInfo);
-    console.error("========================");
-    
-    res.json({ success: true, errorId: Date.now() });
-  });
-
-  // Enhanced global error handler with detailed logging
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-    const errorDetails = {
-      timestamp: new Date().toISOString(),
-      method: req.method,
-      url: req.url,
-      headers: {
-        userAgent: req.get('user-agent'),
-        contentType: req.get('content-type'),
-        accept: req.get('accept'),
-        referer: req.get('referer')
-      },
-      body: req.body ? JSON.stringify(req.body).substring(0, 1000) : null,
-      query: req.query,
-      params: req.params,
-      ip: req.ip,
-      error: {
-        name: err.name,
-        message: err.message,
-        stack: err.stack
-      }
-    };
-    
-    log(`CRITICAL SERVER ERROR: ${JSON.stringify(errorDetails, null, 2)}`, 'server-error');
-    console.error("Detailed Server Error:", errorDetails);
-    
-    res.status(500).json({
+  // Setup global error handler
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    log(`ERROR: ${err.message}`);
+    return res.status(500).json({
       success: false,
-      message: "Server error - detailed logs available",
-      errorId: Date.now(),
-      debug: process.env.NODE_ENV === 'development' ? {
-        error: err.message,
-        url: req.url,
-        method: req.method,
-        timestamp: errorDetails.timestamp
-      } : undefined
+      message: "Internal server error",
+      error: err.message
     });
   });
   

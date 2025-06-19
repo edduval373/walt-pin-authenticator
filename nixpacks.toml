@@ -5,7 +5,9 @@ NODE_ENV = "production"
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["vite build", "esbuild server/production-server.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"]
+cmds = [
+  "npx vite build --config vite.config.static.js"
+]
 
 [start]
-cmd = "node dist/production-server.js"
+cmd = "node static-server.js"

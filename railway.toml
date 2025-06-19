@@ -1,6 +1,8 @@
 [build]
-builder = "NIXPACKS"
+builder = "nixpacks"
 
 [deploy]
-startCommand = "node dist/production-server.js"
-restartPolicyType = "ON_FAILURE"
+startCommand = "npx serve dist -s -l $PORT"
+
+[env]
+NODE_ENV = "production"

@@ -1,8 +1,8 @@
 /**
- * PIM Standard Library API Integration - Working Mobile Version
+ * PIM Standard Library API Integration
  * 
- * This module provides direct integration with the master server for analyzing pin images
- * and determining their authenticity. Based on the working backup from 10 days ago.
+ * This module provides integration with the PIM Standard library for analyzing pin images
+ * and determining their authenticity.
  */
 
 /**

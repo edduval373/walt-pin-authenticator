@@ -2,13 +2,11 @@
 NODE_ENV = "production"
 
 [phases.install]
-cmds = ["npm ci --production=false"]
+cmds = ["npm ci --production"]
 
 [phases.build]
 cmds = [
-  "timeout 300 npx vite build --config vite.config.minimal.js || echo 'Build timeout, using development server'",
-  "mkdir -p dist",
-  "cp -r client/public/* dist/ 2>/dev/null || true"
+  "echo 'Skipping frontend build - using direct server deployment'"
 ]
 
 [start]

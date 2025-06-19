@@ -123,17 +123,160 @@ app.post('/mobile-upload', async (req, res) => {
   }
 });
 
-// Serve static files from built frontend
-app.use(express.static(path.join(__dirname, 'public')));
+// API proxy endpoints for mobile app integration
+app.post('/api/proxy/mobile-upload', async (req, res) => {
+  try {
+    const apiKey = process.env.MOBILE_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
+        success: false,
+        message: 'API key not configured'
+      });
+    }
 
-// Serve index.html for all routes (SPA routing)
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey
+      },
+      body: JSON.stringify(req.body)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({
+        success: false,
+        message: `Master server error: ${response.status}`,
+        error: errorText
+      });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      success: false,
+      message: 'Connection to master server failed',
+      error: errorMessage
+    });
+  }
+});
+
+// Health check proxy endpoint
+app.get('/api/proxy/health', async (req, res) => {
+  try {
+    const response = await fetch('https://master.pinauth.com/health', {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Disney-Pin-Auth-Mobile/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({
+        success: false,
+        message: `Health check failed: ${response.status}`,
+        error: errorText,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const data = await response.json();
+    res.json({
+      ...data,
+      timestamp: new Date().toISOString(),
+      proxyStatus: 'healthy'
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({
+      success: false,
+      message: 'Cannot connect to master server',
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Simple mobile app interface
+app.get('/', (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disney Pin Authenticator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .status { padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .endpoint { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .code { font-family: monospace; background-color: #e9ecef; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏰 Disney Pin Authenticator</h1>
+        <p>Mobile API Server - Production Environment</p>
+    </div>
+    
+    <div class="status success">
+        <strong>✓ Server Status:</strong> Online and ready for mobile app connections
+    </div>
+    
+    <div class="status info">
+        <strong>📱 Mobile App Integration:</strong> This server provides API endpoints for the Disney Pin Authenticator mobile application.
+    </div>
+    
+    <h3>Available Endpoints:</h3>
+    
+    <div class="endpoint">
+        <strong>POST /api/proxy/mobile-upload</strong><br>
+        Submit Disney pin images for authentication<br>
+        <em>Requires x-api-key header and image data</em>
+    </div>
+    
+    <div class="endpoint">
+        <strong>GET /api/proxy/health</strong><br>
+        Check master server connectivity status
+    </div>
+    
+    <div class="endpoint">
+        <strong>POST /mobile-upload</strong><br>
+        Direct mobile upload endpoint<br>
+        <em>Compatible with master.pinauth.com API format</em>
+    </div>
+    
+    <h3>API Configuration:</h3>
+    <p>API Key: ${process.env.MOBILE_API_KEY ? '✓ Configured' : '✗ Missing'}</p>
+    <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
+    <p>Server Time: ${new Date().toISOString()}</p>
+    
+    <div class="status info">
+        <strong>📋 For Mobile Developers:</strong><br>
+        Use endpoint <span class="code">POST /api/proxy/mobile-upload</span> for pin authentication.<br>
+        Include session ID and base64 image data in request body.<br>
+        Server forwards requests to master.pinauth.com and returns authentic results.
+    </div>
+</body>
+</html>
+  `);
+});
+
+// Handle all other routes
 app.get('*', (req, res) => {
-  // Skip API routes
   if (req.path.startsWith('/api') || req.path.startsWith('/health') || req.path.startsWith('/mobile-upload')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  // Redirect to home page for any unmatched route
+  res.redirect('/');
 });
 
 // Error handler

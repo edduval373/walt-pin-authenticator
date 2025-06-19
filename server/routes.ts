@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const data = await response.json();
+      const data = await response.json() as Record<string, any>;
       log(`Health check successful`, 'express');
       res.json({
         ...data,

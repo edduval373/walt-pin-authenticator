@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RiTimeLine, RiSearchLine, RiCpuLine, RiCheckboxCircleLine } from "react-icons/ri";
-import TransmissionLogViewer from "@/components/TransmissionLogViewer";
+
 import { analyzePinImage, AnalysisResult } from "@/lib/pin-authenticator";
 import ApiUnavailableMessage from "@/components/ApiUnavailableMessage";
 import { transmissionLogger } from "@/lib/transmission-logger";
@@ -428,7 +428,7 @@ Content-Type: application/json
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex flex-col">
       {/* Header */}
-      <StepProgress currentStep={currentStep} />
+      <StepProgress currentStep={currentStep} totalSteps={3} />
       
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 text-center">
@@ -540,7 +540,9 @@ Content-Type: application/json
           
           {/* Transmission Log Viewer */}
           <div className="mt-6">
-            <TransmissionLogViewer />
+            <div className="text-xs text-gray-500">
+              View detailed logs in console for debugging
+            </div>
           </div>
         </div>
       </div>

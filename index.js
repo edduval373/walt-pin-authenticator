@@ -6,6 +6,8 @@
  */
 
 import express from 'express';
+import FormData from 'form-data';
+import fetch from 'node-fetch';
 
 const app = express();
 const PORT = parseInt(process.env.PORT) || 8080;
@@ -93,20 +95,29 @@ app.post('/api/verify-pin', async (req, res) => {
     // Process front image (required)
     const frontImageData = frontImage.replace(/^data:image\/[a-z]+;base64,/, '');
     const frontBuffer = Buffer.from(frontImageData, 'base64');
-    formData.append('front_image', new Blob([frontBuffer]), 'front_image.jpg');
+    formData.append('front_image', frontBuffer, {
+      filename: 'front_image.jpg',
+      contentType: 'image/jpeg'
+    });
     
     // Process back image (optional)
     if (backImage) {
       const backImageData = backImage.replace(/^data:image\/[a-z]+;base64,/, '');
       const backBuffer = Buffer.from(backImageData, 'base64');
-      formData.append('back_image', new Blob([backBuffer]), 'back_image.jpg');
+      formData.append('back_image', backBuffer, {
+        filename: 'back_image.jpg',
+        contentType: 'image/jpeg'
+      });
     }
     
     // Process angled image (optional)
     if (angledImage) {
       const angledImageData = angledImage.replace(/^data:image\/[a-z]+;base64,/, '');
       const angledBuffer = Buffer.from(angledImageData, 'base64');
-      formData.append('angled_image', new Blob([angledBuffer]), 'angled_image.jpg');
+      formData.append('angled_image', angledBuffer, {
+        filename: 'angled_image.jpg',
+        contentType: 'image/jpeg'
+      });
     }
     
     // Add API key
@@ -117,7 +128,8 @@ app.post('/api/verify-pin', async (req, res) => {
       method: 'POST',
       body: formData,
       headers: {
-        'User-Agent': 'Disney-Pin-Authenticator/1.0.0'
+        'User-Agent': 'Disney-Pin-Authenticator/1.0.0',
+        ...formData.getHeaders()
       }
     });
     

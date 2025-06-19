@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RiTimeLine, RiSearchLine, RiCpuLine, RiCheckboxCircleLine } from "react-icons/ri";
 
-import { analyzePinImage, AnalysisResult } from "@/lib/pin-authenticator";
+import { AnalysisResult } from "@/lib/pin-authenticator";
 import ApiUnavailableMessage from "@/components/ApiUnavailableMessage";
 import { transmissionLogger } from "@/lib/transmission-logger";
 import StepProgress from "@/components/StepProgress";

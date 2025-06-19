@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-// Simple start script for Railway deployment
-process.env.NODE_ENV = 'production';
-process.env.PORT = process.env.PORT || '8080';
+/**
+ * Railway deployment entry point
+ * This file ensures the production server starts correctly on Railway
+ */
 
-import('./server/production.js').catch(error => {
-  console.error('Failed to start server:', error);
+import('./index.js').catch((error) => {
+  console.error('Failed to start Disney Pin Authenticator:', error);
   process.exit(1);
 });

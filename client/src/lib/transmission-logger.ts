@@ -142,6 +142,24 @@ class TransmissionLogger {
     return this.currentImageNumber;
   }
 
+  // Log image capture (simplified version for camera captures)
+  logImageCapture(imageKey: string, imageSize: number) {
+    const log: TransmissionLog = {
+      id: this.generateId(),
+      imageNumber: this.currentImageNumber,
+      timestamp: new Date().toISOString(),
+      type: 'image_upload',
+      status: 'success',
+      details: `Image captured: ${imageKey}, size: ${imageSize} bytes`,
+      imageTitle: imageKey
+    };
+
+    this.logs.push(log);
+    this.currentImageNumber++;
+    this.saveLogs();
+    console.log('Image capture logged:', log);
+  }
+
   // Get summary stats
   getStats() {
     const total = this.logs.length;

@@ -533,7 +533,7 @@ export default function CameraPage() {
   };
 
   if (showLogViewer) {
-    return <TransmissionLogViewer onClose={() => setShowLogViewer(false)} />;
+    return <TransmissionLogViewer isOpen={showLogViewer} onClose={() => setShowLogViewer(false)} />;
   }
 
   return (

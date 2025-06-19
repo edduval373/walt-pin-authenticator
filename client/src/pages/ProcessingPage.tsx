@@ -232,10 +232,9 @@ export default function ProcessingPage() {
         console.log("Pin analysis complete:", result);
         
         // Check if the result indicates success
-        if (result && result.success !== false) {
-          // Generate session ID for logging (same format as server)
-          const now = new Date();
-          const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        if (result && result.success) {
+          // Use server-provided session ID for logging
+          const serverSessionId = result.sessionId;
           
           // Capture raw request data
           const rawRequest = `POST /mobile-upload HTTP/1.1
@@ -247,7 +246,7 @@ Headers: {
 }
 
 Body: {
-  "sessionId": "${sessionId}",
+  "sessionId": "${serverSessionId}",
   "frontImageData": "[BASE64_IMAGE_DATA_${capturedImages.front.length}_CHARS]"${capturedImages.back ? `,
   "backImageData": "[BASE64_IMAGE_DATA_${capturedImages.back.length}_CHARS]"` : ''}${capturedImages.angled ? `,
   "angledImageData": "[BASE64_IMAGE_DATA_${capturedImages.angled.length}_CHARS]"` : ''}
@@ -266,7 +265,7 @@ ${JSON.stringify(result, null, 2)}`;
             undefined, 
             JSON.stringify(result),
             import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
-            sessionId,
+            serverSessionId,
             {
               'Content-Type': 'application/json',
               'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
@@ -275,7 +274,7 @@ ${JSON.stringify(result, null, 2)}`;
             rawResponse
           );
           
-          // Store results for the ResultsPage to display
+          // Store authentic server response only
           sessionStorage.setItem('analysisResult', JSON.stringify(result));
           sessionStorage.setItem('serverResponse', JSON.stringify(result));
           sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));

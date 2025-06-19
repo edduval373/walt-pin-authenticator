@@ -5,7 +5,7 @@
       "cmds": ["npm ci --production"]
     },
     "start": {
-      "cmd": "node server.js"
+      "cmd": "node app.js"
     }
   }
 }

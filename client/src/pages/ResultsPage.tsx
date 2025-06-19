@@ -308,7 +308,7 @@ export default function ResultsPage() {
             sessionStorage.removeItem('capturedImages');
             sessionStorage.removeItem('serverResponse');
             setLocation('/camera');
-          }} className="flex-1 max-w-[100px]">
+          }} className="flex-1 max-w-[80px]">
             <RiArrowLeftLine className="mr-1" />
             <span className="text-sm">Back</span>
           </Button>
@@ -316,12 +316,30 @@ export default function ResultsPage() {
             variant="ghost" 
             size="sm" 
             onClick={() => setLocation('/processing')}
-            className="flex-1 max-w-[100px] text-green-600 hover:text-green-700 hover:bg-green-50"
+            className="flex-1 max-w-[80px] text-green-600 hover:text-green-700 hover:bg-green-50"
           >
             <RiHistoryLine className="mr-1" />
             <span className="text-sm">Resubmit</span>
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setLocation('/camera')} className="flex-1 max-w-[100px]">
+          {serverResponse?.sessionId && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                const sessionId = serverResponse.sessionId;
+                const url = `https://master.pinauth.com/api/mobile-responses/${sessionId}`;
+                window.open(url, '_blank');
+              }}
+              className="flex-1 max-w-[80px] text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              title="View actual JSON transmission from master server"
+            >
+              <svg className="mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              <span className="text-sm">JSON</span>
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => setLocation('/camera')} className="flex-1 max-w-[80px]">
             <RiCamera2Line className="mr-1" />
             <span className="text-sm">New Scan</span>
           </Button>

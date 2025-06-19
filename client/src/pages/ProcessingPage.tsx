@@ -110,27 +110,20 @@ export default function ProcessingPage() {
         // Create combined result using both PIM Standard and local analyzer
         const combinedResult: AnalysisResult = {
           ...frontResult,
-          pinId: pimStandardResponse.detectedPinId || frontResult.pinId,
-          confidence: pimStandardResponse.confidence || frontResult.confidence,
+          pinId: pimStandardResponse.identification || frontResult.pinId,
+          confidence: frontResult.confidence,
           factors: [
             ...frontResult.factors,
             {
               name: 'PIM Standard Analysis',
               description: 'Advanced authenticity verification by PIM Standard',
-              confidence: pimStandardResponse.authenticityScore / 100
+              confidence: pimStandardResponse.success ? 0.85 : 0.60
             }
           ],
-          colorMatchPercentage: Math.max(
-            frontResult.colorMatchPercentage,
-            pimStandardResponse.authenticityScore / 100 * 100
-          ),
+          colorMatchPercentage: frontResult.colorMatchPercentage,
           databaseMatchCount: frontResult.databaseMatchCount,
           imageQualityScore: frontResult.imageQualityScore,
-          pimStandardHtml: {
-            front: pimStandardResponse.frontHtml,
-            back: pimStandardResponse.backHtml,
-            angled: pimStandardResponse.angledHtml
-          }
+          pimStandardResponse: pimStandardResponse
         };
         
         // Store result in session storage

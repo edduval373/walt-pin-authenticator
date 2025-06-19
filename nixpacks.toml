@@ -1,14 +1,3 @@
-[variables]
-NODE_ENV = "production"
-PORT = "8080"
-
-[phases.install]
-cmds = ["npm ci --production"]
-
-[phases.build]
-cmds = [
-  "echo 'Production server deployment - no build required'"
-]
-
-[start]
-cmd = "cd /app && NODE_ENV=production PORT=$PORT node server/production.js"
+# Use Dockerfile instead
+[providers]
+dockerfile = true

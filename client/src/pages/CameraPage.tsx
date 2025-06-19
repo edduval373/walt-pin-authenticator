@@ -405,7 +405,6 @@ export default function CameraPage() {
     angled: ''
   });
   
-  // File uploader reference
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Track which side we're currently capturing (front is always first)
@@ -607,34 +606,26 @@ export default function CameraPage() {
     console.log("Preview modal state after:", true);
   };
   
-  // Function to handle retaking a photo
   const handleRetake = () => {
     setPreviewModalOpen(false);
   };
   
-  // Function to handle skipping a view (only allowed for back and angled)
   const handleSkip = () => {
     setPreviewModalOpen(false);
     
     if (activeView === 'back') {
-      // Skip back view and move to angled view
       setActiveView('angled');
     } else if (activeView === 'angled') {
-      // Skip angled view and proceed to processing
       const updatedImages = { ...capturedImages };
-      // Store captured images (front is required, others may be empty)
       sessionStorage.setItem('capturedImages', JSON.stringify(updatedImages));
       setLocation('/processing');
     }
   };
   
-  // Check if ready to proceed with processing
   const isReadyToProcess = () => {
-    // Front view is required, other views are optional
     return !!capturedImages.front;
   };
   
-  // Function to handle confirming a photo and moving to next view
   const handleConfirm = () => {
     setPreviewModalOpen(false);
     

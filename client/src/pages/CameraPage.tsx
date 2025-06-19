@@ -500,27 +500,25 @@ export default function CameraPage() {
       return;
     }
     
-    // If more than 3 images selected, take only the first 3
-    const filesToProcess = imageFiles.slice(0, 3);
-    
-    // Capture current activeView at the time of file selection to avoid closure issues
+    // Capture current activeView at the time of file selection
     const currentActiveView = activeView;
     console.log("File upload started with activeView:", currentActiveView);
     
-    // Process all selected files
-    let filesProcessed = 0;
+    // For single file upload, use current activeView
+    // For multiple files, use front, back, angled order
+    const filesToProcess = imageFiles.slice(0, 3);
     const newImages = { ...capturedImages };
     
-    // If uploading multiple files, use the standard order: front, back, angled
-    // If uploading a single file, use the current activeView
     let viewOrder: ('front' | 'back' | 'angled')[];
     if (filesToProcess.length === 1) {
       viewOrder = [currentActiveView];
-      console.log("Single file upload - using current view:", currentActiveView);
+      console.log("Single file upload - targeting current view:", currentActiveView);
     } else {
       viewOrder = ['front', 'back', 'angled'];
       console.log("Multiple file upload - using standard order:", viewOrder);
     }
+    
+    let filesProcessed = 0;
     
     filesToProcess.forEach((file, index) => {
       const reader = new FileReader();
@@ -528,26 +526,35 @@ export default function CameraPage() {
         const imageData = e.target?.result as string;
         const targetView = viewOrder[index];
         
-        console.log(`Processing file ${index + 1} of ${filesToProcess.length} as ${targetView} view (captured activeView: ${currentActiveView})`);
+        console.log(`Processing file ${index + 1} as ${targetView} view`);
         
         // Update the specific view with this image
         newImages[targetView] = imageData;
         filesProcessed++;
         
-        // Get the next image number for naming
+        // Log the upload for transmission tracking
         const imageNumber = transmissionLogger.getNextImageNumber();
+        transmissionLogger.logImageCapture(targetView, 'file_upload', `Image #${imageNumber} - ${targetView} view uploaded from device`);
         
-        // Store the image with proper numbering in session storage (but only store smaller versions to avoid quota issues)
-        try {
-          const imageKey = `Image #${imageNumber} - ${targetView}`;
-          sessionStorage.setItem(imageKey, imageData);
-        } catch (error) {
-          console.warn("Storage quota exceeded, skipping individual image storage");
-        }
-        
-        // If all files are processed, update state
+        // If all files are processed, update state and show preview
         if (filesProcessed === filesToProcess.length) {
           setCapturedImages(newImages);
+          
+          // Show preview for the current active view (single file) or last uploaded image (multiple files)
+          const previewView = filesToProcess.length === 1 ? currentActiveView : targetView;
+          setPreviewImageData(newImages[previewView]);
+          setPreviewViewType(previewView);
+          setPreviewModalOpen(true);
+          
+          console.log(`File upload complete. Preview showing ${previewView} view.`);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    });
+    
+    // Clear the file input for future uploads
+    event.target.value = '';
           console.log("Updated captured images from file upload:", newImages);
           
           // For single file uploads, keep the same view active
@@ -1193,30 +1200,47 @@ export default function CameraPage() {
           
           {/* Camera Controls - Main container with relative positioning */}
           <div className="bg-black p-6 flex flex-col items-center justify-center relative">
-            {/* Center capture button */}
-            <div className="flex items-center justify-center">
+            {/* Input method buttons row */}
+            <div className="flex items-center justify-center gap-6 mb-4">
+              {/* Camera capture button */}
               <button
                 onClick={handleDirectCapture}
                 disabled={!directCameraReady}
                 className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center focus:outline-none hover:bg-white hover:bg-opacity-20 transition bg-indigo-500 disabled:opacity-50"
-                aria-label="Take photo"
+                aria-label="Take photo with camera"
               >
-                <div className="w-14 h-14 rounded-full border-2 border-white"></div>
+                <RiCameraLine className="text-3xl text-white" />
+              </button>
+              
+              {/* OR text */}
+              <div className="text-white text-lg font-bold">OR</div>
+              
+              {/* File upload button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center focus:outline-none hover:bg-white hover:bg-opacity-20 transition bg-green-500"
+                aria-label="Upload image from device"
+              >
+                <RiUploadLine className="text-3xl text-white" />
               </button>
             </div>
             
-            {/* Instructions below camera button */}
-            <p className="text-center text-sm text-white font-medium mt-4">
-              Center the pin in the frame and ensure good lighting. 
-              Please capture all three views for best results.{!capturedImages.front && " Front view is required."}
-            </p>
+            {/* Instructions below input buttons */}
+            <div className="text-center">
+              <p className="text-sm text-white font-medium mb-2">
+                Current view: <span className="text-yellow-300 font-bold">{viewLabels[activeView].toUpperCase()}</span>
+              </p>
+              <p className="text-xs text-white opacity-80">
+                Use camera or upload from device. Front view is required.
+                {capturedImages[activeView] && " (Image captured for this view)"}
+              </p>
+            </div>
               
-            {/* Hidden file input */}
+            {/* Hidden file input for single image upload */}
             <input 
               type="file"
               ref={fileInputRef}
               accept="image/*"
-              multiple
               onChange={handleFileUpload}
               className="hidden"
             />

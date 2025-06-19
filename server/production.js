@@ -1,12 +1,9 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch";
 
-// Polyfill fetch for Node.js
-if (!globalThis.fetch) {
-  globalThis.fetch = fetch;
-}
+// Use built-in fetch (Node.js 18+)
+// No need for node-fetch polyfill
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -290,7 +287,21 @@ app.use((err, req, res, next) => {
   }
 });
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8080;
+
+// Add global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Production server running on port ${port}`);
+  console.log(`Disney Pin Authenticator API Server running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`API Key configured: ${!!process.env.MOBILE_API_KEY}`);
 });

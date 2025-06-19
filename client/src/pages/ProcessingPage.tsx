@@ -221,6 +221,13 @@ export default function ProcessingPage() {
           throw new Error("No front image available");
         }
         
+        // Log exactly what images are being sent
+        console.log("=== PROCESSING PAGE IMAGE TRANSMISSION ===");
+        console.log(`Front image: ${capturedImages.front ? `${capturedImages.front.length} chars` : 'NOT PROVIDED'}`);
+        console.log(`Back image: ${capturedImages.back ? `${capturedImages.back.length} chars` : 'NOT PROVIDED'}`);  
+        console.log(`Angled image: ${capturedImages.angled ? `${capturedImages.angled.length} chars` : 'NOT PROVIDED'}`);
+        console.log(`Total images being transmitted: ${[capturedImages.front, capturedImages.back, capturedImages.angled].filter(Boolean).length}`);
+        
         // Use the working mobile API from backup that was proven to work
         const result = await callWorkingMobileApi(
           capturedImages.front,

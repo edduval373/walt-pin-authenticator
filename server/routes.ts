@@ -117,12 +117,17 @@ async function analyzeImageForPin(frontImageBase64: string, backImageBase64?: st
     requestBody.angledImageData = angledImageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
   }
   
-  // Log the image sizes and data samples for debugging
-  log(`Image sizes - Front: ${cleanFrontImage.length} chars, Back: ${requestBody.backImageData ? requestBody.backImageData.length : 'N/A'} chars, Angled: ${requestBody.angledImageData ? requestBody.angledImageData.length : 'N/A'} chars`, 'express');
+  // Log detailed information about images being sent
+  log(`=== IMAGE TRANSMISSION DETAILS ===`, 'express');
+  log(`Front image: ${cleanFrontImage.length} chars`, 'express');
+  log(`Back image: ${requestBody.backImageData ? `${requestBody.backImageData.length} chars` : 'NOT PROVIDED'}`, 'express');
+  log(`Angled image: ${requestBody.angledImageData ? `${requestBody.angledImageData.length} chars` : 'NOT PROVIDED'}`, 'express');
+  log(`Total images being sent: ${1 + (requestBody.backImageData ? 1 : 0) + (requestBody.angledImageData ? 1 : 0)}`, 'express');
+  log(`Request body fields: ${Object.keys(requestBody).join(', ')}`, 'express');
   
-  // Log sample of image data and API key being used
-  log(`API Key from secrets: ${MOBILE_API_KEY ? MOBILE_API_KEY.substring(0, 10) + '...' : 'NOT FOUND'}`, 'express');
-  log(`Front image data sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
+  // Log API key status
+  log(`API Key configured: ${MOBILE_API_KEY ? 'YES' : 'NO'}`, 'express');
+  log(`Front image sample: ${cleanFrontImage.substring(0, 30)}...`, 'express');
   
   // Make direct API call to master.pinauth.com - no fallbacks
   log(`Making direct API call to: ${PIM_STANDARD_API_URL}`, 'express');

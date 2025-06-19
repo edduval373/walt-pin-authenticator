@@ -88,14 +88,19 @@ export async function callWorkingMobileApi(
     const cleanAngledImage = angledImage ? angledImage.replace(/^data:image\/[a-z]+;base64,/, '') : null;
     
     // Prepare request payload exactly as specified by master app
-    const payload = {
+    const payload: any = {
       sessionId: sessionId,
-      frontImageData: cleanFrontImage,
-      backImageData: cleanBackImage,
-      angledImageData: cleanAngledImage,
-      requireApproval: false,
-      prompts: {}
+      frontImageData: cleanFrontImage
     };
+    
+    // Only add back and angled images if they exist
+    if (cleanBackImage) {
+      payload.backImageData = cleanBackImage;
+    }
+    
+    if (cleanAngledImage) {
+      payload.angledImageData = cleanAngledImage;
+    }
     
     console.log('Direct connection to master server (working backup approach)');
     

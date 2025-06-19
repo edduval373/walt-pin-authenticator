@@ -3,8 +3,8 @@
 // Production server wrapper for Railway deployment
 // This file ensures the server starts correctly regardless of Railway's build process
 
-const { spawn } = require('child_process');
-const path = require('path');
+import { spawn } from 'child_process';
+import path from 'path';
 
 console.log('Starting Disney Pin Authenticator Production Server...');
 

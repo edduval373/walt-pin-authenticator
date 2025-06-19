@@ -11,6 +11,9 @@ RUN npm ci
 # Copy application files
 COPY . .
 
+# Build the React frontend
+RUN npm run build
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=8080
@@ -19,4 +22,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Start the production server directly
-CMD ["node", "index.js"]
+CMD ["node", "start.js"]

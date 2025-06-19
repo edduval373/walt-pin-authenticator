@@ -8,6 +8,11 @@
 import express from 'express';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT) || 8080;
@@ -52,18 +57,28 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root endpoint
+// Serve static files from client build directory
+const clientBuildPath = path.join(__dirname, 'client', 'dist');
+app.use(express.static(clientBuildPath));
+
+// Root endpoint - serve the React app
 app.get('/', (req, res) => {
-  res.status(200).json({
-    name: 'Disney Pin Authenticator API',
-    version: '1.0.0',
-    status: 'active',
-    description: 'Mobile API for Disney pin authentication and verification',
-    endpoints: {
-      health: 'GET /health',
-      verify: 'POST /api/verify-pin'
-    },
-    timestamp: new Date().toISOString()
+  const indexPath = path.join(clientBuildPath, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(200).json({
+        name: 'Disney Pin Authenticator API',
+        version: '1.0.0',
+        status: 'active',
+        description: 'Mobile API for Disney pin authentication and verification',
+        endpoints: {
+          health: 'GET /health',
+          verify: 'POST /api/verify-pin'
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
   });
 });
 
@@ -193,17 +208,32 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Endpoint ${req.originalUrl} not found`,
-    availableEndpoints: [
-      'GET /',
-      'GET /health',
-      'GET /api/status',
-      'POST /api/verify-pin'
-    ]
+// Handle all other routes - serve React app for client-side routing
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/') || req.path.startsWith('/health')) {
+    return res.status(404).json({
+      success: false,
+      message: `Endpoint ${req.originalUrl} not found`,
+      availableEndpoints: [
+        'GET /',
+        'GET /health',
+        'GET /api/status',
+        'POST /api/verify-pin'
+      ]
+    });
+  }
+  
+  // Serve React app for all other routes
+  const indexPath = path.join(clientBuildPath, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving React app:', err);
+      res.status(404).json({
+        success: false,
+        message: 'Frontend application not found'
+      });
+    }
   });
 });
 

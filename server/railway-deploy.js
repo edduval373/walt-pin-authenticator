@@ -1016,7 +1016,7 @@ app.get("/health", (req, res) => {
     service: "disney-pin-authenticator",
     version: "1.0.0",
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    port: parseInt(process.env.PORT || "8080", 10),
+    port: parseInt(process.env.PORT || "5000", 10),
     environment: process.env.NODE_ENV || "production",
     api: {
       configured: !!process.env.MOBILE_API_KEY,
@@ -1025,7 +1025,7 @@ app.get("/health", (req, res) => {
   });
 });
 registerRoutes(app).then((server) => {
-  const port = parseInt(process.env.PORT || "8080", 10);
+  const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, "0.0.0.0", () => {
     console.log(`${(/* @__PURE__ */ new Date()).toLocaleTimeString()} [railway] Disney Pin Checker API serving on port ${port}`);
     console.log(`Connected to PIM service at: https://master.pinauth.com`);

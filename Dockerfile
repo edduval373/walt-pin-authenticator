@@ -13,10 +13,10 @@ COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=5000
 
-# Expose port
-EXPOSE 8080
+# Expose port (Railway will set PORT dynamically)
+EXPOSE 5000
 
 # Start the production server using proven configuration
 CMD ["node", "start.js"]

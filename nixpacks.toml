@@ -1,13 +1,14 @@
 [variables]
 NODE_ENV = "production"
+PORT = "8080"
 
 [phases.install]
 cmds = ["npm ci --production"]
 
 [phases.build]
 cmds = [
-  "echo 'Skipping frontend build - using direct server deployment'"
+  "echo 'Production server deployment - no build required'"
 ]
 
 [start]
-cmd = "node server/production.js"
+cmd = "cd /app && NODE_ENV=production PORT=$PORT node server/production.js"

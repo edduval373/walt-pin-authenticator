@@ -279,6 +279,11 @@ ${JSON.stringify(result, null, 2)}`;
           sessionStorage.setItem('serverResponse', JSON.stringify(result));
           sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));
           
+          // Store the exact raw response for debugging display
+          if ((window as any).lastRawServerResponse) {
+            sessionStorage.setItem('rawServerResponse', JSON.stringify((window as any).lastRawServerResponse));
+          }
+          
           setProgress(100);
           setStatusMessage("Analysis complete!");
           

@@ -31,11 +31,13 @@ export default function ResultsPage() {
   const analysisResultJson = sessionStorage.getItem('analysisResult');
   const capturedImagesJson = sessionStorage.getItem('capturedImages');
   const serverResponseJson = sessionStorage.getItem('serverResponse');
+  const rawServerResponseJson = sessionStorage.getItem('rawServerResponse');
   
   // Parse the analysis result, or redirect to camera if missing
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
   const [serverResponse, setServerResponse] = useState<any>(null);
+  const [rawServerResponse, setRawServerResponse] = useState<any>(null);
 
   // Function to process markdown headers in HTML content
   const processMarkdownHeaders = (htmlContent: string): string => {
@@ -150,45 +152,22 @@ export default function ResultsPage() {
         try {
           const parsedServerResponse = JSON.parse(serverResponseJson);
           console.log("Parsed server response:", parsedServerResponse);
-          
-          // Ensure server response has the expected structure
-          if (parsedServerResponse && typeof parsedServerResponse === 'object') {
-            setServerResponse(parsedServerResponse);
-          } else {
-            console.warn('Invalid server response format, using default structure');
-            setServerResponse({
-              success: false,
-              message: 'Invalid response format',
-              analysis: '',
-              identification: '',
-              pricing: '',
-              characters: ''
-            });
-          }
+          setServerResponse(parsedServerResponse);
         } catch (responseErr) {
           console.error('Failed to parse server response:', responseErr);
-          // Set default server response to prevent white screen
-          setServerResponse({
-            success: false,
-            message: 'Failed to parse server response',
-            analysis: '',
-            identification: '',
-            pricing: '',
-            characters: ''
-          });
+          setLocation('/camera');
+          return;
         }
-      } else {
-        console.log('No server response available, using fallback');
-        // Set default server response structure
-        const resultData = parsedResult as any; // Type assertion for safe property access
-        setServerResponse({
-          success: true,
-          message: 'Analysis completed',
-          analysis: parsedResult.rawAnalysisReport || resultData.analysis || '',
-          identification: parsedResult.result?.pinId || parsedResult.pinId || resultData.identification || '',
-          pricing: parsedResult.result?.pricingInfo || resultData.pricing || '',
-          characters: parsedResult.result?.characters || resultData.characters || ''
-        });
+      }
+      
+      // Parse raw server response for debugging display
+      if (rawServerResponseJson) {
+        try {
+          const parsedRawResponse = JSON.parse(rawServerResponseJson);
+          setRawServerResponse(parsedRawResponse);
+        } catch (rawErr) {
+          console.error('Failed to parse raw server response:', rawErr);
+        }
       }
       
       // Automatically crop image when loaded
@@ -214,7 +193,7 @@ export default function ResultsPage() {
       console.error('Error details:', err);
       setLocation('/camera');
     }
-  }, [analysisResultJson, capturedImagesJson, serverResponseJson, setLocation]);
+  }, [analysisResultJson, capturedImagesJson, serverResponseJson, rawServerResponseJson, setLocation]);
   
   // If result or images are not available yet, show loading
   if (!result || !capturedImages) {
@@ -567,9 +546,9 @@ export default function ResultsPage() {
                   )}
                   
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Complete Response</h4>
+                    <h4 className="font-medium text-sm mb-2">RAW SERVER RESPONSE (Unmodified)</h4>
                     <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-96 whitespace-pre-wrap">
-                      {JSON.stringify(serverResponse, null, 2)}
+                      {rawServerResponse ? JSON.stringify(rawServerResponse, null, 2) : 'Raw response not captured'}
                     </pre>
                   </div>
                 </div>

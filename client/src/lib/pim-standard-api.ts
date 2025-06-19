@@ -90,6 +90,9 @@ export async function analyzePinImagesWithPimStandard(
       const data = await response.json();
       console.log('Pin analysis complete:', data);
       
+      // Store the exact raw response for debugging - no modifications
+      (window as any).lastRawServerResponse = data;
+      
       // Return only authentic server response fields as specified
       return {
         success: data.success,

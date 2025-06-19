@@ -229,12 +229,16 @@ export default function ProcessingPage() {
           capturedImages.angled || undefined
         );
         
-        // Generate session ID for logging (same format as server)
-        const now = new Date();
-        const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        console.log("Pin analysis complete:", result);
         
-        // Capture raw request data
-        const rawRequest = `POST /mobile-upload HTTP/1.1
+        // Check if the result indicates success
+        if (result && result.success !== false) {
+          // Generate session ID for logging (same format as server)
+          const now = new Date();
+          const sessionId = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+          
+          // Capture raw request data
+          const rawRequest = `POST /mobile-upload HTTP/1.1
 Host: ${window.location.host}
 
 Headers: {
@@ -249,40 +253,44 @@ Body: {
   "angledImageData": "[BASE64_IMAGE_DATA_${capturedImages.angled.length}_CHARS]"` : ''}
 }`;
 
-        // Capture raw response data
-        const rawResponse = `HTTP/1.1 200 OK
+          // Capture raw response data
+          const rawResponse = `HTTP/1.1 200 OK
 Content-Type: application/json
 
 ${JSON.stringify(result, null, 2)}`;
 
-        transmissionLogger.logImageUpload(
-          'success', 
-          'Images uploaded and analyzed successfully', 
-          import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload', 
-          undefined, 
-          JSON.stringify(result),
-          import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
-          sessionId,
-          {
-            'Content-Type': 'application/json',
-            'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
-          },
-          rawRequest,
-          rawResponse
-        );
-        
-        // Store results for the ResultsPage to display
-        sessionStorage.setItem('analysisResult', JSON.stringify(result));
-        sessionStorage.setItem('serverResponse', JSON.stringify(result));
-        sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));
-        
-        setProgress(100);
-        setStatusMessage("Analysis complete!");
-        
-        // Navigate to results page to show the analysis
-        setTimeout(() => {
-          setLocation('/results');
-        }, 1000);
+          transmissionLogger.logImageUpload(
+            'success', 
+            'Images uploaded and analyzed successfully', 
+            import.meta.env.VITE_PIM_API_URL || 'https://master.pinauth.com/mobile-upload', 
+            undefined, 
+            JSON.stringify(result),
+            import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g',
+            sessionId,
+            {
+              'Content-Type': 'application/json',
+              'x-api-key': import.meta.env.VITE_MOBILE_API_KEY || 'pim_mobile_2505271605_7f8d9e2a1b4c6d8f9e0a1b2c3d4e5f6g'
+            },
+            rawRequest,
+            rawResponse
+          );
+          
+          // Store results for the ResultsPage to display
+          sessionStorage.setItem('analysisResult', JSON.stringify(result));
+          sessionStorage.setItem('serverResponse', JSON.stringify(result));
+          sessionStorage.setItem('capturedImages', JSON.stringify(capturedImages));
+          
+          setProgress(100);
+          setStatusMessage("Analysis complete!");
+          
+          // Navigate to results page to show the analysis
+          setTimeout(() => {
+            setLocation('/results');
+          }, 1000);
+        } else {
+          // Handle case where result indicates failure
+          throw new Error(result?.message || "Analysis failed");
+        }
         
       } catch (healthError) {
         console.log("Health check failed:", healthError);

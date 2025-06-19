@@ -1,11 +1,17 @@
 {
   "providers": ["node"],
   "phases": {
+    "setup": {
+      "nixPkgs": ["nodejs_18", "npm"]
+    },
+    "install": {
+      "cmds": ["npm ci --omit=dev"]
+    },
     "build": {
-      "cmds": ["npm ci --production"]
+      "cmds": ["echo 'Production server deployment - no build required'"]
     },
     "start": {
-      "cmd": "node app.js"
+      "cmd": "node index.js"
     }
   }
 }

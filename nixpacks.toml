@@ -1,3 +1,14 @@
-# Use Dockerfile instead
-[providers]
-dockerfile = true
+[phases.setup]
+nixPkgs = ["nodejs_18", "npm"]
+
+[phases.install]
+cmds = ["npm ci --omit=dev"]
+
+[phases.build]
+cmds = ["echo 'Disney Pin Authenticator - Production deployment'"]
+
+[phases.start]
+cmd = "node index.js"
+
+[variables]
+NODE_ENV = "production"

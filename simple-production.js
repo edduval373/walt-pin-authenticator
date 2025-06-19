@@ -1,6 +1,9 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -82,7 +85,26 @@ app.post('/api/verify-pin', async (req, res) => {
 
 // Serve React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Disney Pin Authenticator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body>
+        <h1>Disney Pin Authenticator API</h1>
+        <p>Service is running on port ${port}</p>
+        <p>Health check: <a href="/health">/health</a></p>
+        <p>API endpoint: POST /api/verify-pin</p>
+      </body>
+      </html>
+    `);
+  }
 });
 
 app.listen(port, '0.0.0.0', () => {

@@ -19,4 +19,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Start the production server
-CMD ["node", "simple-production.js"]
+CMD ["node", "minimal-server.js"]

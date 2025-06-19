@@ -8,7 +8,7 @@ cmds = ["npm ci --omit=dev"]
 cmds = ["echo 'Disney Pin Authenticator - Production deployment'"]
 
 [phases.start]
-cmd = "node index.js"
+cmd = "node serve.js"
 
 [variables]
 NODE_ENV = "production"

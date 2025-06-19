@@ -68,6 +68,9 @@ export async function analyzePinImagesWithPimStandard(
     const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for image processing
     
     try {
+      console.log('Making API request to /api/proxy/mobile-upload');
+      console.log('Request data:', JSON.stringify(requestData).substring(0, 200) + '...');
+      
       // Make direct API request to master server with proper CORS handling
       const response = await fetch('/api/proxy/mobile-upload', {
         method: 'POST',
@@ -80,6 +83,9 @@ export async function analyzePinImagesWithPimStandard(
       
       // Clear the timeout when the fetch is complete
       clearTimeout(timeoutId);
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -89,6 +95,7 @@ export async function analyzePinImagesWithPimStandard(
 
       const data = await response.json();
       console.log('Pin analysis complete:', data);
+      console.log('Response data fields:', Object.keys(data));
       
       // Store the exact raw response for debugging - no modifications
       (window as any).lastRawServerResponse = data;

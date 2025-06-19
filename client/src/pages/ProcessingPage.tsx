@@ -307,6 +307,15 @@ ${JSON.stringify(result, null, 2)}`;
         return;
       }
       
+    } catch (analysisError) {
+      console.log("Image analysis failed:", analysisError);
+      setError("Image analysis failed. Please check your connection and try again.");
+      setStatusMessage("Connection failed - Please retry");
+      setProgress(0);
+      setShowRetryButton(true);
+      isProcessing.current = false;
+      return;
+      
     } catch (error) {
       console.log("Error in processing:", error);
       // Generate session ID for logging (same format as server)

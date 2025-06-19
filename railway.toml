@@ -1,8 +1,8 @@
 [build]
-builder = "DOCKERFILE"
+builder = "nixpacks"
 
 [deploy]
-startCommand = "node minimal-server.js"
+startCommand = "node production-deploy.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

@@ -1,0 +1,5 @@
+{
+  "providers": ["node"],
+  "buildCommand": "echo 'Skipping build'",
+  "startCommand": "node minimal-server.js"
+}

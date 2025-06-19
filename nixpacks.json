@@ -1,5 +1,11 @@
 {
   "providers": ["node"],
-  "buildCommand": "echo 'Skipping build'",
-  "startCommand": "node minimal-server.js"
+  "phases": {
+    "build": {
+      "cmds": ["npm ci --production"]
+    },
+    "start": {
+      "cmd": "node server.js"
+    }
+  }
 }

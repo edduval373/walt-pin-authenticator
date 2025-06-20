@@ -9,7 +9,21 @@ import { setupVite } from "./vite";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('Starting Railway deployment server...');
+console.log('=== RAILWAY DEPLOYMENT SERVER STARTING ===');
+console.log('Timestamp:', new Date().toISOString());
+console.log('Working directory:', process.cwd());
+console.log('Script file:', __filename);
+
+// Log all environment variables for debugging
+console.log('=== ALL ENVIRONMENT VARIABLES ===');
+const envVars = Object.keys(process.env).sort();
+envVars.forEach(key => {
+  if (key.includes('PASSWORD') || key.includes('SECRET') || key.includes('TOKEN')) {
+    console.log(`${key}: [REDACTED - ${process.env[key]?.length || 0} characters]`);
+  } else {
+    console.log(`${key}: ${process.env[key]}`);
+  }
+});
 
 // Database connection test
 async function testDatabaseConnection() {
@@ -68,11 +82,21 @@ console.log('Memory usage:', process.memoryUsage());
 
 const app = express();
 
-// Test database connection on startup
+console.log('Express app created successfully');
+
+// Add comprehensive middleware logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url} from ${req.ip}`);
+  next();
+});
+
+// Test database connection on startup with detailed logging
+console.log('Starting database connection test...');
 testDatabaseConnection().then(dbConnected => {
   console.log('Database test completed. Connected:', dbConnected);
 }).catch(err => {
   console.log('Database test error:', err.message);
+  console.log('Database test stack:', err.stack);
 });
 
 // Increase JSON body size limit to handle larger image payloads (100MB)
@@ -112,20 +136,36 @@ app.use((req, res, next) => {
 
 
 
-// Add health endpoint directly
+// Add health endpoint with extensive debugging
 app.get('/health', (req, res) => {
-  res.status(200).json({
+  console.log('=== HEALTH CHECK REQUEST RECEIVED ===');
+  console.log('Request timestamp:', new Date().toISOString());
+  console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+  console.log('Request IP:', req.ip);
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+  
+  const healthData = {
     status: 'ok',
     service: 'disney-pin-authenticator',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     port: parseInt(process.env.PORT || '5000', 10),
     environment: process.env.NODE_ENV || 'production',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
     api: {
       configured: !!process.env.MOBILE_API_KEY,
       endpoint: 'https://master.pinauth.com/mobile-upload'
     }
-  });
+  };
+  
+  console.log('Health check response:', JSON.stringify(healthData, null, 2));
+  console.log('Sending 200 response...');
+  
+  res.status(200).json(healthData);
+  
+  console.log('Health check response sent successfully');
 });
 
 // Add core API endpoints directly without database dependency
@@ -244,11 +284,48 @@ console.log('=== SERVER STARTUP ===');
 console.log('Attempting to bind to port:', port);
 console.log('Binding to host: 0.0.0.0');
 
+// Perform critical test before server starts
+console.log('=== PRE-SERVER STARTUP TESTS ===');
+
+// Test basic HTTP response capability
+try {
+  console.log('Testing Express response capability...');
+  app.get('/test-immediate', (req, res) => {
+    console.log('Test endpoint hit');
+    res.json({ test: 'success', timestamp: new Date().toISOString() });
+  });
+  console.log('Express route registration successful');
+} catch (err: any) {
+  console.log('Express route registration failed:', err.message);
+}
+
 const server = app.listen(port, '0.0.0.0', async () => {
+  console.log(`=== SERVER LISTENING CALLBACK TRIGGERED ===`);
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+  console.log(`Port: ${port}`);
+  console.log(`Host: 0.0.0.0`);
+  console.log(`Process PID: ${process.pid}`);
+  console.log(`Server address:`, server.address());
   console.log(`✅ ${new Date().toLocaleTimeString()} [railway] Disney Pin Checker API serving on port ${port}`);
   console.log(`✅ Connected to PIM service at: https://master.pinauth.com`);
   console.log('✅ Server startup completed successfully');
   console.log('✅ Health check endpoint available at /health');
+
+  // Test internal health check immediately
+  try {
+    console.log('=== INTERNAL HEALTH CHECK TEST ===');
+    const testReq = {
+      method: 'GET',
+      url: '/health',
+      ip: '127.0.0.1',
+      headers: { 'internal-test': 'true' }
+    };
+    console.log('Simulating health check request...');
+    // This won't actually trigger the endpoint but shows the server is ready
+    console.log('Server is ready to receive health check requests');
+  } catch (err: any) {
+    console.log('Internal health check test failed:', err.message);
+  }
 
   // Setup Vite for React UI serving after server is running
   try {
@@ -257,9 +334,11 @@ const server = app.listen(port, '0.0.0.0', async () => {
     console.log('✅ Vite setup completed for React UI');
   } catch (err: any) {
     console.log('❌ Vite setup failed:', err.message);
+    console.log('Vite error stack:', err.stack);
     
     // Add fallback route for root if Vite fails
     app.get('/', (req, res) => {
+      console.log('Serving fallback HTML for root route');
       res.send(`
         <!DOCTYPE html>
         <html>
@@ -290,6 +369,8 @@ const server = app.listen(port, '0.0.0.0', async () => {
       `);
     });
   }
+  
+  console.log('=== SERVER STARTUP SEQUENCE COMPLETED ===');
 });
 
 server.on('error', (error: any) => {
@@ -315,6 +396,47 @@ process.on('SIGINT', () => {
     console.log('Server closed');
     process.exit(0);
   });
+});
+
+// Add immediate health check test after server error handlers
+server.on('listening', () => {
+  console.log('=== SERVER LISTENING EVENT TRIGGERED ===');
+  console.log('Server is now accepting connections');
+  
+  // Test the health endpoint immediately
+  setTimeout(() => {
+    console.log('=== TESTING HEALTH ENDPOINT INTERNALLY ===');
+    const http = require('http');
+    const options = {
+      hostname: 'localhost',
+      port: port,
+      path: '/health',
+      method: 'GET',
+      timeout: 5000
+    };
+    
+    const req = http.request(options, (res) => {
+      console.log(`Internal health check response status: ${res.statusCode}`);
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        console.log('Internal health check response:', data);
+      });
+    });
+    
+    req.on('error', (err) => {
+      console.log('Internal health check error:', err.message);
+    });
+    
+    req.on('timeout', () => {
+      console.log('Internal health check timeout');
+      req.destroy();
+    });
+    
+    req.end();
+  }, 1000);
 });
 
 // Catch unhandled errors

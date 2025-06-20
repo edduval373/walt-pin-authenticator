@@ -17,12 +17,12 @@ COPY . .
 # Set environment variables
 ENV NODE_ENV=development
 
-# Expose port (Railway will set the PORT dynamically)
-EXPOSE $PORT
+# Expose default port
+EXPOSE 5000
 
-# Health check
+# Health check with fallback port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:$PORT/health || exit 1
+  CMD curl -f http://localhost:${PORT:-5000}/health || exit 1
 
-# Start development server
-CMD ["npm", "run", "dev"]
+# Start with tsx directly to avoid shell interpretation issues
+CMD ["npx", "tsx", "server/index.ts"]

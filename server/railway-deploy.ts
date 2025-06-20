@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import fetch from "node-fetch";
 import FormData from "form-data";
 import { Pool } from "pg";
+import { setupVite } from "./vite";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -109,37 +110,7 @@ app.use((req, res, next) => {
   }
 });
 
-// Serve a simple static HTML file for the frontend
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Disney Pin Checker</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        h1 { color: #1e40af; }
-        p { margin: 20px 0; }
-        .status { background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Disney Pin Checker</h1>
-        <p>The mobile application API is running successfully!</p>
-        <div class="status">
-          <h3>API Status: Active</h3>
-          <p>Ready to authenticate Disney pins</p>
-          <p>Connected to: https://master.pinauth.com</p>
-        </div>
-        <p>This service provides pin authentication for the mobile app.</p>
-      </div>
-    </body>
-    </html>
-  `);
-});
+
 
 // Add health endpoint directly
 app.get('/health', (req, res) => {
@@ -273,11 +244,52 @@ console.log('=== SERVER STARTUP ===');
 console.log('Attempting to bind to port:', port);
 console.log('Binding to host: 0.0.0.0');
 
-const server = app.listen(port, '0.0.0.0', () => {
+const server = app.listen(port, '0.0.0.0', async () => {
   console.log(`✅ ${new Date().toLocaleTimeString()} [railway] Disney Pin Checker API serving on port ${port}`);
   console.log(`✅ Connected to PIM service at: https://master.pinauth.com`);
   console.log('✅ Server startup completed successfully');
   console.log('✅ Health check endpoint available at /health');
+
+  // Setup Vite for React UI serving after server is running
+  try {
+    console.log('Setting up Vite for React UI...');
+    await setupVite(app, server);
+    console.log('✅ Vite setup completed for React UI');
+  } catch (err: any) {
+    console.log('❌ Vite setup failed:', err.message);
+    
+    // Add fallback route for root if Vite fails
+    app.get('/', (req, res) => {
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Disney Pin Checker</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; }
+            h1 { color: #1e40af; }
+            p { margin: 20px 0; }
+            .status { background: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>Disney Pin Checker</h1>
+            <p>The mobile application API is running successfully!</p>
+            <div class="status">
+              <h3>API Status: Active</h3>
+              <p>Ready to authenticate Disney pins</p>
+              <p>Connected to: https://master.pinauth.com</p>
+            </div>
+            <p>This service provides pin authentication for the mobile app.</p>
+          </div>
+        </body>
+        </html>
+      `);
+    });
+  }
 });
 
 server.on('error', (error: any) => {

@@ -24,14 +24,33 @@ export default function ProcessingPage() {
     back: 0,
     angled: 0
   });
+  const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
   
-  // Get the captured images from sessionStorage
-  const capturedImagesJSON = sessionStorage.getItem('capturedImages');
-  const capturedImages: CapturedImages | null = capturedImagesJSON ? JSON.parse(capturedImagesJSON) : null;
-  
+  // Mobile-safe initialization of captured images
   useEffect(() => {
-    // Front view is required, but back and angled views are optional
-    if (!capturedImages || !capturedImages.front) {
+    const initializeImages = () => {
+      try {
+        const storedImages = sessionStorage.getItem('capturedImages');
+        if (storedImages) {
+          const parsed = JSON.parse(storedImages);
+          setCapturedImages(parsed);
+        }
+      } catch (error) {
+        console.error('Error loading captured images:', error);
+      }
+    };
+    
+    // Delay for mobile browser compatibility
+    setTimeout(initializeImages, 50);
+  }, []);
+  
+  // Navigation check for mobile compatibility
+  useEffect(() => {
+    if (!capturedImages) {
+      return;
+    }
+    
+    if (!capturedImages.front) {
       console.error("Missing required front view of pin");
       setLocation('/camera');
       return;

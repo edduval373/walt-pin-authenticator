@@ -2,7 +2,10 @@
 nixPkgs = ["nodejs_18"]
 
 [phases.install]
-cmds = ["npm install --production"]
+cmds = ["npm install"]
 
 [start]
-cmd = "node index.js"
+cmd = "npm run dev"
+
+[variables]
+NODE_ENV = "development"

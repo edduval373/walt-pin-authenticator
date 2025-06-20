@@ -1,5 +1,4 @@
-import express from "express";
-import path from "path";
+const express = require('express');
 
 const app = express();
 const port = parseInt(process.env.PORT || '5000', 10);

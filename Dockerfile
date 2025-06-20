@@ -1,25 +1,22 @@
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Copy package files
+# Copy package files first for layer caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install only production dependencies
+RUN npm ci --only=production
 
-# Copy application code
-COPY . .
+# Copy minimal required files
+COPY server/minimal-railway.ts ./server/
+COPY tsconfig.json ./
 
-# Expose default port
+# Install tsx globally for faster startup
+RUN npm install -g tsx
+
+# Expose port
 EXPOSE 5000
 
-# Health check with fallback port
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:${PORT:-5000}/health || exit 1
-
-# Start with tsx directly to avoid shell interpretation issues
-CMD ["npx", "tsx", "server/minimal-railway.ts"]
+# Simple startup command
+CMD ["tsx", "server/minimal-railway.ts"]

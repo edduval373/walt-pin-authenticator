@@ -1,14 +1,78 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
 import path from "path";
 import { fileURLToPath } from "url";
+import fetch from "node-fetch";
+import FormData from "form-data";
+import { Pool } from "pg";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('Starting Railway deployment server...');
 
+// Database connection test
+async function testDatabaseConnection() {
+  console.log('=== DATABASE CONNECTION TEST ===');
+  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  console.log('DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
+  
+  if (!process.env.DATABASE_URL) {
+    console.log('❌ No DATABASE_URL environment variable found');
+    return false;
+  }
+  
+  try {
+    const pool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    console.log('🔍 Testing database connection...');
+    const client = await pool.connect();
+    console.log('✅ Database connection successful');
+    
+    // Test a simple query
+    const result = await client.query('SELECT NOW() as current_time');
+    console.log('✅ Database query successful:', result.rows[0]);
+    
+    client.release();
+    await pool.end();
+    console.log('✅ Database connection closed cleanly');
+    return true;
+    
+  } catch (error: any) {
+    console.log('❌ Database connection failed:', error.message);
+    console.log('Error details:', {
+      code: error.code,
+      errno: error.errno,
+      syscall: error.syscall,
+      hostname: error.hostname,
+      port: error.port
+    });
+    return false;
+  }
+}
+
+// Environment diagnostics
+console.log('=== ENVIRONMENT DIAGNOSTICS ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('MOBILE_API_KEY exists:', !!process.env.MOBILE_API_KEY);
+console.log('MOBILE_API_KEY length:', process.env.MOBILE_API_KEY?.length || 0);
+console.log('Process PID:', process.pid);
+console.log('Node version:', process.version);
+console.log('Platform:', process.platform);
+console.log('Architecture:', process.arch);
+console.log('Memory usage:', process.memoryUsage());
+
 const app = express();
+
+// Test database connection on startup
+testDatabaseConnection().then(dbConnected => {
+  console.log('Database test completed. Connected:', dbConnected);
+}).catch(err => {
+  console.log('Database test error:', err.message);
+});
 
 // Increase JSON body size limit to handle larger image payloads (100MB)
 app.use(express.json({ limit: '100mb' }));
@@ -31,6 +95,18 @@ app.use((req, res, next) => {
   });
   
   next();
+});
+
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
 });
 
 // Serve a simple static HTML file for the frontend
@@ -81,15 +157,164 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Register API routes
-registerRoutes(app).then((server) => {
-  // Railway provides PORT dynamically, fallback to 5000 for local development
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen(port, '0.0.0.0', () => {
-    console.log(`${new Date().toLocaleTimeString()} [railway] Disney Pin Checker API serving on port ${port}`);
-    console.log(`Connected to PIM service at: https://master.pinauth.com`);
+// Add core API endpoints directly without database dependency
+app.post('/api/verify-pin', async (req, res) => {
+  try {
+    const { frontImage, backImage, angledImage } = req.body;
+    
+    if (!frontImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Front image is required'
+      });
+    }
+
+    // Direct API call to master.pinauth.com
+    const formData = new FormData();
+    
+    // Convert base64 to buffer and append to form data
+    const frontBuffer = Buffer.from(frontImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    formData.append('front_image', frontBuffer, 'front.jpg');
+    
+    if (backImage) {
+      const backBuffer = Buffer.from(backImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('back_image', backBuffer, 'back.jpg');
+    }
+    
+    if (angledImage) {
+      const angledBuffer = Buffer.from(angledImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('angled_image', angledBuffer, 'angled.jpg');
+    }
+
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-API-Key': process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc',
+        ...formData.getHeaders()
+      }
+    });
+
+    const result = await response.json() as any;
+    
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        message: result.message || 'API request failed'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Pin verification completed',
+      ...(typeof result === 'object' ? result : {})
+    });
+
+  } catch (error: any) {
+    console.error('Pin verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error during verification'
+    });
+  }
+});
+
+// Mobile upload endpoint for compatibility
+app.post('/mobile-upload', async (req, res) => {
+  try {
+    const { frontImage, backImage, angledImage } = req.body;
+    
+    if (!frontImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Front image is required'
+      });
+    }
+
+    const formData = new FormData();
+    const frontBuffer = Buffer.from(frontImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    formData.append('front_image', frontBuffer, 'front.jpg');
+    
+    if (backImage) {
+      const backBuffer = Buffer.from(backImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('back_image', backBuffer, 'back.jpg');
+    }
+    
+    if (angledImage) {
+      const angledBuffer = Buffer.from(angledImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('angled_image', angledBuffer, 'angled.jpg');
+    }
+
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-API-Key': process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc',
+        ...formData.getHeaders()
+      }
+    });
+
+    const result = await response.json() as any;
+    res.json(result);
+
+  } catch (error: any) {
+    console.error('Mobile upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// Start server with detailed startup logging
+const port = parseInt(process.env.PORT || '5000', 10);
+
+console.log('=== SERVER STARTUP ===');
+console.log('Attempting to bind to port:', port);
+console.log('Binding to host: 0.0.0.0');
+
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`✅ ${new Date().toLocaleTimeString()} [railway] Disney Pin Checker API serving on port ${port}`);
+  console.log(`✅ Connected to PIM service at: https://master.pinauth.com`);
+  console.log('✅ Server startup completed successfully');
+  console.log('✅ Health check endpoint available at /health');
+});
+
+server.on('error', (error: any) => {
+  console.log('❌ Server error:', error.message);
+  console.log('Error code:', error.code);
+  console.log('Error syscall:', error.syscall);
+  console.log('Error port:', error.port);
+  console.log('Error address:', error.address);
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
   });
-}).catch(console.error);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+// Catch unhandled errors
+process.on('uncaughtException', (error) => {
+  console.log('❌ Uncaught Exception:', error.message);
+  console.log('Stack:', error.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
 // Error handling
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

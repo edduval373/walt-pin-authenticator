@@ -4,9 +4,9 @@
     "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "npx tsx server/railway-deploy.ts",
+    "startCommand": "npx tsx server/minimal-railway.ts",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 60,
+    "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

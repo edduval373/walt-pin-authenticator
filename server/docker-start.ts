@@ -1,6 +1,7 @@
-// Minimal server startup for Docker deployment - health checks only
+// Docker server with React UI integration
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
+import { setupVite } from "./vite";
 
 const app = express();
 
@@ -109,12 +110,12 @@ app.post('/api/verify', async (req, res) => {
     };
 
     res.json(response);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Web verification error:', error);
     res.status(500).json({
       success: false,
       message: "Analysis failed",
-      error: error.message
+      error: error?.message || 'Unknown error'
     });
   }
 });
@@ -157,19 +158,26 @@ app.get('/', (req, res) => {
           <div class="camera-section">
             <div class="upload-area" onclick="document.getElementById('frontImage').click()">
               <p>📸 <strong>Front View</strong></p>
-              <p>Click to upload front image of your Disney pin</p>
-              <input type="file" id="frontImage" accept="image/*" onchange="previewImage(this, 'frontPreview')">
+              <p>Click to upload or take photo of your Disney pin</p>
+              <input type="file" id="frontImage" accept="image/*" capture="environment" onchange="previewImage(this, 'frontPreview')">
               <img id="frontPreview" class="preview" style="display: none;">
             </div>
             
             <div class="upload-area" onclick="document.getElementById('backImage').click()">
               <p>🔄 <strong>Back View</strong> (Optional)</p>
-              <p>Click to upload back image showing pin backing</p>
-              <input type="file" id="backImage" accept="image/*" onchange="previewImage(this, 'backPreview')">
+              <p>Click to upload or take photo of pin backing</p>
+              <input type="file" id="backImage" accept="image/*" capture="environment" onchange="previewImage(this, 'backPreview')">
               <img id="backPreview" class="preview" style="display: none;">
             </div>
             
-            <button class="upload-btn" onclick="authenticatePin()">✨ Authenticate Pin</button>
+            <div class="upload-area" onclick="document.getElementById('angledImage').click()">
+              <p>📐 <strong>Angled View</strong> (Optional)</p>
+              <p>Click to upload side or angled view</p>
+              <input type="file" id="angledImage" accept="image/*" capture="environment" onchange="previewImage(this, 'angledPreview')">
+              <img id="angledPreview" class="preview" style="display: none;">
+            </div>
+            
+            <button class="upload-btn" onclick="authenticatePin()" id="analyzeBtn">✨ Authenticate Pin</button>
           </div>
           
           <div id="result"></div>
@@ -200,43 +208,114 @@ app.get('/', (req, res) => {
           async function authenticatePin() {
             const frontInput = document.getElementById('frontImage');
             const backInput = document.getElementById('backImage');
+            const angledInput = document.getElementById('angledImage');
+            const analyzeBtn = document.getElementById('analyzeBtn');
             
             if (!frontInput.files[0]) {
               alert('Please upload at least a front image of your Disney pin');
               return;
             }
 
+            // Disable button and show loading
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '🔍 Analyzing...';
+
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '<p>🔍 Analyzing your Disney pin...</p>';
+            resultDiv.innerHTML = \`
+              <div style="text-align: center; padding: 20px;">
+                <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                <p>Analyzing your Disney pin...</p>
+                <p style="font-size: 14px; color: #666;">This may take a few moments</p>
+              </div>
+              <style>
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+              </style>
+            \`;
             resultDiv.style.display = 'block';
 
             try {
               const frontImage = await toBase64(frontInput.files[0]);
               const backImage = backInput.files[0] ? await toBase64(backInput.files[0]) : null;
+              const angledImage = angledInput.files[0] ? await toBase64(angledInput.files[0]) : null;
 
               const response = await fetch('/api/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ frontImage, backImage })
+                body: JSON.stringify({ frontImage, backImage, angledImage })
               });
 
               const result = await response.json();
               
               if (result.success) {
+                const authenticityColor = result.authentic ? '#4CAF50' : '#f44336';
+                const ratingColor = result.authenticityRating >= 80 ? '#4CAF50' : result.authenticityRating >= 60 ? '#FF9800' : '#f44336';
+                
                 resultDiv.innerHTML = \`
-                  <h3>✅ Authentication Complete</h3>
-                  <p><strong>Authenticity:</strong> \${result.authentic ? '✅ Authentic' : '❌ Not Authentic'}</p>
-                  <p><strong>Rating:</strong> \${result.authenticityRating}%</p>
-                  <p><strong>Identification:</strong> \${result.identification}</p>
-                  <p><strong>Estimated Value:</strong> \${result.pricing}</p>
-                  <p><strong>Analysis:</strong> \${result.analysis}</p>
+                  <div style="background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%); border: 2px solid \${authenticityColor}; border-radius: 15px; padding: 25px; margin-top: 20px;">
+                    <h3 style="color: \${authenticityColor}; margin-top: 0; text-align: center;">
+                      \${result.authentic ? '✅' : '❌'} Authentication Complete
+                    </h3>
+                    
+                    <div style="display: grid; gap: 15px; margin: 20px 0;">
+                      <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid \${authenticityColor};">
+                        <strong>Authenticity Status:</strong><br>
+                        <span style="color: \${authenticityColor}; font-size: 18px; font-weight: bold;">
+                          \${result.authentic ? 'AUTHENTIC' : 'NOT AUTHENTIC'}
+                        </span>
+                      </div>
+                      
+                      <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid \${ratingColor};">
+                        <strong>Confidence Rating:</strong><br>
+                        <span style="color: \${ratingColor}; font-size: 18px; font-weight: bold;">
+                          \${result.authenticityRating || 0}%
+                        </span>
+                      </div>
+                      
+                      <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #667eea;">
+                        <strong>Pin Identification:</strong><br>
+                        <span style="color: #333; font-weight: 500;">\${result.identification || 'Unable to identify'}</span>
+                      </div>
+                      
+                      <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #764ba2;">
+                        <strong>Estimated Value:</strong><br>
+                        <span style="color: #764ba2; font-weight: bold; font-size: 16px;">\${result.pricing || 'Value not available'}</span>
+                      </div>
+                      
+                      <div style="background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #28a745;">
+                        <strong>Analysis Details:</strong><br>
+                        <span style="color: #555; line-height: 1.4;">\${result.analysis || 'No detailed analysis available'}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                      <small style="color: #666;">
+                        Analysis completed at \${new Date().toLocaleString()}
+                      </small>
+                    </div>
+                  </div>
                 \`;
               } else {
-                resultDiv.innerHTML = \`<p>❌ \${result.message}</p>\`;
+                resultDiv.innerHTML = \`
+                  <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 15px; padding: 20px; text-align: center;">
+                    <h3 style="color: #f44336;">❌ Analysis Failed</h3>
+                    <p>\${result.message}</p>
+                    <button onclick="location.reload()" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer;">Try Again</button>
+                  </div>
+                \`;
               }
             } catch (error) {
-              resultDiv.innerHTML = '<p>❌ Error analyzing pin. Please try again.</p>';
+              resultDiv.innerHTML = \`
+                <div style="background: #ffebee; border: 2px solid #f44336; border-radius: 15px; padding: 20px; text-align: center;">
+                  <h3 style="color: #f44336;">❌ Connection Error</h3>
+                  <p>Unable to analyze pin. Please check your connection and try again.</p>
+                  <button onclick="location.reload()" style="background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer;">Retry</button>
+                </div>
+              \`;
               console.error('Error:', error);
+            } finally {
+              // Re-enable button
+              analyzeBtn.disabled = false;
+              analyzeBtn.innerHTML = '✨ Authenticate Pin';
             }
           }
         </script>

@@ -14,9 +14,6 @@ RUN npm install
 # Copy application code
 COPY . .
 
-# Set environment variables
-ENV NODE_ENV=development
-
 # Expose default port
 EXPOSE 5000
 

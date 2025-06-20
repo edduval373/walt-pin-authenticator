@@ -255,7 +255,10 @@ app.use((req, res, next) => {
 
   // Set up web application routes AFTER ALL API routes
   // This ensures API routes are prioritized over the SPA routes
-  if (app.get("env") === "development") {
+  // Force Vite development server even in production deployment
+  // This is required because we skip the build step to avoid timeouts
+  const useViteDev = true; // Always use Vite dev server
+  if (useViteDev) {
     await setupVite(app, server);
   } else {
     serveStatic(app);

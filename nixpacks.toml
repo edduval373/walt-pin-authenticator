@@ -4,6 +4,9 @@ nixPkgs = ["nodejs_18"]
 [phases.install]
 cmds = ["npm install"]
 
+[phases.build]
+cmds = ["echo 'Skipping build - using development server'"]
+
 [start]
 cmd = "npm run dev"
 

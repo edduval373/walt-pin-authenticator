@@ -1,0 +1,8 @@
+[providers]
+node = "18"
+
+[build]
+cmds = ["npm ci"]
+
+[start]
+cmd = "npx tsx server/simple-deploy.ts"

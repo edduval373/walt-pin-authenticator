@@ -22,4 +22,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:${PORT:-5000}/health || exit 1
 
 # Start with tsx directly to avoid shell interpretation issues
-CMD ["npx", "tsx", "server/production-index.ts"]
+CMD ["npx", "tsx", "server/railway-deploy.ts"]

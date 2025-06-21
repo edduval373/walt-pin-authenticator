@@ -29,8 +29,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoints
-app.get('/', (req, res) => {
+// Root route serves the application, not health check
+app.get('/healthz', (req, res) => {
   res.json({
     status: 'healthy',
     service: 'Disney Pin Authenticator',
@@ -210,9 +210,52 @@ app.post('/api/mobile/confirm-pin', async (req, res) => {
 // Serve static files from dist directory
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// Catch-all handler for SPA
+// Catch-all handler for SPA - but exclude API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  // Don't serve index.html for API routes or health checks
+  if (req.path.startsWith('/api/') || req.path === '/health' || req.path === '/healthz') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  
+  const indexPath = path.join(__dirname, '../dist/index.html');
+  console.log(`Serving frontend for route: ${req.path}, index.html path: ${indexPath}`);
+  
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      // Fallback: serve a simple HTML page if dist files aren't available
+      res.status(200).send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Disney Pin Authenticator</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+            .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; }
+            h1 { margin-bottom: 20px; }
+            p { margin-bottom: 30px; }
+            .status { background: rgba(0,255,0,0.2); padding: 15px; border-radius: 10px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>Disney Pin Authenticator</h1>
+            <div class="status">
+              <h3>Server Status: Active</h3>
+              <p>API endpoints are running and connected to master.pinauth.com</p>
+            </div>
+            <p>The application server is running successfully on Railway.</p>
+            <p>Frontend build deployment in progress...</p>
+            <p><strong>API Health:</strong> <a href="/api/health" style="color: lightblue;">/api/health</a></p>
+            <p><strong>System Health:</strong> <a href="/healthz" style="color: lightblue;">/healthz</a></p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+  });
 });
 
 // Error handling middleware

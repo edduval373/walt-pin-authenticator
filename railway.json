@@ -4,7 +4,7 @@
   },
   "deploy": {
     "startCommand": "node server/production-railway.cjs",
-    "healthcheckPath": "/",
+    "healthcheckPath": "/healthz",
     "healthcheckTimeout": 300,
     "restartPolicyType": "on_failure"
   }

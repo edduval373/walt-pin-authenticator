@@ -10,13 +10,13 @@ import { execSync } from 'child_process';
 console.log('Building Disney Pin Authenticator for Railway...');
 
 try {
-  // Apply CSS formatting fix for Disney Pin Authenticator
-  execSync('node quick-css-fix.js', { stdio: 'inherit' });
+  // Create complete Disney Pin Authenticator build
+  execSync('node create-complete-build.js', { stdio: 'inherit' });
   
-  console.log('✅ Disney Pin Authenticator CSS fix applied successfully');
-  console.log('🚀 Ready for Railway deployment with proper formatting');
+  console.log('✅ Complete Disney Pin Authenticator build created successfully');
+  console.log('🚀 Ready for Railway deployment with W.A.L.T. interface');
   process.exit(0);
 } catch (error) {
-  console.error('CSS fix failed:', error.message);
+  console.error('Build creation failed:', error.message);
   process.exit(1);
 }

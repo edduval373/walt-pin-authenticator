@@ -1,22 +1,8 @@
 [variables]
 NODE_ENV = "production"
-NIXPACKS_NODE_VERSION = "18"
-
-[phases.setup]
-nixPkgs = ["nodejs", "npm"]
-
-[phases.install]
-cmds = [
-  "npm cache clean --force",
-  "rm -rf node_modules",
-  "rm -f package-lock.json",
-  "npm install --production --no-audit --no-fund"
-]
 
 [phases.build]
-cmds = [
-  "npm run build"
-]
+cmds = ["npm run build"]
 
 [start]
-cmd = "node server.js"
+cmd = "npm start"

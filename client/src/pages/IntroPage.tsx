@@ -8,7 +8,7 @@ export default function IntroPage() {
 
   const handleAcknowledge = () => {
     localStorage.setItem('hasVisitedBefore', 'true');
-    setLocation('/camera');
+    setLocation('/overview');
   };
 
   return (

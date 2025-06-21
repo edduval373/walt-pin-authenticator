@@ -12,6 +12,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 // Lazy load components to reduce bundle size
 const NotFound = lazy(() => import("@/pages/not-found"));
 const IntroPage = lazy(() => import("@/pages/IntroPage"));
+const ProcessOverviewPage = lazy(() => import("@/pages/ProcessOverviewPage"));
 const CameraPage = lazy(() => import("@/pages/CameraPage"));
 const ProcessingPage = lazy(() => import("@/pages/ProcessingPage"));
 const ResultsPage = lazy(() => import("@/pages/ResultsPage"));
@@ -58,6 +59,7 @@ function Router() {
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
         <Route path="/" component={IntroPage} />
+        <Route path="/overview" component={ProcessOverviewPage} />
         <Route path="/camera" component={CameraPage} />
         <Route path="/processing" component={ProcessingPage} />
         <Route path="/results" component={ResultsPage} />

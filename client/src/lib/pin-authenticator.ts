@@ -11,12 +11,19 @@ export interface AnalysisFactor {
 
 export interface AnalysisResult {
   pinId: string;
+  sessionId?: string;
   confidence: number;
   factors: AnalysisFactor[];
   colorMatchPercentage: number;
   databaseMatchCount: number;
   imageQualityScore: number;
   authenticityScore?: number; // Score on scale of 0-100
+  authenticityRating?: number; // Alias for authenticityScore
+  authentic?: boolean;
+  analysis?: string;
+  identification?: string;
+  pricing?: string;
+  timestamp?: string;
   pimStandardHtml?: {
     front?: string;
     back?: string;

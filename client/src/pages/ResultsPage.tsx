@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RiArrowLeftLine, RiCamera2Line, RiHistoryLine, RiStarLine, RiCheckboxCircleLine, RiCloseCircleLine, RiRefreshLine, RiShieldCheckLine, RiShieldLine, RiThumbUpFill, RiThumbDownFill } from "react-icons/ri";
+import { RiArrowLeftLine, RiCamera2Line, RiHistoryLine, RiStarLine, RiCheckboxCircleLine, RiCloseCircleLine, RiRefreshLine, RiShieldCheckLine, RiShieldLine, RiThumbUpFill, RiThumbDownFill, RiSearchLine } from "react-icons/ri";
 import ApiRequestLogger from "@/components/ApiRequestLogger";
 import StepProgress from "@/components/StepProgress";
 import FeedbackModal from "@/components/FeedbackModal";

@@ -1,17 +1,47 @@
-#!/usr/bin/env node
+import { build } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-console.log('Building Disney Pin Checker for production...');
+console.log('Building Disney Pin Authenticator React app for production...')
 
-// Build the client
-console.log('Building client...');
-execSync('vite build', { stdio: 'inherit' });
-
-// Build the production server
-console.log('Building production server...');
-execSync('esbuild server/production-server.ts --platform=node --packages=external --bundle --format=esm --outdir=dist', { stdio: 'inherit' });
-
-console.log('Production build complete!');
+try {
+  await build({
+    root: './client',
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './client/src'),
+        '@shared': path.resolve(__dirname, './shared'),
+        '@assets': path.resolve(__dirname, './attached_assets')
+      }
+    },
+    build: {
+      outDir: '../client/dist',
+      emptyOutDir: true,
+      minify: false,
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
+    },
+    css: {
+      postcss: {
+        plugins: []
+      }
+    },
+    define: {
+      'process.env.NODE_ENV': '"production"'
+    }
+  })
+  
+  console.log('Production build completed successfully!')
+  
+} catch (error) {
+  console.error('Build failed:', error)
+  process.exit(1)
+}

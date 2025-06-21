@@ -10,11 +10,11 @@ import { execSync } from 'child_process';
 console.log('Building Disney Pin Authenticator for Railway...');
 
 try {
-  // Build the React frontend
-  execSync('node build-react-app.js', { stdio: 'inherit' });
+  // Build the complete Disney Pin Authenticator React app
+  execSync('node build-production.js', { stdio: 'inherit' });
   
   console.log('✅ Disney Pin Authenticator build completed successfully');
-  console.log('🚀 Ready for Railway deployment with full functionality');
+  console.log('🚀 Ready for Railway deployment with complete three-screen flow');
   process.exit(0);
 } catch (error) {
   console.error('Build failed:', error.message);

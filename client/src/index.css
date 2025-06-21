@@ -2,39 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide the ugly Replit error overlay and debug panels */
-[data-replit-runtime-error-modal],
-.replit-runtime-error-modal,
-#vite-error-overlay,
-vite-error-overlay,
-[data-cartographer],
-[data-cartographer-panel],
-.cartographer-panel,
-.replit-cartographer,
-#replit-cartographer,
-.replit-dev-tools,
-[id*="cartographer"],
-[class*="cartographer"],
-[data-replit*="cartographer"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  left: -9999px !important;
-  top: -9999px !important;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
-/* Hide any fixed position debug elements at bottom of screen */
-div[style*="position: fixed"][style*="bottom: 0"],
-div[style*="position:fixed"][style*="bottom:0"] {
-  display: none !important;
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
 }
 
-/* Force main app to be above any overlays */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
 #root {
-  position: relative !important;
-  z-index: 999999 !important;
+  width: 100%;
+  height: 100vh;
 }
 
 /* Modal overlay to completely block background interactions */

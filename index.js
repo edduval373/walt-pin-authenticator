@@ -214,7 +214,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Handle all other routes - serve React app for client-side routing
+// Handle all other routes - serve Disney Pin Authenticator React app
 app.get('*', (req, res) => {
   // Skip API routes
   if (req.path.startsWith('/api/') || req.path.startsWith('/healthz')) {
@@ -230,15 +230,31 @@ app.get('*', (req, res) => {
     });
   }
   
-  // Serve React app for all other routes
+  // Force serve the Disney Pin Authenticator React app with proper centering
+  console.log('Serving Disney Pin Authenticator React app for route:', req.path);
   const indexPath = path.join(clientBuildPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error('Error serving React app:', err);
-      res.status(404).json({
-        success: false,
-        message: 'Frontend application not found'
-      });
+      console.error('Error serving Disney Pin Authenticator:', err);
+      // Fallback to embedded HTML with correct CSS
+      res.send(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Disney Pin Authenticator - W.A.L.T.</title>
+    <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
+    <script type="module" crossorigin src="/assets/index-DQwQ6CII.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DAgQPu_G.css">
+    <style>
+      body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+      #root { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`);
     }
   });
 });

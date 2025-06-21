@@ -1,7 +1,7 @@
-Railway deployment trigger - updated at 2025-06-21 13:31:45
-Eliminated all build steps - no compilation required.
+Railway deployment trigger - updated at 2025-06-21 13:35:15
+Removed Dockerfile to force nixpacks builder usage.
+Modified package.json build script to use no-build.js.
 Created client/dist/index.html for static file serving.
-Fixed package.json start script to use index.js entry point.
 Application status: Working correctly in development environment
 API connectivity: Confirmed working with master.pinauth.com
-Build optimization: Zero-build deployment for Railway
+Build optimization: Nixpacks with no-build deployment for Railway

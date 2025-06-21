@@ -1,41 +1,35 @@
 import { build } from 'vite'
-import { createRequire } from 'module'
+import react from '@vitejs/plugin-react'  
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const require = createRequire(import.meta.url)
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-console.log('Starting fast build for Railway deployment...')
+console.log('Starting optimized build for Railway deployment...')
 
 try {
   await build({
     root: './client',
-    plugins: [
-      {
-        name: 'react-minimal',
-        config() {
-          return {
-            esbuild: {
-              jsx: 'automatic'
-            }
-          }
-        }
-      }
-    ],
+    plugins: [react()],
     resolve: {
       alias: {
-        '@': '/client/src',
-        '@assets': '/attached_assets'
+        '@': path.resolve(__dirname, './client/src'),
+        '@assets': path.resolve(__dirname, './attached_assets')
       }
     },
     build: {
       outDir: '../dist',
       emptyOutDir: true,
-      minify: false,
+      minify: 'terser',
       sourcemap: false,
-      target: 'es2018',
+      target: 'es2020',
       rollupOptions: {
-        external: [],
         output: {
-          manualChunks: undefined
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            query: ['@tanstack/react-query'],
+            router: ['wouter']
+          }
         }
       }
     }

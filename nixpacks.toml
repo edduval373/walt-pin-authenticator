@@ -11,8 +11,8 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "echo 'BUILD DEBUG - Starting optimized build'",
-  "npx vite build --config vite.config.minimal.js",
+  "echo 'BUILD DEBUG - Starting fast build'",
+  "node build-fast.js",
   "echo 'BUILD DEBUG - Build completed, verifying files'",
   "ls -la dist/",
   "test -f dist/index.html && echo 'SUCCESS - Frontend built' || echo 'ERROR - Build failed'"

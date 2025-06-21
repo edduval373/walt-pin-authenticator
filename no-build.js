@@ -1,13 +1,22 @@
 #!/usr/bin/env node
 
 /**
- * No-build script for Railway deployment
- * This replaces the Vite build process that was failing
+ * Disney Pin Authenticator build script for Railway deployment
+ * Builds the complete application without Vite complications
  */
 
-console.log('Skipping build process - using pre-built files');
-console.log('Client files: client/dist/index.html');
-console.log('Server files: index.js (ready to run)');
-console.log('Build completed successfully (no compilation needed)');
+import { execSync } from 'child_process';
 
-process.exit(0);
+console.log('Building Disney Pin Authenticator for Railway...');
+
+try {
+  // Build the React frontend
+  execSync('node build-react-app.js', { stdio: 'inherit' });
+  
+  console.log('✅ Disney Pin Authenticator build completed successfully');
+  console.log('🚀 Ready for Railway deployment with full functionality');
+  process.exit(0);
+} catch (error) {
+  console.error('Build failed:', error.message);
+  process.exit(1);
+}

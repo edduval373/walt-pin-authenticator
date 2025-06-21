@@ -61,23 +61,29 @@ app.get('/healthz', (req, res) => {
 const clientBuildPath = path.join(__dirname, 'client', 'dist');
 app.use(express.static(clientBuildPath));
 
-// Root endpoint - serve the React app
+// Root endpoint - serve the Disney Pin Authenticator React app
 app.get('/', (req, res) => {
   const indexPath = path.join(clientBuildPath, 'index.html');
+  console.log('Serving Disney Pin Authenticator from:', indexPath);
+  
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error('Error serving index.html:', err);
-      res.status(200).json({
-        name: 'Disney Pin Authenticator API',
-        version: '1.0.0',
-        status: 'active',
-        description: 'Mobile API for Disney pin authentication and verification',
-        endpoints: {
-          health: 'GET /health',
-          verify: 'POST /api/verify-pin'
-        },
-        timestamp: new Date().toISOString()
-      });
+      console.error('Error serving Disney Pin Authenticator:', err);
+      // Force serve the correct HTML content for Disney Pin Authenticator  
+      res.send(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Disney Pin Authenticator</title>
+    <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
+    <script type="module" crossorigin src="/assets/index-DQwQ6CII.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DAgQPu_G.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`);
     }
   });
 });

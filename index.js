@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/healthz', (req, res) => {
   res.status(200).json({
     status: 'ok',
     service: 'disney-pin-authenticator',
@@ -211,13 +211,13 @@ app.use((error, req, res, next) => {
 // Handle all other routes - serve React app for client-side routing
 app.get('*', (req, res) => {
   // Skip API routes
-  if (req.path.startsWith('/api/') || req.path.startsWith('/health')) {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/healthz')) {
     return res.status(404).json({
       success: false,
       message: `Endpoint ${req.originalUrl} not found`,
       availableEndpoints: [
         'GET /',
-        'GET /health',
+        'GET /healthz',
         'GET /api/status',
         'POST /api/verify-pin'
       ]

@@ -1,5 +1,8 @@
 [phases.setup]
 nixPkgs = ["nodejs-18_x"]
 
+[phases.build]
+cmds = ["npm run build"]
+
 [start]
-cmd = "node server/standalone-deploy.js"
+cmd = "npm start"

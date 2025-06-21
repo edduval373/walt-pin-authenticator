@@ -1,6 +1,6 @@
-Railway deployment trigger - updated at 2025-06-21 13:17:30
-Fixed npm cache corruption and dependency issues.
-Resolved build failure with clean cache strategy.
+Railway deployment trigger - updated at 2025-06-21 13:21:45
+Switched from Nixpacks to Docker for reliable builds.
+Created Dockerfile with Node.js 18 Alpine for stable deployment.
 Application status: Working correctly in development environment
 API connectivity: Confirmed working with master.pinauth.com
-Build optimization: Cache cleanup and production-only dependencies
+Build optimization: Docker-based deployment with production dependencies

@@ -1,101 +1,214 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import React, { useEffect, useState } from 'react';
+import { RiArrowRightLine, RiArrowDownSLine, RiArrowUpSLine } from "react-icons/ri";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
+import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
+
+// Automatic version management based on recent changes
+// Recent changes: Added expandable legal notice, fixed mobile UX, optimized deployment
+// Change impact: PATCH (bug fixes and optimizations)
+// Suggested version: 1.3.2 (was 1.3.1)
+const APP_VERSION = "1.3.2";
 
 export default function IntroPage() {
   const [_, setLocation] = useLocation();
-  const [showLegalNotice, setShowLegalNotice] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showGetStarted, setShowGetStarted] = useState(false);
+  const [isLegalExpanded, setIsLegalExpanded] = useState(false);
 
-  const handleAcknowledge = () => {
+  const toggleLegalExpanded = () => {
+    setIsLegalExpanded(!isLegalExpanded);
+  };
+
+  const onComplete = () => {
     localStorage.setItem('hasVisitedBefore', 'true');
     setLocation('/overview');
   };
 
+  useEffect(() => {
+    // Only show the automatic loading for a bit, then show the Get Started button
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setShowGetStarted(true);
+          return 100;
+        }
+        return prev + 4;  // Increment by 4% each time (25 steps to reach 100%)
+      });
+    }, 60);  // Update every 60ms
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
-        {/* Logo and Castle Icon */}
-        <div className="mb-8">
-          <div className="relative inline-block mb-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-              <svg viewBox="0 0 100 100" className="w-12 h-12 text-black">
-                <path d="M50 10 L20 35 L30 35 L30 70 L70 70 L70 35 L80 35 Z" fill="currentColor"/>
-                <circle cx="40" cy="50" r="3" fill="white"/>
-                <circle cx="60" cy="50" r="3" fill="white"/>
-                <path d="M45 20 L40 15 L50 5 L60 15 L55 20" fill="currentColor"/>
-              </svg>
-            </div>
-            <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-md">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 text-black">
-                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/>
-              </svg>
-            </div>
-          </div>
-          
-          <h1 className="text-4xl font-light text-gray-800 mb-2">
-            pin<span className="font-bold">auth</span>
-          </h1>
-          <p className="text-lg text-indigo-600 font-medium mb-2">Meet W.A.L.T.</p>
-          <p className="text-sm text-gray-600 mb-4">
-            the World-class Authentication and<br/>
-            Lookup Tool
-          </p>
-          
-          <h2 className="text-2xl font-bold text-indigo-600 mb-2">W.A.L.T. Mobile App</h2>
-          <p className="text-sm text-gray-500 mb-8">BETA Version 1.3.2</p>
-        </div>
-
-        {/* Legal Notice */}
-        <div className="bg-white rounded-lg p-4 mb-6 shadow-sm border border-gray-200">
-          <div className="flex items-center justify-center mb-2">
-            <span className="text-orange-500 mr-2">⚠️</span>
-            <span className="text-sm font-semibold text-gray-700">IMPORTANT LEGAL NOTICE</span>
-          </div>
-          
-          <p className="text-xs font-bold text-gray-800 mb-2">FOR ENTERTAINMENT PURPOSES ONLY.</p>
-          <p className="text-xs text-gray-600 mb-4">
-            This AI application is unreliable and should not be used for financial decisions.
-          </p>
-          
-          <button
-            onClick={() => setShowLegalNotice(!showLegalNotice)}
-            className="text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors"
+    <motion.div 
+      className="fixed inset-0 flex flex-col items-center justify-start bg-gradient-to-b from-indigo-50 to-indigo-100 z-50 overflow-y-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <div className="text-center px-4 max-w-sm w-full py-2 min-h-screen flex flex-col" style={{ paddingTop: '0px', transform: 'translateY(-110px)' }}>
+        
+        {/* Logo at top */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+          className="mb-2"
+        >
+          <img 
+            src={pinAuthLogo}
+            alt="W.A.L.T. Logo" 
+            className="object-contain mx-auto"
+            style={{
+              width: '437px',
+              height: '437px',
+              objectFit: 'contain'
+            }}
+          />
+        </motion.div>
+        
+        {/* Text content */}
+        <div className="flex-1 flex flex-col justify-start" style={{ transform: 'translateY(-146px)' }}>
+          {/* Tagline */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="mb-3 text-center"
           >
-            Read Full Legal Notice {showLegalNotice ? '▲' : '▼'}
-          </button>
+            <p className="text-indigo-600 text-3xl font-medium mb-3">
+              Meet W.A.L.T.
+            </p>
+            <p className="text-indigo-600 text-xl">
+              the World-class Authentication and Lookup Tool
+            </p>
+          </motion.div>
           
-          {showLegalNotice && (
-            <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600 text-left">
-              <p className="mb-2">
-                This application uses artificial intelligence to analyze Disney pin authenticity. 
-                Results are for entertainment purposes only and should not be used as the sole basis 
-                for financial decisions or authentication verification.
-              </p>
-              <p className="mb-2">
-                The accuracy of AI analysis may vary. Always consult with professional authenticators 
-                or official Disney sources for definitive authentication.
-              </p>
-              <p>
-                By using this application, you acknowledge that you understand these limitations 
-                and use the service at your own discretion.
-              </p>
+          {/* App Name and Version */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mb-4 text-center"
+          >
+            <h1 className="text-3xl font-bold text-indigo-700 tracking-tight mb-2">
+              W.A.L.T. Mobile App
+            </h1>
+            <div className="text-indigo-600 text-opacity-90 text-base">
+              BETA Version {APP_VERSION}
             </div>
+          </motion.div>
+        </div>
+        
+        {/* Bottom Section */}
+        <div className="flex-shrink-0" style={{ transform: 'translateY(-146px)' }}>
+          {/* Legal Disclaimer - Expandable Design */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="mb-4 bg-white bg-opacity-90 rounded-xl p-4 border-2 border-indigo-200 shadow-sm"
+          >
+            <div className="flex items-center justify-center mb-2">
+              <div className="text-amber-600 mr-2 text-lg">⚠️</div>
+              <h3 className="text-sm font-bold text-indigo-800">IMPORTANT LEGAL NOTICE</h3>
+            </div>
+            
+            <p className="text-xs text-indigo-700 mb-2 font-semibold">
+              FOR ENTERTAINMENT PURPOSES ONLY.
+            </p>
+            <p className="text-xs text-indigo-600 mb-3">
+              This AI application is unreliable and should not be used for financial decisions.
+            </p>
+            
+            <button
+              onClick={toggleLegalExpanded}
+              className="flex items-center justify-center text-xs text-indigo-600 hover:text-indigo-800 font-semibold transition-colors w-full"
+            >
+              <span className="mr-1">Read Full Legal Notice</span>
+              {isLegalExpanded ? <RiArrowUpSLine className="text-sm" /> : <RiArrowDownSLine className="text-sm" />}
+            </button>
+            
+            <div className={`mt-3 transition-all duration-300 ease-in-out overflow-hidden ${isLegalExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+              <motion.div
+                initial={false}
+                animate={{ opacity: isLegalExpanded ? 1 : 0 }}
+                transition={{ duration: 0.3, delay: isLegalExpanded ? 0.1 : 0 }}
+                className="p-3 bg-indigo-50 rounded-lg text-xs text-indigo-700 text-left leading-relaxed space-y-2"
+              >
+                <div>
+                  <p className="font-semibold mb-1">Disclaimer of Warranties:</p>
+                  <p>
+                    This application provides entertainment value only. Results are not guaranteed to be accurate, complete, or reliable. The AI system may produce false, misleading, or completely incorrect assessments.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1">No Financial Advice:</p>
+                  <p>
+                    Do not use this application for making financial decisions, investment choices, purchase decisions, or determining the actual value of collectibles, antiques, or any items of value.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1">Professional Consultation Required:</p>
+                  <p>
+                    Always consult with professional appraisers, authentication services, and qualified experts for valuable items. This app cannot replace professional expertise.
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1">Limitation of Liability:</p>
+                  <p>
+                    By using this app, you acknowledge these limitations and agree that the developers disclaim all liability for any losses or damages resulting from reliance on AI-generated content.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Loading Bar */}
+          <motion.div 
+            className="w-full h-1.5 bg-indigo-200 rounded-full overflow-hidden mb-4"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: "100%", opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+          >
+            <div 
+              className="h-full bg-indigo-500 rounded-full"
+              style={{ width: `${progress}%`, transition: 'width 0.1s ease-out' }}
+            ></div>
+          </motion.div>
+          
+          {!showGetStarted ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.9 }}
+              transition={{ delay: 1, duration: 0.5 }}
+              className="text-indigo-600 text-xs mb-4"
+            >
+              Loading resources...
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-2"
+            >
+              <Button 
+                onClick={onComplete}
+                className="bg-indigo-500 text-white hover:bg-indigo-600 py-6 px-8 rounded-full shadow-lg border border-indigo-200 text-lg w-full"
+              >
+                <span className="font-bold mr-2">I Acknowledge</span>
+                <RiArrowRightLine className="text-xl" />
+              </Button>
+            </motion.div>
           )}
         </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
-          <div className="bg-indigo-600 h-2 rounded-full w-full"></div>
-        </div>
-
-        {/* Acknowledge Button */}
-        <Button
-          onClick={handleAcknowledge}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-full text-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-        >
-          I Acknowledge →
-        </Button>
       </div>
-    </div>
+    </motion.div>
   );
 }

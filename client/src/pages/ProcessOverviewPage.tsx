@@ -1,84 +1,120 @@
+import React from 'react';
+import { motion } from 'framer-motion';
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
 export default function ProcessOverviewPage() {
   const [_, setLocation] = useLocation();
 
-  const handleGetStarted = () => {
+  const handleStartCamera = () => {
+    setLocation('/camera');
+  };
+
+  const handleUploadPhoto = () => {
+    // For now, redirect to camera - upload can be implemented later
     setLocation('/camera');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
-        {/* Logo */}
-        <div className="mb-8">
-          <div className="relative inline-block mb-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-              <svg viewBox="0 0 100 100" className="w-12 h-12 text-black">
-                <path d="M50 10 L20 35 L30 35 L30 70 L70 70 L70 35 L80 35 Z" fill="currentColor"/>
-                <circle cx="40" cy="50" r="3" fill="white"/>
-                <circle cx="60" cy="50" r="3" fill="white"/>
-                <path d="M45 20 L40 15 L50 5 L60 15 L55 20" fill="currentColor"/>
-              </svg>
-            </div>
-            <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shadow-md">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 text-black">
-                <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/>
-              </svg>
-            </div>
-          </div>
-          
-          <h1 className="text-4xl font-light text-gray-800 mb-2">
-            pin<span className="font-bold">auth</span>
-          </h1>
-          <p className="text-lg text-indigo-600 font-medium mb-6">Disney Pin Authentication</p>
-        </div>
-
-        {/* Step-by-Step Instructions */}
-        <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border border-gray-200 text-left">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">How to Use W.A.L.T.</h3>
-          
-          <div className="space-y-4">
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-1">1</div>
-              <div>
-                <h4 className="font-medium text-gray-800">Place Your Pin</h4>
-                <p className="text-sm text-gray-600">Position your Disney pin on a flat, well-lit surface</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-1">2</div>
-              <div>
-                <h4 className="font-medium text-gray-800">Take Photos</h4>
-                <p className="text-sm text-gray-600">Capture clear images of the front and back of your pin</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-1">3</div>
-              <div>
-                <h4 className="font-medium text-gray-800">Get Results</h4>
-                <p className="text-sm text-gray-600">W.A.L.T. will analyze your pin and provide authentication details</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Get Started Button */}
-        <Button
-          onClick={handleGetStarted}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-colors shadow-lg"
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center shadow-xl border border-white border-opacity-20"
+      >
+        {/* Castle Icon */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.6, type: "spring", bounce: 0.3 }}
+          className="mb-6"
         >
-          Start Camera →
-        </Button>
-        
-        {/* Legal Notice */}
-        <p className="text-xs text-gray-500 mt-4">
-          For entertainment purposes only. Not for financial decisions.
-        </p>
-      </div>
+          <div className="w-16 h-16 mx-auto bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3L2 12H5V20H9V16H15V20H19V12H22L12 3Z" fill="white"/>
+              <path d="M8 8H10V10H8V8Z" fill="rgba(139, 69, 193, 0.8)"/>
+              <path d="M14 8H16V10H14V8Z" fill="rgba(139, 69, 193, 0.8)"/>
+              <path d="M11 12H13V16H11V12Z" fill="rgba(139, 69, 193, 0.8)"/>
+              <circle cx="7" cy="6" r="1.5" fill="red"/>
+              <circle cx="17" cy="6" r="1.5" fill="red"/>
+              <circle cx="12" cy="4" r="1.5" fill="red"/>
+            </svg>
+          </div>
+        </motion.div>
+
+        {/* Title */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mb-2"
+        >
+          <h1 className="text-3xl font-bold text-white mb-2">Disney Pin Authenticator</h1>
+          <p className="text-white text-opacity-80 text-sm">
+            Authentic Disney pin analysis powered by<br />
+            master.pinauth.com
+          </p>
+        </motion.div>
+
+        {/* Steps */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="mb-8 space-y-4"
+        >
+          <div className="flex items-center text-white text-sm">
+            <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3 flex-shrink-0">
+              1
+            </div>
+            <span>Take a photo of your Disney pin</span>
+          </div>
+          <div className="flex items-center text-white text-sm">
+            <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3 flex-shrink-0">
+              2
+            </div>
+            <span>Computer checks if it's real</span>
+          </div>
+          <div className="flex items-center text-white text-sm">
+            <div className="w-6 h-6 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3 flex-shrink-0">
+              3
+            </div>
+            <span>Get your answer!</span>
+          </div>
+        </motion.div>
+
+        {/* Buttons */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="space-y-3"
+        >
+          <Button
+            onClick={handleStartCamera}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg"
+          >
+            Start Camera
+          </Button>
+          <Button
+            onClick={handleUploadPhoto}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg"
+          >
+            Upload Photo
+          </Button>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-6 text-white text-opacity-60 text-xs"
+        >
+          Works on iPhone, Android, and desktop browsers
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

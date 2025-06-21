@@ -61,31 +61,63 @@ app.get('/healthz', (req, res) => {
 const clientBuildPath = path.join(__dirname, 'client', 'dist');
 app.use(express.static(clientBuildPath));
 
-// Root endpoint - serve the Disney Pin Authenticator React app
+// Root endpoint - force serve Disney Pin Authenticator
 app.get('/', (req, res) => {
-  const indexPath = path.join(clientBuildPath, 'index.html');
-  console.log('Serving Disney Pin Authenticator from:', indexPath);
+  console.log('Force serving Disney Pin Authenticator with W.A.L.T. interface');
   
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error('Error serving Disney Pin Authenticator:', err);
-      // Force serve the correct HTML content for Disney Pin Authenticator  
-      res.send(`<!DOCTYPE html>
+  // Embedded Disney Pin Authenticator with proper styling
+  res.send(`<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Disney Pin Authenticator</title>
+    <title>Disney Pin Authenticator - W.A.L.T.</title>
     <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
-    <script type="module" crossorigin src="/assets/index-DQwQ6CII.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DAgQPu_G.css">
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; }
+      .app-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: linear-gradient(to bottom, #eef2ff, #e0e7ff); overflow-y: auto; z-index: 50; }
+      .content-wrapper { text-align: center; padding: 0 1rem; max-width: 24rem; width: 100%; padding-top: 0px; min-height: 100vh; display: flex; flex-direction: column; transform: translateY(-110px); }
+      .logo-section { margin-bottom: 0.5rem; }
+      .logo { width: 300px; height: 300px; background: #4f46e5; border-radius: 50%; margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold; }
+      .text-content { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; transform: translateY(-100px); }
+      .tagline { margin-bottom: 0.75rem; text-align: center; }
+      .meet-walt { color: #4f46e5; font-size: 1.875rem; line-height: 2.25rem; font-weight: 500; margin-bottom: 0.75rem; }
+      .description { color: #4f46e5; font-size: 1.25rem; line-height: 1.75rem; }
+      .title-section { margin-bottom: 1rem; text-align: center; }
+      .app-title { font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; color: #4338ca; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
+      .version { font-size: 0.875rem; line-height: 1.25rem; color: #4f46e5; font-weight: 600; }
+      .legal-section { margin-top: 2rem; }
+      .legal-title { color: #374151; font-weight: 700; margin-bottom: 1rem; }
+      .legal-text { color: #6b7280; font-size: 0.875rem; line-height: 1.25rem; margin-bottom: 0.5rem; }
+      .warning { color: #ef4444; font-weight: 600; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div class="app-container">
+      <div class="content-wrapper">
+        <div class="logo-section">
+          <div class="logo">W.A.L.T.</div>
+        </div>
+        <div class="text-content">
+          <div class="tagline">
+            <p class="meet-walt">Meet W.A.L.T.</p>
+            <p class="description">the World-class Authentication and Lookup Tool</p>
+          </div>
+          <div class="title-section">
+            <h1 class="app-title">W.A.L.T. Mobile App</h1>
+            <p class="version">BETA Version 1.3.2</p>
+          </div>
+          <div class="legal-section">
+            <h2 class="legal-title">IMPORTANT LEGAL NOTICE</h2>
+            <p class="legal-text">FOR ENTERTAINMENT PURPOSES ONLY</p>
+            <p class="legal-text warning">This AI application is unreliable and should not be used for financial decisions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>`);
-    }
-  });
 });
 
 // Pin verification endpoint

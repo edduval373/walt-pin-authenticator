@@ -1,7 +1,7 @@
-Railway deployment trigger - updated at 2025-06-21 14:15:15
-Created complete Disney Pin Authenticator build with all required assets.
-Includes W.A.L.T. logo, CSS styles, JavaScript bundle, and proper HTML structure.
-Build script updated to use create-complete-build.js for full application.
-Production server configured to serve complete Disney Pin Authenticator.
-Package.json build: "node no-build.js" creates working W.A.L.T. interface.
-Ready for Railway deployment with complete functional application.
+Railway deployment trigger - updated at 2025-06-21 14:18:45
+Fixed production server to force serve Disney Pin Authenticator with proper centering.
+Embedded complete W.A.L.T. interface with legal notice and Disney branding.
+Updated index.js to always serve Disney Pin Authenticator, never fallback content.
+Removed conflicting static files that were causing wrong page display.
+Production server now serves properly formatted and centered W.A.L.T. app.
+Ready for Railway deployment with correct Disney Pin Authenticator interface.

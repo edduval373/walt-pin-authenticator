@@ -10,13 +10,13 @@ import { execSync } from 'child_process';
 console.log('Building Disney Pin Authenticator for Railway...');
 
 try {
-  // Build the complete Disney Pin Authenticator React app
-  execSync('node build-production.js', { stdio: 'inherit' });
+  // Apply CSS formatting fix for Disney Pin Authenticator
+  execSync('node quick-css-fix.js', { stdio: 'inherit' });
   
-  console.log('✅ Disney Pin Authenticator build completed successfully');
-  console.log('🚀 Ready for Railway deployment with complete three-screen flow');
+  console.log('✅ Disney Pin Authenticator CSS fix applied successfully');
+  console.log('🚀 Ready for Railway deployment with proper formatting');
   process.exit(0);
 } catch (error) {
-  console.error('Build failed:', error.message);
+  console.error('CSS fix failed:', error.message);
   process.exit(1);
 }

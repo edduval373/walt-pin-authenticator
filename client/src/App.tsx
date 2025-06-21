@@ -75,7 +75,6 @@ function Router() {
 
 function App() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
   const [_, setLocation] = useLocation();
 
   // Navigation functions for context
@@ -84,8 +83,8 @@ function App() {
     const currentPath = window.location.pathname;
     
     if (currentPath === '/camera') {
-      // When on camera page, show splash screen instead of just navigating to intro
-      setShowSplash(true);
+      // When on camera page, go back to intro page
+      setLocation('/');
     } else if (currentPath === '/processing') {
       setLocation('/camera');
     } else if (currentPath === '/results') {
@@ -96,7 +95,7 @@ function App() {
   };
   
   const showSplashScreen = () => {
-    setShowSplash(true);
+    setLocation('/');
   };
 
   // Check if this is the first load of the app in the current session
@@ -110,21 +109,15 @@ function App() {
       <QueryClientProvider client={queryClient}>
           <NavigationContext.Provider value={{ goBack, showSplashScreen }}>
             <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-indigo-100">
-              {showSplash ? (
-                <SplashScreen onComplete={() => setShowSplash(false)} />
-              ) : (
-                <>
-                  <Header onInfoClick={() => setIsInfoModalOpen(true)} />
-                  <main className="flex-grow transition-all duration-300">
-                    <Router />
-                  </main>
-                  <InfoModal 
-                    isOpen={isInfoModalOpen} 
-                    onClose={() => setIsInfoModalOpen(false)}
-                  />
-                  {/* <Toaster /> */}
-                </>
-              )}
+              <Header onInfoClick={() => setIsInfoModalOpen(true)} />
+              <main className="flex-grow transition-all duration-300">
+                <Router />
+              </main>
+              <InfoModal 
+                isOpen={isInfoModalOpen} 
+                onClose={() => setIsInfoModalOpen(false)}
+              />
+              {/* <Toaster /> */}
             </div>
           </NavigationContext.Provider>
       </QueryClientProvider>

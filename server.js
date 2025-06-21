@@ -1,85 +1,85 @@
-import express from 'express';
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
+// Middleware
+app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-app.get('/', (req, res) => {
-  res.json({
-    service: 'Disney Pin Authenticator',
-    status: 'active',
-    version: '1.0.0',
-    endpoints: {
-      health: 'GET /health',
-      verify: 'POST /api/verify-pin'
-    }
-  });
+// Serve static files from client build
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Health check endpoint
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    port: port
-  });
-});
-
-app.post('/api/verify-pin', async (req, res) => {
-  const { frontImage, backImage, angledImage } = req.body;
-  
-  if (!frontImage) {
-    return res.status(400).json({
-      success: false,
-      message: 'Front image required'
-    });
-  }
-
+// API endpoint for pin analysis
+app.post('/api/analyze', async (req, res) => {
   try {
-    const apiKey = process.env.MOBILE_API_KEY;
+    const { frontImage, backImage, angledImage } = req.body;
+    
+    if (!frontImage) {
+      return res.status(400).json({ success: false, message: 'Front image is required' });
+    }
+
+    // Generate session ID
+    const sessionId = Date.now().toString();
+    
+    // Prepare data for master API
     const formData = new FormData();
-    
-    const frontBuffer = Buffer.from(frontImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
-    formData.append('front_image', new Blob([frontBuffer]), 'front.jpg');
-    
-    if (backImage) {
-      const backBuffer = Buffer.from(backImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
-      formData.append('back_image', new Blob([backBuffer]), 'back.jpg');
-    }
-    
-    if (angledImage) {
-      const angledBuffer = Buffer.from(angledImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
-      formData.append('angled_image', new Blob([angledBuffer]), 'angled.jpg');
-    }
-    
-    formData.append('api_key', apiKey);
-    
+    formData.append('sessionId', sessionId);
+    formData.append('frontImageData', frontImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    if (backImage) formData.append('backImageData', backImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    if (angledImage) formData.append('angledImageData', angledImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+
+    // Call master API
     const response = await fetch('https://master.pinauth.com/mobile-upload', {
       method: 'POST',
+      headers: {
+        'X-API-Key': process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
+      },
       body: formData
     });
-    
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
     const result = await response.json();
     
+    // Return standardized response
     res.json({
       success: true,
-      message: result.message || 'Verification complete',
-      sessionId: result.sessionId || Date.now().toString(),
-      id: result.id || Math.floor(Math.random() * 10000),
-      characters: result.characters || 'Disney characters detected',
-      analysis: result.analysis || 'Pin authenticated',
-      identification: result.identification || 'Official Disney pin',
-      pricing: result.pricing || 'Market value available'
+      pinId: result.sessionId || sessionId,
+      sessionId: result.sessionId || sessionId,
+      authentic: result.authentic || false,
+      authenticityRating: result.authenticityRating || 0,
+      analysis: result.analysis || 'No analysis available',
+      identification: result.identification || result.characters || 'No identification available',
+      pricing: result.pricing || 'No pricing information available',
+      message: result.message || 'Analysis completed successfully',
+      timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
+    console.error('Analysis error:', error);
     res.status(500).json({
       success: false,
-      message: 'Service temporarily unavailable'
+      message: 'Analysis failed: ' + error.message
     });
   }
 });
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
+// Serve React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });

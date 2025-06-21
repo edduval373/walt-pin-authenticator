@@ -3,9 +3,9 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "node server/production-railway.cjs",
+    "startCommand": "node server.js",
     "healthcheckPath": "/healthz",
-    "healthcheckTimeout": 300,
+    "healthcheckTimeout": 180,
     "restartPolicyType": "on_failure"
   }
 }

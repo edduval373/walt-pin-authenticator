@@ -1,23 +1,15 @@
-[phases.setup]
-nixPkgs = ["nodejs-18_x"]
-
-[phases.install]
-cmds = [
-  "echo 'BUILD DEBUG - Installing production dependencies only'",
-  "npm ci --production",
-  "echo 'BUILD DEBUG - Install completed'"
-]
+[variables]
+NODE_ENV = "production"
+NIXPACKS_NODE_VERSION = "18"
 
 [phases.build]
 cmds = [
-  "echo 'BUILD DEBUG - Creating optimized frontend'",
-  "mkdir -p dist",
-  "echo 'BUILD DEBUG - Using streamlined build process'",
-  "timeout 300 npx vite build --config vite.config.core.js || echo 'Build timeout - using fallback'",
-  "test -f dist/index.html || cp dist/index.html.backup dist/index.html 2>/dev/null || echo 'Frontend will be served directly'",
-  "ls -la dist/",
-  "echo 'BUILD DEBUG - Deployment ready'"
+  "npm ci --only=production",
+  "npm run build"
 ]
 
+[phases.install]
+cmds = ["npm ci --prefer-offline --no-audit --progress=false"]
+
 [start]
-cmd = "node server/production-railway.cjs"
+cmd = "npm start"

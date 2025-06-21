@@ -8,4 +8,4 @@ cmds = ["npm ci --production=false"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "node server/production-railway.js"
+cmd = "node server/production-railway.cjs"

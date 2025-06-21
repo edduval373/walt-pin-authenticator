@@ -4,7 +4,8 @@ const path = require('path');
 const { Pool } = require('pg');
 
 const app = express();
-const port = parseInt(process.env.PORT || '8080', 10);
+const port = parseInt(process.env.PORT || '3000', 10);
+const host = '0.0.0.0';
 
 // Database connection
 const pool = new Pool({
@@ -28,7 +29,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// Health check endpoints
+app.get('/', (req, res) => {
+  res.json({
+    status: 'healthy',
+    service: 'Disney Pin Authenticator',
+    timestamp: new Date().toISOString(),
+    port: port
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -217,10 +227,12 @@ app.use((err, req, res, next) => {
 
 const server = createServer(app);
 
-server.listen(port, '0.0.0.0', () => {
-  console.log(`Disney Pin Authenticator server running on port ${port}`);
-  console.log(`Health check: http://localhost:${port}/health`);
+server.listen(port, host, () => {
+  console.log(`Disney Pin Authenticator server running on ${host}:${port}`);
+  console.log(`Health check: http://${host}:${port}/health`);
   console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
+  console.log(`Database URL configured: ${!!process.env.DATABASE_URL}`);
+  console.log(`API Key configured: ${!!process.env.MOBILE_API_KEY}`);
 });
 
 // Graceful shutdown

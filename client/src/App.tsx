@@ -78,6 +78,7 @@ function Router() {
 function App() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [_, setLocation] = useLocation();
+  const [location] = useLocation();
 
   // Navigation functions for context
   const goBack = () => {
@@ -111,7 +112,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
           <NavigationContext.Provider value={{ goBack, showSplashScreen }}>
             <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-indigo-100">
-              <Header onInfoClick={() => setIsInfoModalOpen(true)} />
+              {location !== '/' && <Header onInfoClick={() => setIsInfoModalOpen(true)} />}
               <main className="flex-grow transition-all duration-300">
                 <Router />
               </main>

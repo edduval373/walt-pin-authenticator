@@ -2,10 +2,39 @@ const express = require('express');
 const { createServer } = require('http');
 const path = require('path');
 const { Pool } = require('pg');
+const fs = require('fs');
+
+console.log('STARTUP DEBUG - Starting Disney Pin Authenticator production server');
+console.log('STARTUP DEBUG - Node version:', process.version);
+console.log('STARTUP DEBUG - Current working directory:', process.cwd());
+console.log('STARTUP DEBUG - Script directory:', __dirname);
 
 const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
 const host = '0.0.0.0';
+
+console.log('STARTUP DEBUG - Server will bind to:', `${host}:${port}`);
+
+// Check if dist directory exists at startup
+const distPath = path.join(__dirname, '../dist');
+console.log('STARTUP DEBUG - Checking dist directory at:', distPath);
+
+try {
+  const distStats = fs.statSync(distPath);
+  if (distStats.isDirectory()) {
+    const distContents = fs.readdirSync(distPath);
+    console.log('STARTUP DEBUG - Dist directory exists with contents:', distContents);
+    
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      console.log('STARTUP DEBUG - index.html found at:', indexPath);
+    } else {
+      console.error('STARTUP ERROR - index.html NOT FOUND at:', indexPath);
+    }
+  }
+} catch (err) {
+  console.error('STARTUP ERROR - Dist directory not accessible:', err.message);
+}
 
 // Database connection
 const pool = new Pool({
@@ -207,8 +236,20 @@ app.post('/api/mobile/confirm-pin', async (req, res) => {
   }
 });
 
-// Serve static files from dist directory
-app.use(express.static(path.join(__dirname, '../dist')));
+// Serve static files from dist directory with debugging
+const staticPath = path.join(__dirname, '../dist');
+console.log('STATIC DEBUG - Setting up static file serving from:', staticPath);
+
+app.use('/', (req, res, next) => {
+  console.log(`REQUEST DEBUG - ${req.method} ${req.path} - User-Agent: ${req.get('User-Agent')}`);
+  next();
+});
+
+app.use(express.static(staticPath, {
+  setHeaders: (res, path) => {
+    console.log('STATIC DEBUG - Serving static file:', path);
+  }
+}));
 
 // Catch-all handler for SPA - but exclude API routes
 app.get('*', (req, res) => {
@@ -222,38 +263,34 @@ app.get('*', (req, res) => {
   
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error('Error serving index.html:', err);
-      // Fallback: serve a simple HTML page if dist files aren't available
-      res.status(200).send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Disney Pin Authenticator</title>
-          <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; }
-            h1 { margin-bottom: 20px; }
-            p { margin-bottom: 30px; }
-            .status { background: rgba(0,255,0,0.2); padding: 15px; border-radius: 10px; margin: 20px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>Disney Pin Authenticator</h1>
-            <div class="status">
-              <h3>Server Status: Active</h3>
-              <p>API endpoints are running and connected to master.pinauth.com</p>
-            </div>
-            <p>The application server is running successfully on Railway.</p>
-            <p>Frontend build deployment in progress...</p>
-            <p><strong>API Health:</strong> <a href="/api/health" style="color: lightblue;">/api/health</a></p>
-            <p><strong>System Health:</strong> <a href="/healthz" style="color: lightblue;">/healthz</a></p>
-          </div>
-        </body>
-        </html>
-      `);
+      console.error('FRONTEND ERROR - Failed to serve index.html:', err);
+      console.error('FRONTEND ERROR - Index path attempted:', indexPath);
+      console.error('FRONTEND ERROR - Current directory:', __dirname);
+      console.error('FRONTEND ERROR - Process CWD:', process.cwd());
+      
+      // List dist directory contents for debugging
+      const fs = require('fs');
+      const distPath = path.join(__dirname, '../dist');
+      
+      try {
+        const distContents = fs.readdirSync(distPath);
+        console.error('FRONTEND ERROR - Dist directory contents:', distContents);
+      } catch (dirErr) {
+        console.error('FRONTEND ERROR - Cannot read dist directory:', dirErr.message);
+      }
+      
+      // Return actual error details instead of fallback
+      res.status(500).json({
+        error: 'Frontend files not found',
+        details: {
+          message: err.message,
+          code: err.code,
+          indexPath: indexPath,
+          distPath: distPath,
+          currentDir: __dirname,
+          processDir: process.cwd()
+        }
+      });
     }
   });
 });

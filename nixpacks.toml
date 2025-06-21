@@ -2,10 +2,24 @@
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
-cmds = ["npm ci --production=false"]
+cmds = [
+  "echo 'BUILD DEBUG - Starting npm install'",
+  "npm ci --production=false",
+  "echo 'BUILD DEBUG - npm install completed'"
+]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "echo 'BUILD DEBUG - Starting build process'",
+  "echo 'BUILD DEBUG - Current directory contents:'",
+  "ls -la",
+  "echo 'BUILD DEBUG - Running npm run build'",
+  "npm run build",
+  "echo 'BUILD DEBUG - Build completed, checking dist directory'",
+  "ls -la dist/",
+  "echo 'BUILD DEBUG - Checking if index.html exists'",
+  "test -f dist/index.html && echo 'BUILD DEBUG - index.html found' || echo 'BUILD ERROR - index.html NOT FOUND'"
+]
 
 [start]
 cmd = "node server/production-railway.cjs"

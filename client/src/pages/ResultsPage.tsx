@@ -27,6 +27,10 @@ export default function ResultsPage() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackType, setFeedbackType] = useState<'agree' | 'disagree'>('agree');
   
+  // Step progress configuration
+  const stepNames = ['Start', 'Photo', 'Check', 'Results'];
+  const currentStep = 4; // We're on the results step
+  
   // Get analysis result from sessionStorage
   const analysisResultJson = sessionStorage.getItem('analysisResult');
   const capturedImagesJson = sessionStorage.getItem('capturedImages');
@@ -299,8 +303,18 @@ export default function ResultsPage() {
         </div>
       )}
       
+      {/* Step Progress Header */}
+      <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 py-4 px-4 shadow-sm">
+        <StepProgress 
+          currentStep={currentStep} 
+          totalSteps={4} 
+          stepNames={stepNames}
+          statusText="Analysis Complete"
+        />
+      </div>
+      
       {/* Action Buttons Header */}
-      <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 py-3 px-4 shadow-sm">
+      <div className="bg-white py-3 px-4 shadow-sm border-b">
         <div className="flex justify-between items-center">
           <Button variant="ghost" size="sm" onClick={() => {
             // Clear session data and go back to camera

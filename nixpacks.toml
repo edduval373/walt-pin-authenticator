@@ -3,24 +3,19 @@ nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
 cmds = [
-  "echo 'BUILD DEBUG - Starting npm install'",
+  "echo 'BUILD DEBUG - Using minimal dependencies'",
+  "cp package.minimal.json package.json",
   "npm ci --production=false",
-  "echo 'BUILD DEBUG - npm install completed'"
+  "echo 'BUILD DEBUG - Install completed with minimal deps'"
 ]
 
 [phases.build]
 cmds = [
-  "echo 'BUILD DEBUG - Starting build process'",
-  "echo 'BUILD DEBUG - Current directory contents:'",
-  "ls -la",
-  "echo 'BUILD DEBUG - Creating dist directory'",
-  "mkdir -p dist",
-  "echo 'BUILD DEBUG - Copying static files'",
-  "cp dist/index.html dist/index.html.backup || echo 'No existing index.html to backup'",
-  "echo 'BUILD DEBUG - Build completed, checking dist directory'",
+  "echo 'BUILD DEBUG - Starting optimized build'",
+  "npx vite build --config vite.config.minimal.js",
+  "echo 'BUILD DEBUG - Build completed, verifying files'",
   "ls -la dist/",
-  "echo 'BUILD DEBUG - Checking if index.html exists'",
-  "test -f dist/index.html && echo 'BUILD DEBUG - index.html found' || echo 'BUILD ERROR - index.html NOT FOUND'"
+  "test -f dist/index.html && echo 'SUCCESS - Frontend built' || echo 'ERROR - Build failed'"
 ]
 
 [start]

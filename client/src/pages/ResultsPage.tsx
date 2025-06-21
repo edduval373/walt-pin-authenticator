@@ -27,21 +27,15 @@ export default function ResultsPage() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackType, setFeedbackType] = useState<'agree' | 'disagree'>('agree');
   
-  // Step progress configuration
-  const stepNames = ['Start', 'Photo', 'Check', 'Results'];
-  const currentStep = 4; // We're on the results step
-  
   // Get analysis result from sessionStorage
   const analysisResultJson = sessionStorage.getItem('analysisResult');
   const capturedImagesJson = sessionStorage.getItem('capturedImages');
   const serverResponseJson = sessionStorage.getItem('serverResponse');
-  const rawServerResponseJson = sessionStorage.getItem('rawServerResponse');
   
   // Parse the analysis result, or redirect to camera if missing
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
   const [serverResponse, setServerResponse] = useState<any>(null);
-  const [rawServerResponse, setRawServerResponse] = useState<any>(null);
 
   // Function to process markdown headers in HTML content
   const processMarkdownHeaders = (htmlContent: string): string => {
@@ -73,489 +67,389 @@ export default function ResultsPage() {
     processed = processed.replace(/##\s+(.+?)(?=\n|<|$)/g, '<h2 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h2>');
     
     // Convert ### headers
-    processed = processed.replace(/^###\s+(.+)$/gm, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
-    processed = processed.replace(/<p><p>###\s+(.+?)<\/p><\/p>/g, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
-    processed = processed.replace(/<p>###\s+(.+?)<\/p>/g, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
-    processed = processed.replace(/###\s+(.+?)(?=\n|<|$)/g, '<h3 class="text-base font-semibold mt-4 mb-2 text-gray-700">$1</h3>');
-    
-    // Convert #### headers
-    processed = processed.replace(/^####\s+(.+)$/gm, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
-    processed = processed.replace(/<p><p>####\s+(.+?)<\/p><\/p>/g, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
-    processed = processed.replace(/<p>####\s+(.+?)<\/p>/g, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
-    processed = processed.replace(/####\s+(.+?)(?=\n|<|$)/g, '<h4 class="text-sm font-semibold mt-3 mb-2 text-gray-600">$1</h4>');
+    processed = processed.replace(/^###\s+(.+)$/gm, '<h3 class="text-base font-medium mt-4 mb-2 text-gray-700">$1</h3>');
+    processed = processed.replace(/<p>###\s+(.+?)<\/p>/g, '<h3 class="text-base font-medium mt-4 mb-2 text-gray-700">$1</h3>');
+    processed = processed.replace(/###\s+(.+?)(?=\n|<|$)/g, '<h3 class="text-base font-medium mt-4 mb-2 text-gray-700">$1</h3>');
     
     return processed;
   };
 
-
-
-  // Function to handle user feedback
-  const handleFeedback = (feedback: 'positive' | 'negative') => {
-    setUserFeedback(feedback);
+  useEffect(() => {
+    console.log("Loading results data from sessionStorage");
     
-    // Set feedback type for modal
-    setFeedbackType(feedback === 'positive' ? 'agree' : 'disagree');
-    
-    // Open feedback modal for comment collection
-    setShowFeedbackModal(true);
-    
-    // Log the feedback for analytics
-    console.log(`User feedback: ${feedback} for analysis rating ${rating.text}`);
-  };
-  
-  // Function to remove white background from pin image
-  const handleRemoveBackground = async () => {
-    if (!capturedImages?.front) {
-      console.log('No front image available');
-      return;
+    if (analysisResultJson) {
+      try {
+        const parsedResult = JSON.parse(analysisResultJson);
+        setResult(parsedResult);
+        console.log("Loaded analysis result:", parsedResult);
+      } catch (error) {
+        console.error("Failed to parse analysis result:", error);
+      }
     }
     
-    // If already processed, reset to original
-    if (processedImage) {
-      setProcessedImage(null);
-      return;
+    if (capturedImagesJson) {
+      try {
+        const parsedImages = JSON.parse(capturedImagesJson);
+        setCapturedImages(parsedImages);
+        console.log("Loaded captured images");
+      } catch (error) {
+        console.error("Failed to parse captured images:", error);
+      }
     }
     
-    console.log('Starting background removal process...');
+    if (serverResponseJson) {
+      try {
+        const parsedResponse = JSON.parse(serverResponseJson);
+        setServerResponse(parsedResponse);
+        console.log("Loaded server response:", parsedResponse);
+      } catch (error) {
+        console.error("Failed to parse server response:", error);
+      }
+    }
+    
+    // If no analysis result found, redirect to camera
+    if (!analysisResultJson && !serverResponseJson) {
+      console.log("No analysis result found, redirecting to camera");
+      setLocation('/camera');
+    }
+  }, [analysisResultJson, capturedImagesJson, serverResponseJson, setLocation]);
+
+  // Auto-crop the current image when cropping is requested
+  const handleAutoCrop = async () => {
+    const currentImage = getCurrentImage();
+    if (!currentImage) return;
+    
+    console.log("Auto-cropping image...");
     setIsProcessingImage(true);
+    
     try {
-      const processedImageData = await removeWhiteBackgroundAdvanced(capturedImages.front, 40);
-      console.log('Background removal successful');
-      setProcessedImage(processedImageData);
+      const croppedImage = await cropImageToContent(currentImage);
+      setProcessedImage(croppedImage);
+      console.log("Auto cropping successful");
     } catch (error) {
-      console.error('Error removing background:', error);
-      alert('Failed to remove background. Please try again.');
+      console.error("Auto cropping failed:", error);
     } finally {
       setIsProcessingImage(false);
     }
   };
   
-  useEffect(() => {
-    if (!analysisResultJson || !capturedImagesJson) {
-      console.log('Missing required data, redirecting to camera');
-      setLocation('/camera');
-      return;
+  // Get the current image based on selected view
+  const getCurrentImage = () => {
+    if (!capturedImages) return null;
+    switch (currentView) {
+      case 'front': return capturedImages.front;
+      case 'back': return capturedImages.back;
+      case 'angled': return capturedImages.angled;
+      default: return capturedImages.front;
     }
-    
-    try {
-      const parsedResult = JSON.parse(analysisResultJson) as AnalysisResult;
-      const parsedImages = JSON.parse(capturedImagesJson) as CapturedImages;
-      
-      // Ensure required fields exist
-      if (!parsedResult || !parsedImages || !parsedImages.front) {
-        console.error('Invalid data structure, redirecting to camera');
-        setLocation('/camera');
-        return;
-      }
-      
-      setResult(parsedResult);
-      setCapturedImages(parsedImages);
-      
-      // Parse server response if available
-      if (serverResponseJson) {
-        try {
-          const parsedServerResponse = JSON.parse(serverResponseJson);
-          console.log("Parsed server response:", parsedServerResponse);
-          setServerResponse(parsedServerResponse);
-        } catch (responseErr) {
-          console.error('Failed to parse server response:', responseErr);
-          setLocation('/camera');
-          return;
-        }
-      }
-      
-      // Parse raw server response for debugging display
-      if (rawServerResponseJson) {
-        try {
-          const parsedRawResponse = JSON.parse(rawServerResponseJson);
-          setRawServerResponse(parsedRawResponse);
-        } catch (rawErr) {
-          console.error('Failed to parse raw server response:', rawErr);
-        }
-      }
-      
-      // Automatically crop image when loaded
-      if (parsedImages.front && !processedImage) {
-        console.log('Auto-cropping image...');
-        setIsProcessingImage(true);
-        
-        // Crop the image to focus on the pin
-        cropImageToContent(parsedImages.front, 20)
-          .then(croppedImageData => {
-            console.log('Auto cropping successful');
-            setProcessedImage(croppedImageData);
-          })
-          .catch(error => {
-            console.error('Auto cropping failed:', error);
-          })
-          .finally(() => {
-            setIsProcessingImage(false);
-          });
-      }
-    } catch (err) {
-      console.error('Failed to parse analysis result or images:', err);
-      console.error('Error details:', err);
-      setLocation('/camera');
-    }
-  }, [analysisResultJson, capturedImagesJson, serverResponseJson, rawServerResponseJson, setLocation]);
+  };
   
-  // If result or images are not available yet, show loading
-  if (!result || !capturedImages) {
+  // Handle feedback submission
+  const handleFeedback = (type: 'agree' | 'disagree') => {
+    setFeedbackType(type);
+    setShowFeedbackModal(true);
+  };
+  
+  // Get authenticity rating information
+  const rating = (() => {
+    const ratingValue = serverResponse?.authenticityRating || result?.authenticityRating || 0;
+    
+    if (ratingValue >= 85) {
+      return {
+        value: ratingValue,
+        label: "Highly Authentic",
+        color: "text-green-600",
+        bgColor: "bg-green-50",
+        borderColor: "border-green-200",
+        icon: RiShieldCheckLine
+      };
+    } else if (ratingValue >= 70) {
+      return {
+        value: ratingValue,
+        label: "Likely Authentic",
+        color: "text-yellow-600",
+        bgColor: "bg-yellow-50",
+        borderColor: "border-yellow-200",
+        icon: RiShieldLine
+      };
+    } else if (ratingValue >= 50) {
+      return {
+        value: ratingValue,
+        label: "Questionable",
+        color: "text-orange-600",
+        bgColor: "bg-orange-50",
+        borderColor: "border-orange-200",
+        icon: RiShieldLine
+      };
+    } else {
+      return {
+        value: ratingValue,
+        label: "Likely Counterfeit",
+        color: "text-red-600",
+        bgColor: "bg-red-50",
+        borderColor: "border-red-200",
+        icon: RiCloseCircleLine
+      };
+    }
+  })();
+  
+  if (!result && !serverResponse) {
     return (
-      <div className="flex-grow flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-indigo-500 border-t-transparent rounded-full"></div>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-indigo-600 mb-4">
+            <RiRefreshLine className="text-4xl mx-auto animate-spin" />
+          </div>
+          <p className="text-gray-600 mb-4">Loading analysis results...</p>
+          <Button onClick={() => setLocation('/camera')} variant="outline">
+            Return to Camera
+          </Button>
+        </div>
       </div>
     );
   }
-
-  // Function to get search query for eBay
-  const getSearchQuery = (): string => {
-    // Use the pin ID if available, otherwise use "disney pin" as a generic term
-    if (result.pinId && result.pinId.trim() !== '') {
-      return result.pinId;
-    }
-    return "disney pin";
-  };
-  
-  // Extract rating from authentic server analysis field only
-  const getRating = (): { value: number, text: string, description: string } => {
-    // Check if server provided analysis data
-    if (serverResponse?.analysis && serverResponse.analysis !== null) {
-      const analysisText = serverResponse.analysis;
-      
-      // Check for "no pin" indicators in authentic server response
-      if (analysisText.toLowerCase().includes("no disney pin") || 
-          analysisText.toLowerCase().includes("don't see any disney pin") ||
-          analysisText.toLowerCase().includes("no pin visible") ||
-          analysisText.toLowerCase().includes("unable to provide an authenticity verification")) {
-        return {
-          value: 0,
-          text: '0/5',
-          description: 'No Pin Found in the image'
-        };
-      }
-      
-      // Look for "Final Rating:" pattern in authentic server analysis
-      const ratingMatch = analysisText.match(/Final Rating:\s*(\d+)\/5\s*-\s*([^<]+)/i);
-      if (ratingMatch) {
-        const ratingValue = parseInt(ratingMatch[1]);
-        const ratingDescription = ratingMatch[2].trim();
-        return {
-          value: ratingValue,
-          text: `${ratingValue}/5`,
-          description: ratingDescription
-        };
-      }
-      
-      // Alternative pattern: look for rating in different format
-      const altRatingMatch = analysisText.match(/(\d+)\/5[^>]*>([^<]+)/);
-      if (altRatingMatch) {
-        const ratingValue = parseInt(altRatingMatch[1]);
-        const ratingDescription = altRatingMatch[2].trim();
-        return {
-          value: ratingValue,
-          text: `${ratingValue}/5`,
-          description: ratingDescription
-        };
-      }
-    }
-    
-    // Check identification field for "no pin" indicators from authentic server data
-    if (serverResponse?.identification && serverResponse.identification !== null) {
-      const identificationText = serverResponse.identification;
-      if (identificationText.toLowerCase().includes("no disney pin") || 
-          identificationText.toLowerCase().includes("don't see any disney pin") ||
-          identificationText.toLowerCase().includes("no pin visible")) {
-        return {
-          value: 0,
-          text: '0/5',
-          description: 'No Pin Found in the image'
-        };
-      }
-    }
-    
-    // Default when no authentic rating data available
-    return {
-      value: 3,
-      text: '3/5',
-      description: 'Analysis Complete'
-    };
-  };
-  
-  const rating = getRating();
   
   return (
-    <div className="app-container max-w-md mx-auto flex flex-col min-h-screen pb-6">
-      {/* API Log Modal */}
-      {showApiLogs && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Master Server API Logs</h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowApiLogs(false)}>
-                Close
-              </Button>
-            </div>
-            <div className="flex-grow overflow-auto p-4">
-              <ApiRequestLogger />
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-indigo-100 pb-20">
+      <div className="max-w-4xl mx-auto p-4">
+        {/* Step Progress Indicator */}
+        <div className="mb-6">
+          <StepProgress currentStep={3} totalSteps={3} />
         </div>
-      )}
-      
-      {/* Step Progress Header */}
-      <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 py-4 px-4 shadow-sm">
-        <StepProgress 
-          currentStep={currentStep} 
-          totalSteps={4} 
-          stepNames={stepNames}
-          statusText="Analysis Complete"
-        />
-      </div>
-      
-      {/* Action Buttons Header */}
-      <div className="bg-white py-3 px-4 shadow-sm border-b">
-        <div className="flex justify-between items-center">
-          <Button variant="ghost" size="sm" onClick={() => {
-            // Clear session data and go back to camera
-            sessionStorage.removeItem('analysisResult');
-            sessionStorage.removeItem('capturedImages');
-            sessionStorage.removeItem('serverResponse');
-            setLocation('/camera');
-          }} className="flex-1 max-w-[80px]">
-            <RiArrowLeftLine className="mr-1" />
-            <span className="text-sm">Back</span>
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setLocation('/processing')}
-            className="flex-1 max-w-[80px] text-green-600 hover:text-green-700 hover:bg-green-50"
-          >
-            <RiHistoryLine className="mr-1" />
-            <span className="text-sm">Resubmit</span>
-          </Button>
-          {serverResponse?.sessionId && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => {
-                const sessionId = serverResponse.sessionId;
-                const url = `https://master.pinauth.com/api/mobile-responses/${sessionId}`;
-                window.open(url, '_blank');
-              }}
-              className="flex-1 max-w-[80px] text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              title="View actual JSON transmission from master server"
-            >
-              <svg className="mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-              </svg>
-              <span className="text-sm">JSON</span>
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={() => setLocation('/camera')} className="flex-1 max-w-[80px]">
-            <RiCamera2Line className="mr-1" />
-            <span className="text-sm">New Scan</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-grow p-4">
-      
-        {/* Pin Image and Rating Layout */}
-        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 shadow-lg rounded-xl overflow-hidden mb-4 border border-indigo-200">
-          <div className="p-6">
-            {/* Top Section: Pin Image Left, Rating Circle Right */}
-            <div className="flex gap-4 items-center mb-4">
-              {/* Pin Image - Left Side */}
-              <div className="flex-1">
-                {capturedImages && capturedImages.front && (
-                  <div className="bg-white rounded-lg p-2 shadow-sm">
-                    <img
-                      src={processedImage || capturedImages.front}
-                      alt="Pin front view"
-                      className="w-full h-32 object-contain"
-                    />
+        
+        <Tabs defaultValue="results" className="space-y-6">
+          <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
+            <TabsTrigger value="results" className="text-xs sm:text-sm">Results</TabsTrigger>
+            <TabsTrigger value="images" className="text-xs sm:text-sm">Images</TabsTrigger>
+            <TabsTrigger value="technical" className="text-xs sm:text-sm">Technical</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="results" className="space-y-6">
+            {/* Authenticity Score Card */}
+            <div className={`${rating.bgColor} ${rating.borderColor} border-2 rounded-lg p-6`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <rating.icon className={`text-3xl ${rating.color}`} />
+                  <div>
+                    <h2 className={`text-xl font-bold ${rating.color}`}>{rating.label}</h2>
+                    <p className="text-sm text-gray-600">Authenticity Assessment</p>
                   </div>
-                )}
+                </div>
+                <div className="text-right">
+                  <div className={`text-3xl font-bold ${rating.color}`}>{rating.value}%</div>
+                  <p className="text-xs text-gray-500">Confidence</p>
+                </div>
               </div>
               
-              {/* Rating Circle - Right Side */}
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative w-28 h-28 mb-2">
-                  <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#e5e7eb"
-                      strokeWidth="8"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke={rating.value >= 4 ? "#10b981" : rating.value >= 3 ? "#f59e0b" : "#ef4444"}
-                      strokeWidth="8"
-                      fill="transparent"
-                      strokeDasharray={`${(rating.value / 5) * 251.2} 251.2`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-800">{rating.text}</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Rating Status Icon */}
-                <div className="flex items-center gap-1 mt-1">
-                  {rating.value >= 4 ? (
-                    <RiShieldCheckLine className="text-green-600 text-lg" />
-                  ) : rating.value >= 3 ? (
-                    <RiShieldLine className="text-yellow-600 text-lg" />
-                  ) : (
-                    <RiShieldLine className="text-red-600 text-lg" />
-                  )}
-                </div>
+              {/* Feedback buttons */}
+              <div className="flex space-x-3 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={() => handleFeedback('agree')}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+                >
+                  <RiThumbUpFill className="mr-2" />
+                  Agree
+                </Button>
+                <Button
+                  onClick={() => handleFeedback('disagree')}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                >
+                  <RiThumbDownFill className="mr-2" />
+                  Disagree
+                </Button>
               </div>
             </div>
             
-            {/* Rating Status Text */}
-            <div className="text-center mb-4">
-              <span className={`text-lg font-bold ${
-                rating.value >= 4 ? 'text-green-600' : 
-                rating.value >= 3 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
-                {rating.text}
-              </span>
-              <div className="text-sm text-gray-700 mt-1 font-bold">{rating.description}</div>
-            </div>
-
-            {/* User Feedback Section */}
-            <div className="border-t border-indigo-200 pt-4 mb-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">Do you agree with this analysis?</h3>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => handleFeedback('positive')}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                    userFeedback === 'positive'
-                      ? 'bg-green-500 text-white shadow-lg scale-105'
-                      : 'bg-green-100 text-green-700 hover:bg-green-200 hover:scale-105'
-                  }`}
-                >
-                  <RiThumbUpFill className="text-xl" />
-                  <span className="text-sm">Yes</span>
-                </button>
-                <button
-                  onClick={() => handleFeedback('negative')}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                    userFeedback === 'negative'
-                      ? 'bg-red-500 text-white shadow-lg scale-105'
-                      : 'bg-red-100 text-red-700 hover:bg-red-200 hover:scale-105'
-                  }`}
-                >
-                  <RiThumbDownFill className="text-xl" />
-                  <span className="text-sm">No</span>
-                </button>
+            {/* Character Identification */}
+            {(serverResponse?.identification || result?.identification) && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                  <RiStarLine className="mr-2 text-indigo-600" />
+                  Character Identification
+                </h3>
+                <div 
+                  className="prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ 
+                    __html: processMarkdownHeaders(serverResponse?.identification || result?.identification || '') 
+                  }}
+                />
               </div>
-              {userFeedback && (
-                <div className="text-center mt-2">
-                  <p className="text-xs text-gray-600">
-                    {userFeedback === 'positive' 
-                      ? 'Thank you for your feedback!' 
-                      : 'Thank you! We\'ll use this to improve our analysis.'}
-                  </p>
-                </div>
-              )}
+            )}
+            
+            {/* Detailed Analysis */}
+            {(serverResponse?.analysis || result?.analysis) && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                  <RiSearchLine className="mr-2 text-indigo-600" />
+                  Detailed Analysis
+                </h3>
+                <div 
+                  className="prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ 
+                    __html: processMarkdownHeaders(serverResponse?.analysis || result?.analysis || '') 
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Pricing Information */}
+            {(serverResponse?.pricing || result?.pricing) && (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                  <RiHistoryLine className="mr-2 text-indigo-600" />
+                  Pricing & Market Information
+                </h3>
+                <div 
+                  className="prose prose-sm max-w-none text-gray-700"
+                  dangerouslySetInnerHTML={{ 
+                    __html: processMarkdownHeaders(serverResponse?.pricing || result?.pricing || '') 
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                onClick={() => setLocation('/camera')}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                <RiCamera2Line className="mr-2" />
+                Analyze Another Pin
+              </Button>
             </div>
-
-
-          </div>
-        </div>
-      
-
-        
-        {/* Results Tabs */}
-        <Tabs defaultValue="analysis" className="bg-gradient-to-br from-indigo-50 to-indigo-100 shadow-lg rounded-xl overflow-hidden border border-indigo-200">
-          <TabsList className="flex w-full bg-indigo-100 border-b border-indigo-200">
-            <TabsTrigger value="analysis" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Analysis</TabsTrigger>
-            <TabsTrigger value="identification" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Identification</TabsTrigger>
-            <TabsTrigger value="pricing" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Pricing</TabsTrigger>
-            <TabsTrigger value="server-response" className="flex-1 text-xs data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=inactive]:text-indigo-700 data-[state=inactive]:hover:bg-indigo-200">Response</TabsTrigger>
-          </TabsList>
+          </TabsContent>
           
-          {/* Identification Tab - First */}
-          <TabsContent value="identification" className="p-4 bg-indigo-50">
-            <div className="analysis-result">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pin Identification</h3>
-              {serverResponse?.identification ? (
-                <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.identification) }} />
-                </div>
-              ) : (
-                <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
-                  <p className="font-medium">No pin identification data available</p>
-                  <p className="text-sm mt-1">The server did not return pin identification information.</p>
+          <TabsContent value="images" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Captured Images</h3>
+                <Button
+                  onClick={handleAutoCrop}
+                  disabled={isProcessingImage}
+                  variant="outline"
+                  size="sm"
+                >
+                  {isProcessingImage ? "Processing..." : "Auto Crop"}
+                </Button>
+              </div>
+              
+              {capturedImages && (
+                <div className="space-y-4">
+                  {/* View selector */}
+                  <div className="flex justify-center space-x-2">
+                    <button
+                      onClick={() => setCurrentView('front')}
+                      className={`px-4 py-2 text-sm rounded-lg transition ${
+                        currentView === 'front' 
+                          ? 'bg-indigo-500 text-white' 
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                      }`}
+                    >
+                      Front View
+                    </button>
+                    {capturedImages.back && (
+                      <button
+                        onClick={() => setCurrentView('back')}
+                        className={`px-4 py-2 text-sm rounded-lg transition ${
+                          currentView === 'back' 
+                            ? 'bg-indigo-500 text-white' 
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                      >
+                        Back View
+                      </button>
+                    )}
+                    {capturedImages.angled && (
+                      <button
+                        onClick={() => setCurrentView('angled')}
+                        className={`px-4 py-2 text-sm rounded-lg transition ${
+                          currentView === 'angled' 
+                            ? 'bg-indigo-500 text-white' 
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                      >
+                        Angled View
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Image display */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Original image */}
+                    <div>
+                      <h4 className="text-sm font-medium mb-2 text-gray-700">Original Image</h4>
+                      <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                        {getCurrentImage() && (
+                          <img 
+                            src={getCurrentImage()!} 
+                            alt={`Pin ${currentView} view`}
+                            className="w-full h-full object-contain"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Processed image */}
+                    {processedImage && (
+                      <div>
+                        <h4 className="text-sm font-medium mb-2 text-gray-700">Auto-Cropped</h4>
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                          <img 
+                            src={processedImage} 
+                            alt="Processed pin image"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </TabsContent>
           
-          {/* Analysis Tab - Second */}
-          <TabsContent value="analysis" className="p-4 bg-indigo-50">
-            <div className="analysis-result">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Authenticity Analysis</h3>
-              {serverResponse?.analysis ? (
-                <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.analysis) }} />
-                </div>
-              ) : (
-                <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
-                  <p className="font-medium">No analysis data available</p>
-                  <p className="text-sm mt-1">The server did not return analysis information.</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-          
-          {/* Pricing Tab - Third */}
-          <TabsContent value="pricing" className="p-4 bg-indigo-50">
-            <div className="analysis-result">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Pricing & Market Value</h3>
-              {serverResponse?.pricing ? (
-                <div className="bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-                  <div className="text-gray-700" dangerouslySetInnerHTML={{ __html: processMarkdownHeaders(serverResponse.pricing) }} />
-                </div>
-              ) : (
-                <div className="p-4 bg-blue-50 text-blue-700 rounded-md">
-                  <p className="font-medium">No pricing data available</p>
-                  <p className="text-sm mt-1">The server did not return pricing information.</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-          
-
-          
-          {/* Server Response Tab */}
-          <TabsContent value="server-response" className="p-4 bg-indigo-50">
-            <div className="server-response-content">
-              <h3 className="text-sm font-semibold text-indigo-800 mb-2">Raw Server Response</h3>
+          <TabsContent value="technical" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Analysis Details</h3>
               
               {serverResponse ? (
                 <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">Status</h4>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${serverResponse.success ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className={serverResponse.success ? 'text-green-700' : 'text-red-700'}>
-                        {serverResponse.success ? 'Success' : 'Failed'}
-                      </span>
+                  <div className="bg-blue-50 rounded-md p-4 border border-blue-200">
+                    <h4 className="font-medium text-sm mb-2 text-blue-800">Session Information</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-blue-700">Session ID:</span>
+                        <p className="text-blue-900 font-mono">{serverResponse.sessionId || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-700">Timestamp:</span>
+                        <p className="text-blue-900">{serverResponse.timestamp ? new Date(serverResponse.timestamp).toLocaleString() : 'N/A'}</p>
+                      </div>
                     </div>
+                  </div>
+                  
+                  <div className="bg-green-50 rounded-md p-4 border border-green-200">
+                    <h4 className="font-medium text-sm mb-2 text-green-800">Analysis Results</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-green-700">Authentic:</span>
+                        <p className="text-green-900">{serverResponse.authentic ? 'Yes' : 'No'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-green-700">Rating:</span>
+                        <p className="text-green-900">{serverResponse.authenticityRating || 0}%</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-md p-4">
+                    <h4 className="font-medium text-sm mb-2">Success Status</h4>
+                    <p className="text-gray-700">{serverResponse.success ? 'Analysis completed successfully' : 'Analysis failed'}</p>
                   </div>
                   
                   <div className="bg-gray-50 rounded-md p-4">
@@ -578,9 +472,9 @@ export default function ResultsPage() {
                   )}
                   
                   <div className="bg-gray-50 rounded-md p-4">
-                    <h4 className="font-medium text-sm mb-2">RAW SERVER RESPONSE (Unmodified)</h4>
+                    <h4 className="font-medium text-sm mb-2">Complete Response</h4>
                     <pre className="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-96 whitespace-pre-wrap">
-                      {rawServerResponse ? JSON.stringify(rawServerResponse, null, 2) : 'Raw response not captured'}
+                      {JSON.stringify(serverResponse, null, 2)}
                     </pre>
                   </div>
                 </div>

@@ -2,9 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { RiCheckLine, RiTimeLine } from "react-icons/ri";
-import { AnalysisResult } from "@/lib/pin-authenticator";
-import { analyzePin } from "@/lib/simple-api";
+import { RiTimeLine, RiSearchLine, RiCpuLine, RiCheckboxCircleLine } from "react-icons/ri";
+import TransmissionLogViewer from "@/components/TransmissionLogViewer";
+import { analyzePinImage, AnalysisResult } from "@/lib/pin-authenticator";
+import ApiUnavailableMessage from "@/components/ApiUnavailableMessage";
+import { transmissionLogger } from "@/lib/transmission-logger";
+import StepProgress from "@/components/StepProgress";
+import ServerErrorScreen from "@/components/ServerErrorScreen";
+
+// Import the updated API
+import { analyzePinImagesWithPimStandard } from "@/lib/pim-standard-api";
 
 interface CapturedImages {
   front: string;
@@ -13,297 +20,329 @@ interface CapturedImages {
 }
 
 export default function ProcessingPage() {
-  const [_, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
+  
+  // Add comprehensive error handler to prevent the black error overlay
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.log('Suppressed unhandled promise rejection:', event.reason);
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    };
+    
+    const handleError = (event: ErrorEvent) => {
+      console.log('Suppressed error:', event.error);
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    };
+    
+    window.addEventListener('unhandledrejection', handleUnhandledRejection, true);
+    window.addEventListener('error', handleError, true);
+    
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection, true);
+      window.removeEventListener('error', handleError, true);
+    };
+  }, []);
+  const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const [isApiUnavailable, setIsApiUnavailable] = useState(false);
+  const [showServerError, setShowServerError] = useState(false);
   const [currentView, setCurrentView] = useState<'front' | 'back' | 'angled'>('front');
-  const [statusMessage, setStatusMessage] = useState<string>("Initializing analysis...");
-  const [uploadProgress, setUploadProgress] = useState<{front: number, back: number, angled: number}>({
+  const [statusMessage, setStatusMessage] = useState<string>("Starting analysis...");
+  const [showRetryButton, setShowRetryButton] = useState(false);
+  const [showTransmissionLog, setShowTransmissionLog] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({
     front: 0,
     back: 0,
     angled: 0
   });
-  const [capturedImages, setCapturedImages] = useState<CapturedImages | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisRating, setAnalysisRating] = useState<string | null>(null);
+  const [analysisDescription, setAnalysisDescription] = useState<string>("");
   
-  // Mobile-safe initialization of captured images
+  // Ref to track if processing is running
+  const isProcessing = React.useRef(false);
+  
+  // Load captured images from sessionStorage or global memory on component mount
   useEffect(() => {
-    const initializeImages = () => {
+    console.log("Loading capturedImages from storage");
+    
+    let images = null;
+    
+    // First try sessionStorage
+    const storedImages = sessionStorage.getItem('capturedImages');
+    if (storedImages) {
       try {
-        const storedImages = sessionStorage.getItem('capturedImages');
-        if (storedImages) {
-          const parsed = JSON.parse(storedImages);
-          setCapturedImages(parsed);
-        }
+        images = JSON.parse(storedImages);
+        console.log("Successfully loaded captured images from sessionStorage");
       } catch (error) {
-        console.error('Error loading captured images:', error);
+        console.error("Failed to parse captured images from sessionStorage:", error);
       }
-    };
-    
-    // Delay for mobile browser compatibility
-    setTimeout(initializeImages, 50);
-  }, []);
-  
-  // Navigation check for mobile compatibility
-  useEffect(() => {
-    if (!capturedImages) {
-      return;
     }
     
-    if (!capturedImages.front) {
-      console.error("Missing required front view of pin");
+    // If sessionStorage failed, try global memory storage
+    if (!images && (window as any).tempImageStorage) {
+      images = (window as any).tempImageStorage;
+      console.log("Successfully loaded captured images from global memory storage");
+      // Clean up global storage after loading
+      delete (window as any).tempImageStorage;
+    }
+    
+    if (images && images.front) {
+      setCapturedImages(images);
+      startAnalysis(images);
+    } else {
+      console.log("No captured images found, redirecting to camera");
       setLocation('/camera');
+    }
+  }, [setLocation]);
+
+  // Auto-start analysis when component loads
+  const startAnalysis = async (images: CapturedImages) => {
+    if (isProcessing.current) {
+      console.log("Analysis already in progress");
       return;
     }
     
-    let unmounted = false;
+    console.log("[SIMPLE-API] Sending analysis request");
+    isProcessing.current = true;
+    setError(null);
+    setProgress(0);
+    setCurrentStep(1);
+    setStatusMessage("Initializing analysis...");
     
-    const processImages = async () => {
-      // Define steps for smooth progress
-      const steps = [
-        { message: "Initializing analysis...", progress: 5 },
-        { message: "Preparing images for processing...", progress: 10 },
-        { message: "Processing front view image...", progress: 20, view: 'front' as const, viewProgress: 50 },
-        { message: "Analyzing front view details...", progress: 25, view: 'front' as const, viewProgress: 100 },
-        ...(capturedImages.back ? [
-          { message: "Processing back view image...", progress: 35, view: 'back' as const, viewProgress: 50 },
-          { message: "Analyzing back view details...", progress: 40, view: 'back' as const, viewProgress: 100 }
-        ] : []),
-        ...(capturedImages.angled ? [
-          { message: "Processing angled view image...", progress: 50, view: 'angled' as const, viewProgress: 50 },
-          { message: "Analyzing angled view details...", progress: 55, view: 'angled' as const, viewProgress: 100 }
-        ] : []),
-        { message: "Submitting images to PIM Standard analyzer...", progress: 65 },
-        { message: "Running advanced authenticity checks...", progress: 75 },
-        { message: "Finalizing analysis results...", progress: 85 },
-        { message: "Analysis complete! Redirecting to results...", progress: 95 }
-      ];
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + Math.random() * 15, 85));
+    }, 500);
+    
+    try {
+      setStatusMessage("Uploading images...");
+      setCurrentStep(2);
       
-      // Create a reliable timer for progress updates
-      for (const step of steps) {
-        if (unmounted) break;
-        
-        setStatusMessage(step.message);
-        setProgress(step.progress);
-        
-        if (step.view && step.viewProgress !== undefined) {
-          setCurrentView(step.view);
-          setUploadProgress(prev => ({ ...prev, [step.view]: step.viewProgress }));
-        }
-        
-        // Wait between steps
-        await new Promise(r => setTimeout(r, 500));
+      // Create FormData to match the expected format
+      const requestData = {
+        frontImage: images.front,
+        backImage: images.back || null,
+        angledImage: images.angled || null
+      };
+      
+      setStatusMessage("Analyzing pin authenticity...");
+      setCurrentStep(3);
+      
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Analysis failed: ${response.status} - ${errorText}`);
       }
       
-      try {
-        // Use simplified API for pin analysis
-        const analysisResponse = await analyzePin({
-          frontImage: capturedImages.front,
-          backImage: capturedImages.back,
-          angledImage: capturedImages.angled
-        });
+      const serverResponse = await response.json();
+      console.log("[SIMPLE-API] Analysis complete:", serverResponse.success);
+      console.log("Pin analysis complete:", serverResponse);
+      
+      // Clear progress interval
+      clearInterval(progressInterval);
+      setProgress(100);
+      setStatusMessage("Analysis complete!");
+      
+      if (serverResponse.success) {
+        // Store the complete server response and extracted data
+        sessionStorage.setItem('serverResponse', JSON.stringify(serverResponse));
         
-        console.log("Pin analysis complete:", analysisResponse);
-        
-        // Create result object compatible with existing UI
-        const combinedResult: AnalysisResult = {
-          pinId: analysisResponse.pinId || `pin_${Date.now()}`,
-          confidence: 85,
-          factors: [
-            {
-              name: "Server Analysis",
-              description: analysisResponse.message || "Analysis complete",
-              confidence: analysisResponse.authenticityRating || 75
-            }
-          ],
-          colorMatchPercentage: 80,
-          databaseMatchCount: 1,
-          imageQualityScore: 85,
-          authenticityScore: analysisResponse.authenticityRating,
-          pimStandardResponse: {
-            success: analysisResponse.success,
-            message: analysisResponse.message || "Analysis complete",
-            sessionId: analysisResponse.sessionId || `session_${Date.now()}`,
-            id: 0,
-            characters: analysisResponse.identification,
-            analysis: analysisResponse.analysis,
-            identification: analysisResponse.identification,
-            pricing: analysisResponse.pricing
-          }
+        const analysisData: AnalysisResult = {
+          sessionId: serverResponse.sessionId || `session_${Date.now()}`,
+          authentic: serverResponse.authentic || false,
+          authenticityRating: serverResponse.authenticityRating || 0,
+          analysis: serverResponse.analysis || "No analysis available",
+          identification: serverResponse.identification || "No identification provided",
+          pricing: serverResponse.pricing || "No pricing information available",
+          timestamp: new Date().toISOString(),
+          pinId: serverResponse.pinId || serverResponse.sessionId || `pin_${Date.now()}`
         };
         
-        // Store results for display
-        sessionStorage.setItem('analysisResult', JSON.stringify(combinedResult));
-        sessionStorage.setItem('serverResponse', JSON.stringify(analysisResponse));
+        sessionStorage.setItem('analysisResult', JSON.stringify(analysisData));
         
-        setProgress(100);
-        setStatusMessage("Analysis complete! Redirecting...");
+        console.log("Parsed server response:", serverResponse);
         
-        await new Promise(r => setTimeout(r, 500));
-        
-        if (!unmounted) {
+        // Navigate to results after a brief delay
+        setTimeout(() => {
           setLocation('/results');
-        }
-        
-      } catch (error: any) {
-        console.error("Error processing images:", error);
-        setError(`Analysis failed: ${error.message || 'Unknown error'}`);
-      } finally {
-        setCurrentStep(3);
+        }, 1000);
+      } else {
+        throw new Error(serverResponse.message || 'Analysis failed');
       }
-    };
-    
-    processImages();
-    
-    return () => {
-      unmounted = true;
-    };
-  }, [capturedImages, setLocation]);
+      
+    } catch (err) {
+      console.error('Analysis error:', err);
+      clearInterval(progressInterval);
+      setError(err instanceof Error ? err.message : 'Analysis failed');
+      setStatusMessage("Analysis failed");
+      setShowRetryButton(true);
+      isProcessing.current = false;
+    }
+  };
+
+  const retryProcessing = () => {
+    if (capturedImages) {
+      setShowRetryButton(false);
+      isProcessing.current = false;
+      startAnalysis(capturedImages);
+    }
+  };
   
   const handleCancel = () => {
     setLocation('/camera');
   };
   
-  if (!capturedImages) {
-    return <div>Loading...</div>;
+  // Determine which view to show
+  const getCurrentImage = () => {
+    if (!capturedImages) return null;
+    switch (currentView) {
+      case 'front': return capturedImages.front;
+      case 'back': return capturedImages.back;
+      case 'angled': return capturedImages.angled;
+      default: return capturedImages.front;
+    }
+  };
+  
+  const getStepDescription = () => {
+    switch (currentStep) {
+      case 1:
+        return "Preparing your images for analysis";
+      case 2:
+        return "Uploading to secure authentication servers";
+      case 3:
+        return "AI analyzing pin authenticity and characteristics";
+      default:
+        return "Processing your Disney pin";
+    }
+  };
+  
+  if (showServerError) {
+    return <ServerErrorScreen onRetry={retryProcessing} onCancel={handleCancel} />;
+  }
+  
+  if (isApiUnavailable) {
+    return <ApiUnavailableMessage onRetry={retryProcessing} onCancel={handleCancel} />;
   }
   
   return (
-    <div className="flex-grow flex flex-col fade-in">
-      {/* Header with thumbnails */}
-      <div className="bg-indigo-50 shadow-sm p-4 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-          <h2 className="text-lg font-heading text-gray-800">
-            Processing Pin Images
-          </h2>
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-indigo-100 p-4">
+      <div className="max-w-md mx-auto">
+        {/* Step Progress Indicator */}
+        <div className="mb-6">
+          <StepProgress currentStep={3} totalSteps={3} />
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              {currentStep === 1 && <RiTimeLine className="text-2xl text-indigo-600" />}
+              {currentStep === 2 && <RiSearchLine className="text-2xl text-indigo-600" />}
+              {currentStep === 3 && <RiCpuLine className="text-2xl text-indigo-600" />}
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Analyzing Your Pin
+            </h1>
+            <p className="text-gray-600 text-sm">
+              {getStepDescription()}
+            </p>
+          </div>
           
-          {/* Thumbnail previews in header */}
-          <div className="flex gap-2">
-            {/* Front view thumbnail (always present) */}
-            <div className={`relative h-14 w-14 rounded-md overflow-hidden border-2 ${
-              currentView === 'front' ? 'border-indigo-400' : 'border-gray-300'
-            }`}>
-              <img 
-                src={capturedImages.front} 
-                alt="Front view" 
-                className="h-full w-full object-cover"
-              />
-              <span className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-0.5 text-center">
-                FRONT
-              </span>
-              {currentView === 'front' && (
-                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                  <RiTimeLine className="text-white text-xl animate-pulse" />
+        {/* Image preview with view switching */}
+        <div className="mb-6">
+          {capturedImages && (
+            <div className="space-y-3">
+              {/* View selector tabs */}
+              <div className="flex justify-center space-x-2">
+                <button
+                  onClick={() => setCurrentView('front')}
+                  className={`px-3 py-1 text-xs rounded-full transition ${
+                    currentView === 'front' 
+                      ? 'bg-indigo-500 text-white' 
+                      : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}
+                >
+                  Front
+                </button>
+                {capturedImages.back && (
+                  <button
+                    onClick={() => setCurrentView('back')}
+                    className={`px-3 py-1 text-xs rounded-full transition ${
+                      currentView === 'back' 
+                        ? 'bg-indigo-500 text-white' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                  >
+                    Back
+                  </button>
+                )}
+                {capturedImages.angled && (
+                  <button
+                    onClick={() => setCurrentView('angled')}
+                    className={`px-3 py-1 text-xs rounded-full transition ${
+                      currentView === 'angled' 
+                        ? 'bg-indigo-500 text-white' 
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                  >
+                    Angled
+                  </button>
+                )}
+              </div>
+              
+              {/* Current image display */}
+              {getCurrentImage() && (
+                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                  <img 
+                    src={getCurrentImage()!} 
+                    alt={`Pin ${currentView} view`}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
               )}
             </div>
-            
-            {/* Back view thumbnail (if available) */}
-            {capturedImages.back && (
-              <div className={`relative h-14 w-14 rounded-md overflow-hidden border-2 ${
-                currentView === 'back' ? 'border-indigo-400' : 'border-gray-300'
-              }`}>
-                <img 
-                  src={capturedImages.back} 
-                  alt="Back view" 
-                  className="h-full w-full object-cover"
-                />
-                <span className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-0.5 text-center">
-                  BACK
-                </span>
-                {currentView === 'back' && (
-                  <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                    <RiTimeLine className="text-white text-xl animate-pulse" />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Angled view thumbnail (if available) */}
-            {capturedImages.angled && (
-              <div className={`relative h-14 w-14 rounded-md overflow-hidden border-2 ${
-                currentView === 'angled' ? 'border-indigo-400' : 'border-gray-300'
-              }`}>
-                <img 
-                  src={capturedImages.angled} 
-                  alt="Angled view" 
-                  className="h-full w-full object-cover"
-                />
-                <span className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-0.5 text-center">
-                  ANGLED
-                </span>
-                {currentView === 'angled' && (
-                  <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                    <RiTimeLine className="text-white text-xl animate-pulse" />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
-      </div>
-      
-      <div className="px-4 pb-12 flex-grow flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md text-center">
+          
+          {/* Progress bar */}
           <div className="mb-6">
-            {/* Preview of current view being processed */}
-            <div className="relative">
-              <img 
-                src={capturedImages[currentView] || capturedImages.front} 
-                alt={`${currentView} view`}
-                className="rounded-lg shadow-sm mx-auto max-h-48 object-contain"
-              />
-              
-              {/* Processing overlay */}
-              <div className="absolute inset-0 bg-indigo-800 bg-opacity-20 rounded-lg flex items-center justify-center">
-                <div className="bg-white p-3 rounded-full shadow-lg">
-                  <RiTimeLine className="text-indigo-500 text-2xl animate-pulse" />
-                </div>
-              </div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600">Progress</span>
+              <span className="text-sm font-medium text-indigo-600">{Math.round(progress)}%</span>
             </div>
+            <Progress value={progress} className="h-2" />
+            <p className="text-xs text-gray-500 mt-2">{statusMessage}</p>
           </div>
           
-          <h2 className="text-xl font-semibold text-indigo-900 mb-2">Analyzing Pin Images</h2>
-          <p className="text-gray-600 mb-4">{statusMessage}</p>
-          
-          {/* Main progress bar */}
+          {/* Processing steps indicator */}
           <div className="mb-6">
-            <Progress value={progress} className="h-3 bg-indigo-100" />
-            <div className="text-xs text-right mt-1 text-gray-500">{Math.round(progress)}% complete</div>
-          </div>
-          
-          {/* Individual image upload progress bars */}
-          <div className="space-y-3 mb-6">
-            {/* Front view progress (always present) */}
-            <div>
-              <div className="flex justify-between text-sm text-gray-700 mb-1">
-                <span>Front View</span>
-                <span>{uploadProgress.front}%</span>
+            <div className="space-y-2">
+              <div className={`flex items-center space-x-2 ${currentStep >= 1 ? 'text-indigo-600' : 'text-gray-400'}`}>
+                <RiCheckboxCircleLine className={`text-lg ${currentStep >= 1 ? 'text-indigo-600' : 'text-gray-300'}`} />
+                <span className="text-sm">Image preparation</span>
               </div>
-              <Progress value={uploadProgress.front} className="h-2 bg-indigo-50" />
+              <div className={`flex items-center space-x-2 ${currentStep >= 2 ? 'text-indigo-600' : 'text-gray-400'}`}>
+                <RiCheckboxCircleLine className={`text-lg ${currentStep >= 2 ? 'text-indigo-600' : 'text-gray-300'}`} />
+                <span className="text-sm">Secure upload</span>
+              </div>
+              <div className={`flex items-center space-x-2 ${currentStep >= 3 ? 'text-indigo-600' : 'text-gray-400'}`}>
+                <RiCheckboxCircleLine className={`text-lg ${currentStep >= 3 ? 'text-indigo-600' : 'text-gray-300'}`} />
+                <span className="text-sm">AI analysis</span>
+              </div>
             </div>
-            
-            {/* Back view progress (if available) */}
-            {capturedImages.back && (
-              <div>
-                <div className="flex justify-between text-sm text-gray-700 mb-1">
-                  <span>Back View</span>
-                  <span>{uploadProgress.back}%</span>
-                </div>
-                <Progress value={uploadProgress.back} className="h-2 bg-indigo-50" />
-              </div>
-            )}
-            
-            {/* Angled view progress (if available) */}
-            {capturedImages.angled && (
-              <div>
-                <div className="flex justify-between text-sm text-gray-700 mb-1">
-                  <span>Angled View</span>
-                  <span>{uploadProgress.angled}%</span>
-                </div>
-                <Progress value={uploadProgress.angled} className="h-2 bg-indigo-50" />
-              </div>
-            )}
           </div>
           
           {/* Current step indicator */}
@@ -320,16 +359,36 @@ export default function ProcessingPage() {
             </div>
           )}
           
-          {/* Cancel button */}
-          <Button 
-            variant="outline" 
-            onClick={handleCancel}
-            className="text-gray-600 border-gray-300 hover:bg-gray-50"
-          >
-            Cancel
-          </Button>
+          {/* Action buttons */}
+          <div className="flex flex-col gap-2">
+            {/* Retry button when connection fails */}
+            {showRetryButton && (
+              <Button 
+                onClick={retryProcessing}
+                className="bg-indigo-600 text-white hover:bg-indigo-700"
+              >
+                Retry Connection
+              </Button>
+            )}
+            
+
+            
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+              className="text-gray-600 border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </div>
+      
+      {/* Transmission Log Modal */}
+      <TransmissionLogViewer
+        isOpen={showTransmissionLog}
+        onClose={() => setShowTransmissionLog(false)}
+      />
     </div>
   );
 }

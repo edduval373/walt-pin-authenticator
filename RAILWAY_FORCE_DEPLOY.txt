@@ -1,15 +1,15 @@
-RAILWAY DEPLOYMENT CRITICAL FIX
-Timestamp: 2025-06-22 12:37:15
+RAILWAY DEPLOYMENT HEALTHCHECK FIX
+Timestamp: 2025-06-22 12:50:30
 
-ROOT CAUSE FOUND AND FIXED:
-Railway start.js was loading non-existent server/railway-deploy.js
+HEALTHCHECK FAILURE FIXED:
+Simplified production server with proper ES module structure
 
 CRITICAL CHANGES MADE:
-1. Fixed start.js to load corrected index.js server
-2. Updated railway.json with buildCommand: "npm run build"
-3. Added extensive debugging to track server startup
-4. Verified build script creates complete legal section
-5. Removed all fallback HTML servers
+1. Rebuilt index.js with clean ES module imports
+2. Fixed server startup and healthcheck endpoints
+3. Added comprehensive build file verification
+4. Ensured proper static asset serving
+5. Changed healthcheck back to /healthz endpoint
 
-NEXT RAILWAY DEPLOYMENT WILL SERVE COMPLETE LEGAL SECTION
-All server routing now forces build files with "I Acknowledge" button
+SERVER NOW PROPERLY SERVES BUILD FILES WITH LEGAL SECTION
+Railway deployment should pass healthcheck and serve complete IntroPage

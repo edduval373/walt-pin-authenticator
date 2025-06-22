@@ -1,10 +1,7 @@
-Railway deployment trigger - updated at 2025-06-22 11:20:12
-Fixed I Acknowledge button navigation with working overview page route.
-Added complete overview page with step-by-step authentication process explanation.
-Enhanced Disney Pin Authenticator design with castle icon and legal notice styling.
-Implemented proper navigation flow from splash screen to overview to camera.
-Complete button functionality with JavaScript navigation handlers.
-Mobile responsive design for both splash and overview pages.
-Version 1.4.0 with live timestamp and complete cache-bypass implementation.
-Production server generates unique content on every request with working navigation.
-Ready for Railway deployment with full user flow and functionality.
+Railway deployment trigger - updated at 2025-06-22 11:28:45
+Recovery script executed - restored working configuration.
+Production server restored from backup with embedded Disney Pin Authenticator.
+Mobile-responsive CSS and complete legal notice included.
+API integration confirmed with master.pinauth.com endpoint.
+Build process verified and client/dist assets generated.
+Ready for Railway deployment with restored working configuration.

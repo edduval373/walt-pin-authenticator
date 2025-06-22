@@ -1,7 +1,7 @@
-Railway deployment trigger - updated at 2025-06-21 14:18:45
-Fixed production server to force serve Disney Pin Authenticator with proper centering.
-Embedded complete W.A.L.T. interface with legal notice and Disney branding.
-Updated index.js to always serve Disney Pin Authenticator, never fallback content.
-Removed conflicting static files that were causing wrong page display.
-Production server now serves properly formatted and centered W.A.L.T. app.
-Ready for Railway deployment with correct Disney Pin Authenticator interface.
+Railway deployment trigger - updated at 2025-06-22 10:47:30
+Fixed mobile responsive CSS to prevent text squishing and layout issues.
+Added missing "I Acknowledge" button with proper styling and navigation.
+Included complete legal notice with expandable details section.
+Mobile breakpoints added for screens under 480px width.
+Production server now serves properly formatted W.A.L.T. app on all devices.
+Ready for Railway deployment with mobile-optimized Disney Pin Authenticator.

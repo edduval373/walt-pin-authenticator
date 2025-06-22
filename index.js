@@ -53,6 +53,104 @@ app.use((req, res, next) => {
   next();
 });
 
+// Generate overview page HTML
+function generateOverviewPageHTML() {
+  const timestamp = new Date().toISOString();
+  const randomId = Math.random().toString(36).substring(7);
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Disney Pin Authenticator - Overview</title>
+    <meta name="description" content="Overview of Disney pin authentication process" />
+    <!-- Cache Buster: ${timestamp} - ID: ${randomId} -->
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; }
+      .app-container { 
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        background: linear-gradient(to bottom, #eef2ff, #e0e7ff); 
+        overflow-y: auto; z-index: 50; padding: 20px;
+      }
+      .content-wrapper { 
+        text-align: center; padding: 0 1rem; max-width: 600px; width: 100%; 
+      }
+      .title { 
+        font-size: 2.5rem; line-height: 3rem; font-weight: 700; 
+        color: #4338ca; margin-bottom: 2rem; 
+      }
+      .step-card { 
+        background: rgba(255,255,255,0.8); border-radius: 12px; 
+        padding: 1.5rem; margin: 1rem 0; border: 1px solid rgba(79, 70, 229, 0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .step-number { 
+        background: #4f46e5; color: white; border-radius: 50%; 
+        width: 40px; height: 40px; display: flex; align-items: center; 
+        justify-content: center; font-weight: 700; margin: 0 auto 1rem auto; 
+      }
+      .step-title { 
+        font-size: 1.25rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem; 
+      }
+      .step-description { 
+        color: #6b7280; line-height: 1.5; 
+      }
+      .start-btn { 
+        background: #4f46e5; color: white; border: none; 
+        padding: 16px 32px; border-radius: 25px; font-size: 1.1rem; 
+        font-weight: 600; cursor: pointer; margin-top: 2rem; width: 100%;
+        transition: all 0.2s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      }
+      .start-btn:hover { 
+        background: #4338ca; transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+      }
+      @media (max-width: 480px) {
+        .title { font-size: 2rem; line-height: 2.5rem; }
+        .step-card { padding: 1rem; }
+        .start-btn { padding: 14px 28px; font-size: 1rem; }
+      }
+    </style>
+    <script>
+      function navigateToCamera() {
+        window.location.href = '/camera';
+      }
+    </script>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="content-wrapper">
+        <h1 class="title">How It Works</h1>
+        
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3 class="step-title">Take Photos</h3>
+          <p class="step-description">Capture clear images of your Disney pin from multiple angles for best results</p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3 class="step-title">AI Analysis</h3>
+          <p class="step-description">Our advanced AI examines details, colors, and authenticity markers</p>
+        </div>
+        
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3 class="step-title">Get Results</h3>
+          <p class="step-description">Receive detailed analysis with authenticity rating and identification</p>
+        </div>
+        
+        <button class="start-btn" onclick="navigateToCamera()">Start Authentication →</button>
+      </div>
+    </div>
+    <!-- Render ID: ${randomId} at ${timestamp} -->
+  </body>
+</html>`;
+}
+
 // Generate complete Disney Pin Authenticator HTML
 function generateDisneyPinAuthenticatorHTML() {
   const timestamp = new Date().toISOString();
@@ -188,6 +286,12 @@ function generateDisneyPinAuthenticatorHTML() {
         .acknowledge-btn { padding: 14px 28px; font-size: 1rem; }
       }
     </style>
+    <script>
+      function navigateToOverview() {
+        // Navigate to the overview page
+        window.location.href = '/overview';
+      }
+    </script>
   </head>
   <body>
     <div class="app-container">
@@ -217,7 +321,7 @@ function generateDisneyPinAuthenticatorHTML() {
                 <p><strong>DATA PRIVACY:</strong> Images uploaded may be processed by third-party AI services. Do not upload sensitive personal information.</p>
               </div>
             </details>
-            <button class="acknowledge-btn" onclick="window.location.href='/overview'">I Acknowledge →</button>
+            <button class="acknowledge-btn" onclick="navigateToOverview()">I Acknowledge →</button>
           </div>
         </div>
       </div>
@@ -345,7 +449,14 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Handle ALL routes - force serve complete Disney Pin Authenticator
+// Overview page route
+app.get('/overview', (req, res) => {
+  console.log(`Serving overview page at ${new Date().toISOString()}`);
+  const htmlContent = generateOverviewPageHTML();
+  res.send(htmlContent);
+});
+
+// Handle ALL other routes - force serve complete Disney Pin Authenticator
 app.get('*', (req, res) => {
   console.log(`Serving fresh Disney Pin Authenticator for route: ${req.path} at ${new Date().toISOString()}`);
   
@@ -356,6 +467,7 @@ app.get('*', (req, res) => {
       message: `Endpoint ${req.originalUrl} not found`,
       availableEndpoints: [
         'GET /',
+        'GET /overview',
         'GET /healthz',
         'GET /api/status',
         'POST /api/verify-pin'

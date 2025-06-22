@@ -213,11 +213,58 @@ function createDisneyPinApp() {
   titleContainer.appendChild(title);
   titleContainer.appendChild(version);
 
+  // Legal Notice Section
+  const legalSection = createElement('div', {
+    className: 'bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6 max-w-2xl mx-auto text-left'
+  });
+
+  const legalTitle = createElement('h2', {
+    className: 'text-xl font-bold text-gray-800 mb-4'
+  }, 'Legal Notice');
+
+  const legalText = createElement('div', {
+    className: 'space-y-3 text-sm text-gray-700'
+  });
+
+  const disclaimer = createElement('p', {}, 
+    'This application is an independent third-party tool created for Disney pin collectors and is not affiliated with, endorsed by, or connected to The Walt Disney Company or any of its subsidiaries.');
+
+  const purpose = createElement('p', {}, 
+    'The app provides authentication services for Disney collectible pins using image analysis technology. Results are provided for informational purposes only.');
+
+  const limitation = createElement('p', {}, 
+    'Users acknowledge that authentication results may not be 100% accurate and should not be solely relied upon for purchasing decisions or determining collectible value.');
+
+  const rights = createElement('p', {}, 
+    'All Disney characters, trademarks, and copyrighted materials remain the property of The Walt Disney Company. This app respects all intellectual property rights.');
+
+  legalText.appendChild(disclaimer);
+  legalText.appendChild(purpose);
+  legalText.appendChild(limitation);
+  legalText.appendChild(rights);
+
+  legalSection.appendChild(legalTitle);
+  legalSection.appendChild(legalText);
+
+  // Acknowledge Button
+  const buttonContainer = createElement('div', {
+    className: 'text-center mb-6'
+  });
+
+  const acknowledgeButton = createElement('button', {
+    className: 'bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+    onclick: 'window.location.href = "/overview"'
+  }, 'I Acknowledge');
+
+  buttonContainer.appendChild(acknowledgeButton);
+
   // Assemble the app
   textContainer.appendChild(taglineContainer);
   textContainer.appendChild(titleContainer);
   container.appendChild(logoContainer);
   container.appendChild(textContainer);
+  container.appendChild(legalSection);
+  container.appendChild(buttonContainer);
   app.appendChild(container);
 
   // Clear root and add app

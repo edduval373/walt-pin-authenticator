@@ -2,13 +2,14 @@
 
 /**
  * Railway-specific Disney Pin Authenticator Server
- * Forces correct content delivery regardless of other configurations
+ * FORCES BUILD FILES ONLY - NO FALLBACK HTML
  */
 
 import express from 'express';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +17,32 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.PORT) || 8080;
+
+// Debug build files
+const buildPath = path.join(__dirname, 'client/dist');
+const indexPath = path.join(buildPath, 'index.html');
+
+console.log('=== RAILWAY SERVER DEBUG ===');
+console.log('Build directory exists:', fs.existsSync(buildPath));
+console.log('Index.html exists:', fs.existsSync(indexPath));
+console.log('Build path:', buildPath);
+
+// FORCE FAILURE if build files missing
+if (!fs.existsSync(indexPath)) {
+  console.error('CRITICAL ERROR: Build files not found in Railway deployment');
+  console.error('Expected path:', indexPath);
+  process.exit(1);
+}
+
+// Verify build contains legal section
+const buildContent = fs.readFileSync(indexPath, 'utf8');
+console.log('Build contains Legal Notice:', buildContent.includes('Legal Notice'));
+console.log('Build contains I Acknowledge:', buildContent.includes('I Acknowledge'));
+
+if (!buildContent.includes('Legal Notice')) {
+  console.error('CRITICAL ERROR: Build files missing legal section');
+  process.exit(1);
+}
 
 // Configure middleware
 app.use(express.json({ limit: '100mb' }));
@@ -33,151 +60,96 @@ app.use((req, res, next) => {
   next();
 });
 
-// Disney Pin Authenticator HTML content
-const DISNEY_PIN_HTML = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Disney Pin Authenticator - W.A.L.T.</title>
-    <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body { width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; }
-      #root { width: 100%; height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(to bottom, #eef2ff, #e0e7ff); }
-      .intro-container { position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 0px; transform: translateY(-110px); }
-      .content-wrapper { text-align: center; padding: 0 1rem; max-width: 24rem; width: 100%; padding-top: 0.5rem; min-height: 100vh; display: flex; flex-direction: column; }
-      .logo-container { margin-bottom: 0.5rem; }
-      .logo { width: 437px; height: 437px; object-fit: contain; margin: 0 auto; display: block; }
-      .text-content { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; transform: translateY(-146px); }
-      .tagline { margin-bottom: 0.75rem; text-align: center; }
-      .meet-walt { color: #4f46e5; font-size: 1.875rem; line-height: 2.25rem; font-weight: 500; margin-bottom: 0.75rem; }
-      .description { color: #4f46e5; font-size: 1.25rem; line-height: 1.75rem; }
-      .title-section { margin-bottom: 1rem; text-align: center; }
-      .app-title { font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; color: #4338ca; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
-      .version { font-size: 0.875rem; line-height: 1.25rem; color: #4f46e5; font-weight: 600; }
-    </style>
-  </head>
-  <body>
-    <div id="root">
-      <div class="intro-container">
-        <div class="content-wrapper">
-          <div class="logo-container">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="W.A.L.T. Logo" class="logo" />
-          </div>
-          <div class="text-content">
-            <div class="tagline">
-              <p class="meet-walt">Meet W.A.L.T.</p>
-              <p class="description">the World-class Authentication and Lookup Tool</p>
-            </div>
-            <div class="title-section">
-              <h1 class="app-title">W.A.L.T. Mobile App</h1>
-              <p class="version">BETA Version 1.3.2</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>`;
+// Serve static assets
+app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
 
-// Force serve Disney Pin Authenticator for ALL routes
-app.get('*', (req, res) => {
-  console.log(\`Serving Disney Pin Authenticator for: \${req.path}\`);
-  
-  // Skip API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  
-  // Always serve Disney Pin Authenticator
-  res.send(DISNEY_PIN_HTML);
-});
-
-// Pin verification endpoint
+// API endpoints
 app.post('/api/verify-pin', async (req, res) => {
-  try {
-    const { frontImage, backImage, angledImage } = req.body;
-    
-    if (!frontImage) {
-      return res.status(400).json({
-        success: false,
-        message: 'Front image is required for Disney pin verification'
-      });
-    }
+  console.log('Pin verification request received');
+  const { frontImage, backImage, angledImage } = req.body;
 
-    const apiKey = process.env.MOBILE_API_KEY;
-    if (!apiKey) {
-      return res.status(503).json({
-        success: false,
-        message: 'Authentication service configuration error'
-      });
-    }
-
-    // Prepare API request
-    const formData = new FormData();
-    
-    const frontImageData = frontImage.replace(/^data:image\/[a-z]+;base64,/, '');
-    const frontBuffer = Buffer.from(frontImageData, 'base64');
-    formData.append('front_image', frontBuffer, {
-      filename: 'front_image.jpg',
-      contentType: 'image/jpeg'
+  if (!frontImage) {
+    return res.status(400).json({
+      success: false,
+      message: 'Front image is required'
     });
+  }
+
+  try {
+    const formData = new FormData();
+    const frontBuffer = Buffer.from(frontImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    formData.append('front_image', frontBuffer, 'front.jpg');
     
     if (backImage) {
-      const backImageData = backImage.replace(/^data:image\/[a-z]+;base64,/, '');
-      const backBuffer = Buffer.from(backImageData, 'base64');
-      formData.append('back_image', backBuffer, {
-        filename: 'back_image.jpg',
-        contentType: 'image/jpeg'
-      });
+      const backBuffer = Buffer.from(backImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('back_image', backBuffer, 'back.jpg');
     }
-    
-    if (angledImage) {
-      const angledImageData = angledImage.replace(/^data:image\/[a-z]+;base64,/, '');
-      const angledBuffer = Buffer.from(angledImageData, 'base64');
-      formData.append('angled_image', angledBuffer, {
-        filename: 'angled_image.jpg',
-        contentType: 'image/jpeg'
-      });
-    }
-    
-    formData.append('api_key', apiKey);
-    
-    const apiResponse = await fetch('https://master.pinauth.com/mobile-upload', {
+
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
       method: 'POST',
       body: formData,
       headers: {
-        'User-Agent': 'Disney-Pin-Authenticator/1.0.0',
-        ...formData.getHeaders()
+        'X-API-Key': process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
       }
     });
-    
-    const responseData = await apiResponse.json();
-    
-    res.status(200).json({
-      success: true,
-      message: 'Disney pin verification completed',
-      sessionId: \`250621\${Math.floor(Date.now() / 1000)}\`,
-      timestamp: new Date().toISOString(),
-      ...responseData
-    });
-    
+
+    const result = await response.json();
+    res.json(result);
   } catch (error) {
-    console.error('Pin verification error:', error);
+    console.error('API error:', error);
     res.status(500).json({
       success: false,
-      message: 'Disney pin verification service temporarily unavailable'
+      message: 'Verification service temporarily unavailable'
     });
   }
 });
 
-// Start server
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/status', (req, res) => {
+  res.status(200).json({
+    service: 'Disney Pin Authenticator API',
+    status: 'operational',
+    version: '1.0.0',
+    api: {
+      configured: !!process.env.MOBILE_API_KEY,
+      endpoint: 'https://master.pinauth.com/mobile-upload'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// SERVE BUILD FILES ONLY - NO FALLBACK HTML
+app.get('*', (req, res) => {
+  console.log('=== SERVING BUILD FILES ===');
+  console.log('Request path:', req.path);
+  
+  // Skip API routes
+  if (req.path.startsWith('/api/') || req.path.startsWith('/healthz')) {
+    return res.status(404).json({
+      success: false,
+      message: `Endpoint ${req.originalUrl} not found`
+    });
+  }
+  
+  // FORCE BUILD FILES ONLY
+  if (!fs.existsSync(indexPath)) {
+    console.error('ERROR: Build files missing at request time');
+    return res.status(500).send('BUILD FILES MISSING - Railway deployment failed');
+  }
+  
+  const htmlContent = fs.readFileSync(indexPath, 'utf8');
+  console.log('Serving build with Legal Notice:', htmlContent.includes('Legal Notice'));
+  res.send(htmlContent);
+});
+
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(\`Disney Pin Authenticator Server Started\`);
-  console.log(\`Port: \${PORT}\`);
-  console.log(\`Environment: \${process.env.NODE_ENV || 'production'}\`);
-  console.log(\`API Status: \${process.env.MOBILE_API_KEY ? 'Configured' : 'Missing'}\`);
+  console.log(`Railway Disney Pin Authenticator Server Started`);
+  console.log(`Port: ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
+  console.log(`API Key Status: ${process.env.MOBILE_API_KEY ? 'Configured' : 'Missing'}`);
 });
 
 // Graceful shutdown

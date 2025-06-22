@@ -173,11 +173,50 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Serve static files from build directory
-app.use(express.static(path.join(__dirname, 'client/dist')));
+// Debug: Check if build files exist
+const fs = require('fs');
+const buildPath = path.join(__dirname, 'client/dist');
+const indexPath = path.join(buildPath, 'index.html');
 
-// Handle all other routes - serve the complete build
+console.log('=== DEBUGGING BUILD FILES ===');
+console.log('Build directory exists:', fs.existsSync(buildPath));
+console.log('Index.html exists:', fs.existsSync(indexPath));
+console.log('Build directory path:', buildPath);
+console.log('Index.html path:', indexPath);
+
+if (fs.existsSync(buildPath)) {
+  console.log('Build directory contents:', fs.readdirSync(buildPath));
+}
+
+// Serve static files from build directory with debugging
+app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
+
+// Root route with extensive debugging
+app.get('/', (req, res) => {
+  console.log('=== ROOT ROUTE HIT ===');
+  console.log('Request path:', req.path);
+  console.log('Request URL:', req.url);
+  console.log('Headers:', req.headers);
+  
+  if (!fs.existsSync(indexPath)) {
+    console.error('ERROR: index.html not found at:', indexPath);
+    return res.status(500).send('BUILD FILES NOT FOUND - Railway deployment issue');
+  }
+  
+  const htmlContent = fs.readFileSync(indexPath, 'utf8');
+  console.log('HTML content length:', htmlContent.length);
+  console.log('HTML contains "Legal Notice":', htmlContent.includes('Legal Notice'));
+  console.log('HTML contains "I Acknowledge":', htmlContent.includes('I Acknowledge'));
+  
+  res.send(htmlContent);
+});
+
+// Handle all other routes - NO FALLBACK HTML
 app.get('*', (req, res) => {
+  console.log('=== WILDCARD ROUTE HIT ===');
+  console.log('Request path:', req.path);
+  console.log('Request URL:', req.url);
+  
   // Skip API routes
   if (req.path.startsWith('/api/') || req.path.startsWith('/healthz')) {
     return res.status(404).json({
@@ -192,9 +231,15 @@ app.get('*', (req, res) => {
     });
   }
   
-  // Serve the complete build with legal section and acknowledge button
-  console.log('Serving complete Disney Pin Authenticator build for route:', req.path);
-  res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+  // FORCE FAILURE if build files don't exist
+  if (!fs.existsSync(indexPath)) {
+    console.error('ERROR: Build files missing for wildcard route');
+    return res.status(500).send('BUILD FILES MISSING - Check Railway deployment');
+  }
+  
+  const htmlContent = fs.readFileSync(indexPath, 'utf8');
+  console.log('Wildcard serving HTML with Legal Notice:', htmlContent.includes('Legal Notice'));
+  res.send(htmlContent);
 });
 
 // Start server

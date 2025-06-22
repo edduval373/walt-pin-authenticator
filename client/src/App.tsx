@@ -4,10 +4,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 // import { Toaster } from "@/components/ui/toaster";
 // import { TooltipProvider } from "@/components/ui/tooltip";
-import Header from "@/components/Header";
-import InfoModal from "@/components/InfoModal";
-import SplashScreen from "@/components/SplashScreen";
-import ErrorBoundary from "@/components/ErrorBoundary";
+// Temporarily disabled complex components for build
+// import Header from "@/components/Header";
+// import InfoModal from "@/components/InfoModal";
+// import SplashScreen from "@/components/SplashScreen";
+// import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load components to reduce bundle size
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -76,7 +77,6 @@ function Router() {
 }
 
 function App() {
-  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [_, setLocation] = useLocation();
   const [location] = useLocation();
 
@@ -108,23 +108,15 @@ function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-          <NavigationContext.Provider value={{ goBack, showSplashScreen }}>
-            <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-indigo-100">
-              {location !== '/' && <Header onInfoClick={() => setIsInfoModalOpen(true)} />}
-              <main className="flex-grow transition-all duration-300">
-                <Router />
-              </main>
-              <InfoModal 
-                isOpen={isInfoModalOpen} 
-                onClose={() => setIsInfoModalOpen(false)}
-              />
-              {/* <Toaster /> */}
-            </div>
-          </NavigationContext.Provider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <NavigationContext.Provider value={{ goBack, showSplashScreen }}>
+        <div className="min-h-screen flex flex-col bg-gradient-to-b from-indigo-50 to-indigo-100">
+          <main className="flex-grow transition-all duration-300">
+            <Router />
+          </main>
+        </div>
+      </NavigationContext.Provider>
+    </QueryClientProvider>
   );
 }
 

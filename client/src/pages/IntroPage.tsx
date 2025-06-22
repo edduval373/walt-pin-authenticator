@@ -73,7 +73,7 @@ export default function IntroPage() {
         </motion.div>
         
         {/* Text content */}
-        <div className="flex-1 flex flex-col justify-start" style={{ transform: 'translateY(-146px)' }}>
+        <div className="flex-1 flex flex-col justify-start" style={{ transform: 'translateY(-80px)' }}>
           {/* Tagline */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -106,7 +106,7 @@ export default function IntroPage() {
         </div>
         
         {/* Bottom Section */}
-        <div className="flex-shrink-0" style={{ transform: 'translateY(-146px)' }}>
+        <div className="flex-shrink-0" style={{ transform: 'translateY(-50px)' }}>
           {/* Legal Disclaimer - Expandable Design */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}

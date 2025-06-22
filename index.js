@@ -61,11 +61,18 @@ app.get('/healthz', (req, res) => {
 const clientBuildPath = path.join(__dirname, 'client', 'dist');
 app.use(express.static(clientBuildPath));
 
-// Root endpoint - force serve Disney Pin Authenticator
+// Root endpoint - force serve Disney Pin Authenticator with cache busting
 app.get('/', (req, res) => {
   console.log('Force serving Disney Pin Authenticator with W.A.L.T. interface');
   
+  // Add cache-busting headers
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Last-Modified', new Date().toUTCString());
+  
   // Embedded Disney Pin Authenticator with proper styling
+  const timestamp = new Date().toISOString();
   res.send(`<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -73,6 +80,7 @@ app.get('/', (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Disney Pin Authenticator - W.A.L.T.</title>
     <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
+    <!-- Updated: ${timestamp} -->
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html, body { width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; }
@@ -330,7 +338,14 @@ app.get('*', (req, res) => {
   // Force serve updated Disney Pin Authenticator to bypass Railway cache
   console.log('Serving updated Disney Pin Authenticator for route:', req.path);
   
-  // Embedded Disney Pin Authenticator with proper styling
+  // Add cache-busting headers
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Last-Modified', new Date().toUTCString());
+  
+  // Embedded Disney Pin Authenticator with proper styling and timestamp
+  const timestamp = new Date().toISOString();
   res.send(`<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -338,6 +353,7 @@ app.get('*', (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Disney Pin Authenticator - W.A.L.T.</title>
     <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
+    <!-- Updated: ${timestamp} -->
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html, body { width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; }

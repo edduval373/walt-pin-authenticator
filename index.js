@@ -2,14 +2,14 @@
 
 /**
  * Disney Pin Authenticator Production Server
- * Direct deployment entry point for Railway platform
- * Updated: 2025-06-22 - Complete IntroPage with legal section
+ * Simplified Railway deployment entry point
  */
 
 import express from 'express';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,127 +30,64 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+// Build files check
+const buildPath = path.join(__dirname, 'client/dist');
+const indexPath = path.join(buildPath, 'index.html');
+
+console.log('=== RAILWAY SERVER STARTUP ===');
+console.log('Build directory exists:', fs.existsSync(buildPath));
+console.log('Index.html exists:', fs.existsSync(indexPath));
+
+// API endpoints
+app.post('/api/verify-pin', async (req, res) => {
+  console.log('Pin verification request received');
+  const { frontImage, backImage, angledImage } = req.body;
+
+  if (!frontImage) {
+    return res.status(400).json({
+      success: false,
+      message: 'Front image is required'
+    });
   }
-  next();
+
+  try {
+    const formData = new FormData();
+    const frontBuffer = Buffer.from(frontImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    formData.append('front_image', frontBuffer, 'front.jpg');
+    
+    if (backImage) {
+      const backBuffer = Buffer.from(backImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('back_image', backBuffer, 'back.jpg');
+    }
+
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-API-Key': process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
+      }
+    });
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error('API error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Verification service temporarily unavailable'
+    });
+  }
 });
 
 // Health check endpoint
 app.get('/healthz', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    service: 'disney-pin-authenticator',
-    version: '1.0.0',
+  res.status(200).json({ 
+    status: 'ok', 
     timestamp: new Date().toISOString(),
-    port: PORT,
-    environment: process.env.NODE_ENV || 'production',
-    api: {
-      configured: !!process.env.MOBILE_API_KEY,
-      endpoint: 'https://master.pinauth.com/mobile-upload'
-    }
+    buildFiles: fs.existsSync(indexPath)
   });
 });
 
-// Serve static files from client build directory
-const clientBuildPath = path.join(__dirname, 'client', 'dist');
-app.use(express.static(clientBuildPath));
-
-
-
-// Pin verification endpoint
-app.post('/api/verify-pin', async (req, res) => {
-  try {
-    const { frontImage, backImage, angledImage } = req.body;
-    
-    // Validate required data
-    if (!frontImage) {
-      return res.status(400).json({
-        success: false,
-        message: 'Front image is required for Disney pin verification'
-      });
-    }
-
-    // Check API configuration
-    const apiKey = process.env.MOBILE_API_KEY;
-    if (!apiKey) {
-      return res.status(503).json({
-        success: false,
-        message: 'Authentication service configuration error'
-      });
-    }
-
-    // Prepare API request
-    const formData = new FormData();
-    
-    // Process front image (required)
-    const frontImageData = frontImage.replace(/^data:image\/[a-z]+;base64,/, '');
-    const frontBuffer = Buffer.from(frontImageData, 'base64');
-    formData.append('front_image', frontBuffer, {
-      filename: 'front_image.jpg',
-      contentType: 'image/jpeg'
-    });
-    
-    // Process back image (optional)
-    if (backImage) {
-      const backImageData = backImage.replace(/^data:image\/[a-z]+;base64,/, '');
-      const backBuffer = Buffer.from(backImageData, 'base64');
-      formData.append('back_image', backBuffer, {
-        filename: 'back_image.jpg',
-        contentType: 'image/jpeg'
-      });
-    }
-    
-    // Process angled image (optional)
-    if (angledImage) {
-      const angledImageData = angledImage.replace(/^data:image\/[a-z]+;base64,/, '');
-      const angledBuffer = Buffer.from(angledImageData, 'base64');
-      formData.append('angled_image', angledBuffer, {
-        filename: 'angled_image.jpg',
-        contentType: 'image/jpeg'
-      });
-    }
-    
-    // Add API key
-    formData.append('api_key', apiKey);
-    
-    // Call master authentication service
-    const apiResponse = await fetch('https://master.pinauth.com/mobile-upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'User-Agent': 'Disney-Pin-Authenticator/1.0.0',
-        ...formData.getHeaders()
-      }
-    });
-    
-    const responseData = await apiResponse.json();
-    
-    // Return standardized response
-    res.status(200).json({
-      success: true,
-      message: 'Disney pin verification completed',
-      sessionId: `250621${Math.floor(Date.now() / 1000)}`,
-      timestamp: new Date().toISOString(),
-      ...responseData
-    });
-    
-  } catch (error) {
-    console.error('Pin verification error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Disney pin verification service temporarily unavailable'
-    });
-  }
-});
-
-// API status endpoint
 app.get('/api/status', (req, res) => {
   res.status(200).json({
     service: 'Disney Pin Authenticator API',
@@ -164,98 +101,40 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error occurred'
-  });
-});
-
-// Debug: Check if build files exist
-const fs = require('fs');
-const buildPath = path.join(__dirname, 'client/dist');
-const indexPath = path.join(buildPath, 'index.html');
-
-console.log('=== DEBUGGING BUILD FILES ===');
-console.log('Build directory exists:', fs.existsSync(buildPath));
-console.log('Index.html exists:', fs.existsSync(indexPath));
-console.log('Build directory path:', buildPath);
-console.log('Index.html path:', indexPath);
-
-if (fs.existsSync(buildPath)) {
-  console.log('Build directory contents:', fs.readdirSync(buildPath));
-}
-
-// Serve static files from build directory with debugging
+// Serve static assets
 app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
 
-// Root route with extensive debugging
-app.get('/', (req, res) => {
-  console.log('=== ROOT ROUTE HIT ===');
-  console.log('Request path:', req.path);
-  console.log('Request URL:', req.url);
-  console.log('Headers:', req.headers);
-  
-  if (!fs.existsSync(indexPath)) {
-    console.error('ERROR: index.html not found at:', indexPath);
-    return res.status(500).send('BUILD FILES NOT FOUND - Railway deployment issue');
-  }
-  
-  const htmlContent = fs.readFileSync(indexPath, 'utf8');
-  console.log('HTML content length:', htmlContent.length);
-  console.log('HTML contains "Legal Notice":', htmlContent.includes('Legal Notice'));
-  console.log('HTML contains "I Acknowledge":', htmlContent.includes('I Acknowledge'));
-  
-  res.send(htmlContent);
-});
-
-// Handle all other routes - NO FALLBACK HTML
+// Serve build files
 app.get('*', (req, res) => {
-  console.log('=== WILDCARD ROUTE HIT ===');
-  console.log('Request path:', req.path);
-  console.log('Request URL:', req.url);
-  
   // Skip API routes
   if (req.path.startsWith('/api/') || req.path.startsWith('/healthz')) {
     return res.status(404).json({
       success: false,
-      message: `Endpoint ${req.originalUrl} not found`,
-      availableEndpoints: [
-        'GET /',
-        'GET /healthz',
-        'GET /api/status',
-        'POST /api/verify-pin'
-      ]
+      message: `Endpoint ${req.originalUrl} not found`
     });
   }
   
-  // FORCE FAILURE if build files don't exist
   if (!fs.existsSync(indexPath)) {
-    console.error('ERROR: Build files missing for wildcard route');
-    return res.status(500).send('BUILD FILES MISSING - Check Railway deployment');
+    console.error('Build files missing');
+    return res.status(500).send('Build files not found - deployment issue');
   }
   
   const htmlContent = fs.readFileSync(indexPath, 'utf8');
-  console.log('Wildcard serving HTML with Legal Notice:', htmlContent.includes('Legal Notice'));
+  console.log('Serving build with Legal Notice:', htmlContent.includes('Legal Notice'));
   res.send(htmlContent);
 });
 
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`=== RAILWAY PRODUCTION SERVER STARTED ===`);
-  console.log(`Server File: index.js (MAIN PRODUCTION)`);
   console.log(`Port: ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
   console.log(`API Key Status: ${process.env.MOBILE_API_KEY ? 'Configured' : 'Missing'}`);
-  console.log(`Master API: https://master.pinauth.com/mobile-upload`);
-  console.log(`Build Files Check: ${fs.existsSync(indexPath) ? 'FOUND' : 'MISSING'}`);
+  console.log(`Build Files: ${fs.existsSync(indexPath) ? 'FOUND' : 'MISSING'}`);
   if (fs.existsSync(indexPath)) {
     const content = fs.readFileSync(indexPath, 'utf8');
-    console.log(`Legal Section in Build: ${content.includes('Legal Notice') ? 'YES' : 'NO'}`);
+    console.log(`Legal Section: ${content.includes('Legal Notice') ? 'YES' : 'NO'}`);
   }
-  console.log(`=== END SERVER START INFO ===`);
 });
 
 // Graceful shutdown handlers

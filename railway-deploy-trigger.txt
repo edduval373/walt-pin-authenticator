@@ -1,7 +1,7 @@
-Railway deployment trigger - updated at 2025-06-22 10:47:30
-Fixed mobile responsive CSS to prevent text squishing and layout issues.
-Added missing "I Acknowledge" button with proper styling and navigation.
-Included complete legal notice with expandable details section.
-Mobile breakpoints added for screens under 480px width.
-Production server now serves properly formatted W.A.L.T. app on all devices.
-Ready for Railway deployment with mobile-optimized Disney Pin Authenticator.
+Railway deployment trigger - updated at 2025-06-22 10:49:15
+Force updated production server to bypass Railway cache and serve complete content.
+Updated all route handlers to serve embedded Disney Pin Authenticator HTML.
+Includes warning icon, legal notice, expandable details, and I Acknowledge button.
+Mobile responsive CSS with proper breakpoints for all device sizes.
+Production server now bypasses static file fallbacks completely.
+Ready for Railway deployment with forced content delivery.

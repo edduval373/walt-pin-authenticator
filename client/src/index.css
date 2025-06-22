@@ -260,7 +260,8 @@ div[style*="bottom: "] {
 
 @layer base {
   body {
-    @apply font-sans antialiased;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }

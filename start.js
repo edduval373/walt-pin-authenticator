@@ -2,10 +2,13 @@
 
 /**
  * Railway deployment entry point
- * This file ensures the production server starts correctly on Railway
+ * FORCE USE OF CORRECTED PRODUCTION SERVER
  */
 
-import('./server/railway-deploy.js').catch((error) => {
+console.log('=== RAILWAY START.JS ENTRY POINT ===');
+console.log('Loading corrected production server...');
+
+import('./index.js').catch((error) => {
   console.error('Failed to start Disney Pin Authenticator:', error);
   process.exit(1);
 });

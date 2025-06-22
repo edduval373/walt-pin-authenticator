@@ -244,11 +244,18 @@ app.get('*', (req, res) => {
 
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Disney Pin Authenticator API server started`);
+  console.log(`=== RAILWAY PRODUCTION SERVER STARTED ===`);
+  console.log(`Server File: index.js (MAIN PRODUCTION)`);
   console.log(`Port: ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'production'}`);
   console.log(`API Key Status: ${process.env.MOBILE_API_KEY ? 'Configured' : 'Missing'}`);
   console.log(`Master API: https://master.pinauth.com/mobile-upload`);
+  console.log(`Build Files Check: ${fs.existsSync(indexPath) ? 'FOUND' : 'MISSING'}`);
+  if (fs.existsSync(indexPath)) {
+    const content = fs.readFileSync(indexPath, 'utf8');
+    console.log(`Legal Section in Build: ${content.includes('Legal Notice') ? 'YES' : 'NO'}`);
+  }
+  console.log(`=== END SERVER START INFO ===`);
 });
 
 // Graceful shutdown handlers

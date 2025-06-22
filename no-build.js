@@ -5,21 +5,20 @@
  * Builds the complete application without Vite complications
  */
 
-import { execSync } from 'child_process';
+const { execSync } = require('child_process');
+const fs = require('fs');
 
 console.log('Building Disney Pin Authenticator for Railway...');
 
-async function buildApp() {
-  try {
-    // Copy the working React components from development to production build
-    console.log('Creating production build with React components...');
-    
-    // First create the static build structure
-    execSync('node create-complete-build.js', { stdio: 'inherit' });
-    
-    // Then replace the static HTML with the React-powered version
-    const fs = await import('fs');
-  const reactIndexHtml = `<!DOCTYPE html>
+try {
+  // Copy the working React components from development to production build
+  console.log('Creating production build with React components...');
+  
+  // First create the static build structure
+  execSync('node create-complete-build.js', { stdio: 'inherit' });
+  
+  // Then replace the static HTML with the React-powered version
+    const reactIndexHtml = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />

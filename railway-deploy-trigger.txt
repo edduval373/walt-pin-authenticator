@@ -1,10 +1,10 @@
-Railway deployment trigger - updated at 2025-06-22 11:11:23
-Replaced production server with complete cache-bypass implementation.
-Removed static file serving entirely to force dynamic content generation.
-Added aggressive anti-cache middleware with multiple cache-busting headers.
-Generated unique HTML content on every request with timestamps and random IDs.
-Complete W.A.L.T. interface with legal notice, warning icon, and I Acknowledge button.
-Mobile responsive CSS with proper breakpoints for all device sizes.
-Version 1.4.0 with live timestamp display to verify fresh content delivery.
-Production server now generates completely fresh content on every request.
-Ready for Railway deployment with total cache bypass architecture.
+Railway deployment trigger - updated at 2025-06-22 11:16:45
+Improved Disney Pin Authenticator design with castle icon and enhanced legal notice.
+Added castle emoji icon with golden background circle to match expected design.
+Enhanced legal notice styling with proper background, borders, and shadows.
+Improved button styling with rounded design and hover effects.
+Mobile responsive adjustments for smaller logo and proper mobile layout.
+Complete W.A.L.T. interface with all required legal disclaimers and warnings.
+Version 1.4.0 with live timestamp and complete cache-bypass implementation.
+Production server generates unique content on every request with no caching.
+Ready for Railway deployment with improved visual design and functionality.

@@ -82,9 +82,26 @@ function generateDisneyPinAuthenticatorHTML() {
       }
       .logo-section { margin-bottom: 1rem; flex-shrink: 0; }
       .logo { 
-        width: 250px; height: 250px; background: #4f46e5; border-radius: 50%; 
+        width: 120px; height: 120px; background: #4f46e5; border-radius: 50%; 
         margin: 0 auto 1rem auto; display: flex; align-items: center; justify-content: center; 
-        color: white; font-size: 36px; font-weight: bold; 
+        color: white; font-size: 24px; font-weight: bold; 
+        position: relative;
+      }
+      .logo::before {
+        content: '';
+        position: absolute;
+        top: -10px; right: -10px;
+        width: 40px; height: 40px;
+        background: #fbbf24;
+        border-radius: 50%;
+        border: 3px solid #4f46e5;
+      }
+      .logo::after {
+        content: '🏰';
+        position: absolute;
+        top: -8px; right: -8px;
+        font-size: 20px;
+        z-index: 1;
       }
       .text-content { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 300px; }
       .tagline { margin-bottom: 1.5rem; text-align: center; }
@@ -106,31 +123,61 @@ function generateDisneyPinAuthenticatorHTML() {
         font-weight: 600; margin-bottom: 1rem;
       }
       .legal-section { 
-        margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.1); 
-        border-radius: 12px; flex-shrink: 0;
+        margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.8); 
+        border-radius: 12px; flex-shrink: 0; border: 1px solid rgba(79, 70, 229, 0.2);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
       .legal-title { 
         color: #374151; font-weight: 700; margin-bottom: 1rem; 
-        font-size: 1.125rem; line-height: 1.75rem;
+        font-size: 1.125rem; line-height: 1.75rem; display: flex; align-items: center; gap: 0.5rem;
       }
       .legal-text { 
-        color: #6b7280; font-size: 1rem; line-height: 1.5rem; 
-        margin-bottom: 0.75rem; 
+        color: #4f46e5; font-size: 1rem; line-height: 1.5rem; 
+        margin-bottom: 0.75rem; font-weight: 600; text-align: center;
       }
-      .warning { color: #ef4444; font-weight: 600; margin-bottom: 1.5rem; }
+      .warning { 
+        color: #4f46e5; font-weight: 600; margin-bottom: 1.5rem; 
+        font-size: 1rem; text-align: center;
+      }
       .acknowledge-btn { 
         background: #4f46e5; color: white; border: none; 
-        padding: 12px 24px; border-radius: 8px; font-size: 1rem; 
-        font-weight: 600; cursor: pointer; margin-top: 1rem;
+        padding: 16px 32px; border-radius: 25px; font-size: 1.1rem; 
+        font-weight: 600; cursor: pointer; margin-top: 1.5rem; width: 100%;
+        transition: all 0.2s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      }
+      .acknowledge-btn:hover { 
+        background: #4338ca; transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+      }
+      .legal-details {
+        background: rgba(255,255,255,0.6); border-radius: 8px; 
+        padding: 1rem; margin: 1rem 0; text-align: left; 
+        font-size: 0.875rem; line-height: 1.5; color: #374151;
+        border: 1px solid rgba(79, 70, 229, 0.1);
+      }
+      .legal-summary {
+        cursor: pointer; color: #4f46e5; font-weight: 600; 
+        margin-bottom: 1rem; padding: 0.5rem; text-align: center;
+        border-radius: 6px; background: rgba(79, 70, 229, 0.1);
         transition: background-color 0.2s;
       }
-      .acknowledge-btn:hover { background: #4338ca; }
+      .legal-summary:hover {
+        background: rgba(79, 70, 229, 0.2);
+      }
 
       /* Mobile responsive adjustments */
       @media (max-width: 480px) {
         .app-container { padding: 10px; }
         .content-wrapper { padding: 0 0.5rem; }
-        .logo { width: 200px; height: 200px; font-size: 28px; }
+        .logo { 
+          width: 100px; height: 100px; font-size: 18px; 
+        }
+        .logo::before { 
+          width: 30px; height: 30px; top: -8px; right: -8px; 
+        }
+        .logo::after { 
+          font-size: 16px; top: -6px; right: -6px; 
+        }
         .meet-walt { font-size: 1.5rem; line-height: 2rem; }
         .description { font-size: 1rem; line-height: 1.5rem; }
         .app-title { font-size: 1.75rem; line-height: 2.25rem; }
@@ -138,6 +185,7 @@ function generateDisneyPinAuthenticatorHTML() {
         .legal-section { padding: 1rem; margin-top: 1rem; }
         .legal-title { font-size: 1rem; }
         .legal-text { font-size: 0.875rem; line-height: 1.25rem; }
+        .acknowledge-btn { padding: 14px 28px; font-size: 1rem; }
       }
     </style>
   </head>
@@ -159,10 +207,10 @@ function generateDisneyPinAuthenticatorHTML() {
           <div class="legal-section">
             <h2 class="legal-title">⚠️ IMPORTANT LEGAL NOTICE</h2>
             <p class="legal-text">FOR ENTERTAINMENT PURPOSES ONLY</p>
-            <p class="legal-text warning">This AI application is unreliable and should not be used for financial decisions.</p>
+            <p class="warning">This AI application is unreliable and should not be used for financial decisions.</p>
             <details style="margin: 1rem 0;">
-              <summary style="cursor: pointer; color: #4f46e5; font-weight: 600; margin-bottom: 1rem;">Read Full Legal Notice ⌄</summary>
-              <div style="padding: 1rem; background: rgba(255,255,255,0.2); border-radius: 8px; text-align: left; font-size: 0.875rem; line-height: 1.5; color: #374151;">
+              <summary class="legal-summary">Read Full Legal Notice ⌄</summary>
+              <div class="legal-details">
                 <p style="margin-bottom: 1rem;"><strong>DISCLAIMER OF WARRANTIES:</strong> This application is provided "as is" without warranty of any kind. The AI analysis may contain errors and should not be relied upon for purchasing decisions.</p>
                 <p style="margin-bottom: 1rem;"><strong>LIMITATION OF LIABILITY:</strong> We are not responsible for any financial losses resulting from the use of this application.</p>
                 <p style="margin-bottom: 1rem;"><strong>ENTERTAINMENT ONLY:</strong> This tool is designed for entertainment and educational purposes. Any authentication results are estimates only.</p>

@@ -1,5 +1,8 @@
 [variables]
 NODE_ENV = "production"
 
+[phases.build]
+cmd = "npm run build"
+
 [start]
 cmd = "npm start"

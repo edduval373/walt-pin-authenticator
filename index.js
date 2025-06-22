@@ -3,6 +3,7 @@
 /**
  * Disney Pin Authenticator Production Server
  * Direct deployment entry point for Railway platform
+ * Updated: 2025-06-22 - Complete IntroPage with legal section
  */
 
 import express from 'express';

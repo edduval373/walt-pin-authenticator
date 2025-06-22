@@ -11,7 +11,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 // import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load components to reduce bundle size
-const NotFound = lazy(() => import("@/pages/not-found"));
+const NotFound = lazy(() => import("./pages/not-found"));
 const IntroPage = lazy(() => import("@/pages/IntroPage"));
 const ProcessOverviewPage = lazy(() => import("@/pages/ProcessOverviewPage"));
 const CameraPage = lazy(() => import("@/pages/CameraPage"));

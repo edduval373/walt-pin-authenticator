@@ -112,13 +112,71 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
-// Serve static files from client/dist
-app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
+// Force development mode behavior in production deployment
+process.env.NODE_ENV = 'development';
 
-// Serve the main HTML file for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/dist/index.html'));
-});
+// Import and start the actual development server logic
+import { createServer as createViteServer } from 'vite';
+import viteConfig from './vite.config.js';
+
+// Set up Vite middleware to serve your working React components
+async function setupDevelopmentMode() {
+  try {
+    const vite = await createViteServer({
+      ...viteConfig,
+      configFile: false,
+      server: { middlewareMode: true },
+      appType: 'custom'
+    });
+
+    app.use(vite.middlewares);
+    
+    // Serve your working React app through Vite
+    app.use('*', async (req, res, next) => {
+      const url = req.originalUrl;
+      
+      // Skip API routes
+      if (url.startsWith('/api/') || url.startsWith('/healthz')) {
+        return next();
+      }
+      
+      try {
+        // Use Vite to serve your working React components
+        let template = await vite.transformIndexHtml(url, `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Disney Pin Authenticator</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/client/src/main.tsx"></script>
+  </body>
+</html>`);
+        
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e);
+        console.error('Error serving React app:', e);
+        next(e);
+      }
+    });
+    
+    console.log('Production server configured to serve working React components via Vite');
+  } catch (error) {
+    console.error('Failed to setup development mode:', error);
+    // Fallback to static serving
+    app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+    });
+  }
+}
+
+// Initialize development mode serving
+setupDevelopmentMode();
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {

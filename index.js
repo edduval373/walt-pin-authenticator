@@ -108,14 +108,20 @@ console.log('=== FORCING PRODUCTION MODE ===');
 app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets'), {
   maxAge: '1y',
   etag: false,
-  setHeaders: (res, path) => {
-    console.log('Serving asset:', path);
-    if (path.endsWith('.js')) {
+  setHeaders: (res, filePath) => {
+    console.log('Serving asset:', filePath);
+    if (filePath.endsWith('.js')) {
       res.setHeader('Content-Type', 'application/javascript');
-    } else if (path.endsWith('.css')) {
+    } else if (filePath.endsWith('.css')) {
       res.setHeader('Content-Type', 'text/css');
     }
   }
+}));
+
+// Also serve assets from root path for deployment compatibility
+app.use(express.static(path.join(__dirname, 'client/dist'), {
+  maxAge: '1y',
+  etag: false
 }));
 
 // Serve build files

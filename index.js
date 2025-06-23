@@ -2,51 +2,130 @@
 
 /**
  * Disney Pin Authenticator Production Server
- * FORCES DEVELOPMENT SERVER MODE FOR DEPLOYMENT
+ * Serves the working React app from client/dist
  */
 
-// Force development mode to serve working React components
-process.env.NODE_ENV = 'development';
-
-// Import and start the development server directly
-import { exec } from 'child_process';
-import { fileURLToPath } from 'url';
+import express from 'express';
+import FormData from 'form-data';
+import fetch from 'node-fetch';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('DEPLOYMENT: Starting development server to serve working React components');
+const app = express();
+const PORT = parseInt(process.env.PORT) || 8080;
 
-// Start the development server that serves your working React app
-const devServer = exec('tsx server/index.ts', { cwd: __dirname });
+// Configure middleware
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
-devServer.stdout.on('data', (data) => {
-  console.log('DEV SERVER:', data.toString());
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
 });
 
-devServer.stderr.on('data', (data) => {
-  console.error('DEV SERVER ERROR:', data.toString());
+// CORS configuration
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
 });
 
-devServer.on('close', (code) => {
-  console.log(`Development server exited with code ${code}`);
+// Health check endpoint
+app.get('/healthz', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'disney-pin-authenticator',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    mode: 'production-serving-working-react-app'
+  });
 });
 
-// Keep the process alive
-process.on('SIGTERM', () => {
-  console.log('Terminating development server...');
-  devServer.kill();
-  process.exit(0);
+// API endpoint for pin analysis
+app.post('/api/analyze', async (req, res) => {
+  try {
+    const { frontImage, backImage, angledImage } = req.body;
+    
+    if (!frontImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Front image is required'
+      });
+    }
+
+    // Create form data for the external API
+    const formData = new FormData();
+    
+    // Convert base64 to buffer and append to form
+    const frontBuffer = Buffer.from(frontImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+    formData.append('frontImage', frontBuffer, 'front.jpg');
+    
+    if (backImage) {
+      const backBuffer = Buffer.from(backImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('backImage', backBuffer, 'back.jpg');
+    }
+    
+    if (angledImage) {
+      const angledBuffer = Buffer.from(angledImage.replace(/^data:image\/[a-z]+;base64,/, ''), 'base64');
+      formData.append('angledImage', angledBuffer, 'angled.jpg');
+    }
+
+    // Call the external API
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    res.json({
+      success: true,
+      message: 'Analysis completed successfully',
+      ...result
+    });
+
+  } catch (error) {
+    console.error('Analysis API error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Analysis failed',
+      error: error.message
+    });
+  }
 });
 
-process.on('SIGINT', () => {
-  console.log('Terminating development server...');
-  devServer.kill();
-  process.exit(0);
+// Serve static files from client/dist
+app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
+
+// Serve the main HTML file for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/dist/index.html'));
 });
 
-console.log('DEPLOYMENT: Production server configured to run development mode for working React components');
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Disney Pin Authenticator server running on port ${PORT}`);
+  console.log(`Serving working React app from client/dist`);
+  console.log(`Health check available at http://localhost:${PORT}/healthz`);
+});
 
 // Configure middleware
 app.use(express.json({ limit: '100mb' }));

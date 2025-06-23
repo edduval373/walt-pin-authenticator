@@ -78,11 +78,27 @@ html, body {
 .to-indigo-100 { --tw-gradient-to: #e0e7ff; }
 .text-indigo-600 { color: #4f46e5; }
 .text-indigo-700 { color: #4338ca; }
+.text-indigo-800 { color: #3730a3; }
+.text-amber-600 { color: #d97706; }
+.bg-white { background-color: #ffffff; }
+.bg-indigo-50 { background-color: #eef2ff; }
+.bg-indigo-200 { background-color: #c7d2fe; }
+.bg-indigo-500 { background-color: #6366f1; }
+.bg-indigo-600 { background-color: #4f46e5; }
+.hover\\:bg-indigo-600:hover { background-color: #4f46e5; }
+.hover\\:bg-indigo-700:hover { background-color: #4338ca; }
+.hover\\:bg-indigo-800:hover { background-color: #3730a3; }
+.hover\\:text-indigo-800:hover { color: #3730a3; }
+.text-white { color: #ffffff; }
+.border-indigo-200 { border-color: #c7d2fe; }
+.border-indigo-500 { border-color: #6366f1; }
 
 /* Text sizes */
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-lg { font-size: 1.125rem; line-height: 1.75rem; }
 .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
 .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
-.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
 
 /* Font weights */
 .font-medium { font-weight: 500; }
@@ -93,8 +109,37 @@ html, body {
 .tracking-tight { letter-spacing: -0.025em; }
 .cursor-pointer { cursor: pointer; }
 .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+.transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+.duration-300 { transition-duration: 300ms; }
+.duration-100 { transition-duration: 100ms; }
+.ease-in-out { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+.ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
 .rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-full { border-radius: 9999px; }
 .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.border { border-width: 1px; }
+.border-2 { border-width: 2px; }
+.bg-opacity-90 { background-color: rgba(255, 255, 255, 0.9); }
+.max-h-0 { max-height: 0px; }
+.opacity-0 { opacity: 0; }
+.opacity-100 { opacity: 1; }
+.overflow-hidden { overflow: hidden; }
+.leading-relaxed { line-height: 1.625; }
+.space-y-2 > * + * { margin-top: 0.5rem; }
+.focus\\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+.focus\\:ring-2:focus { box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); }
+.focus\\:ring-indigo-500:focus { --tw-ring-color: #6366f1; }
+.focus\\:ring-offset-2:focus { --tw-ring-offset-width: 2px; }
+.mr-1 { margin-right: 0.25rem; }
+.mr-2 { margin-right: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.h-1\.5 { height: 0.375rem; }
 
 /* Button styles */
 .bg-indigo-600 { background-color: #4f46e5; }
@@ -213,58 +258,176 @@ function createDisneyPinApp() {
   titleContainer.appendChild(title);
   titleContainer.appendChild(version);
 
-  // Legal Notice Section
+  // Legal Notice Section - Matching React IntroPage.tsx exactly
   const legalSection = createElement('div', {
-    className: 'bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6 max-w-2xl mx-auto text-left'
+    className: 'mb-4 bg-white bg-opacity-90 rounded-xl p-4 border-2 border-indigo-200 shadow-sm'
   });
 
-  const legalTitle = createElement('h2', {
-    className: 'text-xl font-bold text-gray-800 mb-4'
-  }, 'Legal Notice');
-
-  const legalText = createElement('div', {
-    className: 'space-y-3 text-sm text-gray-700'
+  // Header with warning icon
+  const legalHeader = createElement('div', {
+    className: 'flex items-center justify-center mb-2'
   });
 
-  const disclaimer = createElement('p', {}, 
-    'This application is an independent third-party tool created for Disney pin collectors and is not affiliated with, endorsed by, or connected to The Walt Disney Company or any of its subsidiaries.');
+  const warningIcon = createElement('div', {
+    className: 'text-amber-600 mr-2 text-lg'
+  }, '⚠️');
 
-  const purpose = createElement('p', {}, 
-    'The app provides authentication services for Disney collectible pins using image analysis technology. Results are provided for informational purposes only.');
+  const legalTitle = createElement('h3', {
+    className: 'text-sm font-bold text-indigo-800'
+  }, 'IMPORTANT LEGAL NOTICE');
 
-  const limitation = createElement('p', {}, 
-    'Users acknowledge that authentication results may not be 100% accurate and should not be solely relied upon for purchasing decisions or determining collectible value.');
+  legalHeader.appendChild(warningIcon);
+  legalHeader.appendChild(legalTitle);
 
-  const rights = createElement('p', {}, 
-    'All Disney characters, trademarks, and copyrighted materials remain the property of The Walt Disney Company. This app respects all intellectual property rights.');
+  // Main legal text
+  const mainLegalText = createElement('p', {
+    className: 'text-xs text-indigo-700 mb-2 font-semibold'
+  }, 'FOR ENTERTAINMENT PURPOSES ONLY.');
 
-  legalText.appendChild(disclaimer);
-  legalText.appendChild(purpose);
-  legalText.appendChild(limitation);
-  legalText.appendChild(rights);
+  const disclaimer = createElement('p', {
+    className: 'text-xs text-indigo-600 mb-3'
+  }, 'This AI application is unreliable and should not be used for financial decisions.');
 
-  legalSection.appendChild(legalTitle);
-  legalSection.appendChild(legalText);
+  // Expandable section toggle
+  let isExpanded = false;
+  const toggleButton = createElement('button', {
+    className: 'flex items-center justify-center text-xs text-indigo-600 hover:text-indigo-800 font-semibold transition-colors w-full mb-3'
+  });
 
-  // Acknowledge Button
+  const toggleText = createElement('span', {
+    className: 'mr-1'
+  }, 'Read Full Legal Notice');
+
+  const toggleIcon = createElement('span', {
+    className: 'text-sm'
+  }, '▼');
+
+  toggleButton.appendChild(toggleText);
+  toggleButton.appendChild(toggleIcon);
+
+  // Expanded content
+  const expandedContent = createElement('div', {
+    className: 'mt-3 transition-all duration-300 ease-in-out overflow-hidden max-h-0 opacity-0',
+    style: 'max-height: 0px; opacity: 0;'
+  });
+
+  const expandedInner = createElement('div', {
+    className: 'p-3 bg-indigo-50 rounded-lg text-xs text-indigo-700 text-left leading-relaxed space-y-2'
+  });
+
+  // Detailed legal sections
+  const sections = [
+    {
+      title: 'Disclaimer of Warranties:',
+      text: 'This application provides entertainment value only. Results are not guaranteed to be accurate, complete, or reliable. The AI system may produce false, misleading, or completely incorrect assessments.'
+    },
+    {
+      title: 'No Financial Advice:',
+      text: 'Do not use this application for making financial decisions, investment choices, purchase decisions, or determining the actual value of collectibles, antiques, or any items of value.'
+    },
+    {
+      title: 'Professional Consultation Required:',
+      text: 'Always consult with professional appraisers, authentication services, and qualified experts for valuable items. This app cannot replace professional expertise.'
+    },
+    {
+      title: 'Limitation of Liability:',
+      text: 'By using this app, you acknowledge these limitations and agree that the developers disclaim all liability for any losses or damages resulting from reliance on AI-generated content.'
+    }
+  ];
+
+  sections.forEach(section => {
+    const sectionDiv = createElement('div');
+    const sectionTitle = createElement('p', {
+      className: 'font-semibold mb-1'
+    }, section.title);
+    const sectionText = createElement('p', {}, section.text);
+    
+    sectionDiv.appendChild(sectionTitle);
+    sectionDiv.appendChild(sectionText);
+    expandedInner.appendChild(sectionDiv);
+  });
+
+  expandedContent.appendChild(expandedInner);
+
+  // Toggle functionality
+  toggleButton.addEventListener('click', function() {
+    isExpanded = !isExpanded;
+    if (isExpanded) {
+      expandedContent.style.maxHeight = '400px';
+      expandedContent.style.opacity = '1';
+      toggleIcon.textContent = '▲';
+    } else {
+      expandedContent.style.maxHeight = '0px';
+      expandedContent.style.opacity = '0';
+      toggleIcon.textContent = '▼';
+    }
+  });
+
+  // Assemble legal section
+  legalSection.appendChild(legalHeader);
+  legalSection.appendChild(mainLegalText);
+  legalSection.appendChild(disclaimer);
+  legalSection.appendChild(toggleButton);
+  legalSection.appendChild(expandedContent);
+
+  // Progress bar (matching React version)
+  const progressContainer = createElement('div', {
+    className: 'w-full h-1.5 bg-indigo-200 rounded-full overflow-hidden mb-4'
+  });
+
+  const progressBar = createElement('div', {
+    className: 'h-full bg-indigo-500 rounded-full transition-all duration-100 ease-out',
+    style: 'width: 100%;'
+  });
+
+  progressContainer.appendChild(progressBar);
+
+  // I Acknowledge Button (matching React styling)
   const buttonContainer = createElement('div', {
-    className: 'text-center mb-6'
+    className: 'mb-2'
   });
 
   const acknowledgeButton = createElement('button', {
-    className: 'bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
-    onclick: 'window.location.href = "/overview"'
+    className: 'bg-indigo-500 text-white hover:bg-indigo-600 py-6 px-8 rounded-full shadow-lg border border-indigo-200 text-lg w-full font-bold'
+  });
+
+  const buttonText = createElement('span', {
+    className: 'font-bold mr-2'
   }, 'I Acknowledge');
+
+  const buttonIcon = createElement('span', {
+    className: 'text-xl'
+  }, '→');
+
+  acknowledgeButton.appendChild(buttonText);
+  acknowledgeButton.appendChild(buttonIcon);
+
+  // Button click handler
+  acknowledgeButton.addEventListener('click', function() {
+    // Store visit flag and navigate
+    localStorage.setItem('hasVisitedBefore', 'true');
+    window.location.href = '/overview';
+  });
 
   buttonContainer.appendChild(acknowledgeButton);
 
   // Assemble the app
   textContainer.appendChild(taglineContainer);
   textContainer.appendChild(titleContainer);
+  
+  // Create bottom section container
+  const bottomSection = createElement('div', {
+    className: 'flex-shrink-0',
+    style: 'transform: translateY(-50px);'
+  });
+  
+  bottomSection.appendChild(legalSection);
+  bottomSection.appendChild(progressContainer);
+  bottomSection.appendChild(buttonContainer);
+  
   container.appendChild(logoContainer);
   container.appendChild(textContainer);
-  container.appendChild(legalSection);
-  container.appendChild(buttonContainer);
+  container.appendChild(bottomSection);
   app.appendChild(container);
 
   // Clear root and add app

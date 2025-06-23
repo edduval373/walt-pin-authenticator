@@ -61,13 +61,62 @@ app.get('/healthz', (req, res) => {
 const clientBuildPath = path.join(__dirname, 'client', 'dist');
 app.use(express.static(clientBuildPath));
 
-// Root endpoint - force serve Disney Pin Authenticator
-app.get('/', (req, res) => {
-  console.log('Force serving Disney Pin Authenticator with W.A.L.T. interface');
-  
-  // Embedded Disney Pin Authenticator with proper styling
-  res.send(`<!DOCTYPE html>
-<html lang="en">
+// Add API routes before catch-all
+app.post('/api/verify-pin', async (req, res) => {
+  try {
+    const { frontImage, backImage, angledImage } = req.body;
+    
+    if (!frontImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Front image is required for Disney pin verification'
+      });
+    }
+
+    // Call the PIM API
+    const formData = new FormData();
+    formData.append('sessionId', Date.now().toString());
+    formData.append('frontImageData', frontImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    
+    if (backImage) {
+      formData.append('backImageData', backImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    }
+    
+    if (angledImage) {
+      formData.append('angledImageData', angledImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    }
+
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'}`
+      }
+    });
+
+    const result = await response.json();
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Pin verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Verification service unavailable'
+    });
+  }
+});
+
+// Serve the working React app for all routes
+app.get('*', (req, res) => {
+  console.log('Serving working React app from client/dist');
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Disney Pin Authenticator running on port ${PORT}`);
+  console.log('Environment: production');
+  console.log('Serving working React application from client/dist');
+});
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />

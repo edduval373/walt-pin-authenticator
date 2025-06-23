@@ -235,6 +235,9 @@ function createElement(tag, props, ...children) {
 function createDisneyPinApp() {
   const root = document.getElementById('root');
   if (!root) return;
+  
+  // Mark as initialized
+  root.setAttribute('id', 'app-initialized');
 
   // Create main container
   const app = createElement('div', {

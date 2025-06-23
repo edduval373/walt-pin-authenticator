@@ -605,7 +605,7 @@ function showOverviewPage() {
   const step2Text = createElement('div');
   const step2Content = createElement('span', {
     className: 'text-lg font-semibold text-gray-800'
-  }, '🤖 Computer checks if it\'s real');
+  }, '🤖 Computer checks if it is real');
 
   step2Text.appendChild(step2Content);
   step2.appendChild(step2Circle);

@@ -253,7 +253,7 @@ function createDisneyPinApp() {
   });
 
   const logo = createElement('img', {
-    src: '/assets/PinAuthLogo_1748957062189-CHct-bzj.png',
+    src: './assets/PinAuthLogo_1748957062189-CHct-bzj.png',
     alt: 'W.A.L.T. Logo',
     className: 'object-contain mx-auto',
     style: 'width: 437px; height: 437px; object-fit: contain;'
@@ -1317,12 +1317,19 @@ function showProcessingError() {
   root.appendChild(errorContainer);
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', createDisneyPinApp);
-} else {
+// Initialize app immediately
+window.addEventListener('load', function() {
+  console.log('Window loaded, initializing app...');
   createDisneyPinApp();
-}
+});
+
+// Fallback initialization
+setTimeout(function() {
+  console.log('Fallback initialization...');
+  if (!document.getElementById('app-initialized')) {
+    createDisneyPinApp();
+  }
+}, 100);
 `;
 
 fs.writeFileSync(path.join(assetsPath, 'index-DQwQ6CII.js'), mainJS);

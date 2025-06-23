@@ -2,20 +2,51 @@
 
 /**
  * Disney Pin Authenticator Production Server
- * Serves the working React app from client/dist
+ * FORCES DEVELOPMENT SERVER MODE FOR DEPLOYMENT
  */
 
-import express from 'express';
-import FormData from 'form-data';
-import fetch from 'node-fetch';
-import path from 'path';
+// Force development mode to serve working React components
+process.env.NODE_ENV = 'development';
+
+// Import and start the development server directly
+import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-const PORT = parseInt(process.env.PORT) || 8080;
+console.log('DEPLOYMENT: Starting development server to serve working React components');
+
+// Start the development server that serves your working React app
+const devServer = exec('tsx server/index.ts', { cwd: __dirname });
+
+devServer.stdout.on('data', (data) => {
+  console.log('DEV SERVER:', data.toString());
+});
+
+devServer.stderr.on('data', (data) => {
+  console.error('DEV SERVER ERROR:', data.toString());
+});
+
+devServer.on('close', (code) => {
+  console.log(`Development server exited with code ${code}`);
+});
+
+// Keep the process alive
+process.on('SIGTERM', () => {
+  console.log('Terminating development server...');
+  devServer.kill();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('Terminating development server...');
+  devServer.kill();
+  process.exit(0);
+});
+
+console.log('DEPLOYMENT: Production server configured to run development mode for working React components');
 
 // Configure middleware
 app.use(express.json({ limit: '100mb' }));

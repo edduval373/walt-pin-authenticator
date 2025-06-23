@@ -1,7 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { useLocation } from "wouter";
+import CameraView from "@/components/CameraView";
+import { RiCheckLine, RiCameraLine, RiArrowRightLine, RiInformationLine, RiArrowLeftLine, RiUploadLine, RiUpload2Line } from "react-icons/ri";
 import { Button } from "@/components/ui/button";
+import ImagePreviewModal from "@/components/ImagePreviewModal";
+import InfoModal from "@/components/InfoModal";
+import TransmissionLogViewer from "@/components/TransmissionLogViewer";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { NavigationContext } from "../App";
+import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
+import { transmissionLogger } from "@/lib/transmission-logger";
 import StepProgress from "@/components/StepProgress";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define the video device interface
 interface VideoDevice {
@@ -388,6 +405,7 @@ export default function CameraPage() {
     angled: ''
   });
   
+  // File uploader reference
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Track which side we're currently capturing (front is always first)
@@ -589,26 +607,34 @@ export default function CameraPage() {
     console.log("Preview modal state after:", true);
   };
   
+  // Function to handle retaking a photo
   const handleRetake = () => {
     setPreviewModalOpen(false);
   };
   
+  // Function to handle skipping a view (only allowed for back and angled)
   const handleSkip = () => {
     setPreviewModalOpen(false);
     
     if (activeView === 'back') {
+      // Skip back view and move to angled view
       setActiveView('angled');
     } else if (activeView === 'angled') {
+      // Skip angled view and proceed to processing
       const updatedImages = { ...capturedImages };
+      // Store captured images (front is required, others may be empty)
       sessionStorage.setItem('capturedImages', JSON.stringify(updatedImages));
       setLocation('/processing');
     }
   };
   
+  // Check if ready to proceed with processing
   const isReadyToProcess = () => {
+    // Front view is required, other views are optional
     return !!capturedImages.front;
   };
   
+  // Function to handle confirming a photo and moving to next view
   const handleConfirm = () => {
     setPreviewModalOpen(false);
     

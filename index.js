@@ -101,11 +101,27 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-// Serve static assets
-app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets')));
+// Force production mode - disable development middleware
+console.log('=== FORCING PRODUCTION MODE ===');
+
+// Serve static assets with proper headers
+app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets'), {
+  maxAge: '1y',
+  etag: false,
+  setHeaders: (res, path) => {
+    console.log('Serving asset:', path);
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
 
 // Serve build files
 app.get('*', (req, res) => {
+  console.log('Request for:', req.path);
+  
   // Skip API routes
   if (req.path.startsWith('/api/') || req.path.startsWith('/healthz')) {
     return res.status(404).json({
@@ -120,7 +136,9 @@ app.get('*', (req, res) => {
   }
   
   const htmlContent = fs.readFileSync(indexPath, 'utf8');
-  console.log('Serving build with Legal Notice:', htmlContent.includes('Legal Notice'));
+  console.log('Serving HTML - contains JavaScript bundle:', htmlContent.includes('index-DQwQ6CII.js'));
+  console.log('Serving HTML - contains CSS bundle:', htmlContent.includes('index-DAgQPu_G.css'));
+  res.setHeader('Content-Type', 'text/html');
   res.send(htmlContent);
 });
 

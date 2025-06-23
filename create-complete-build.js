@@ -467,7 +467,18 @@ const indexHTML = `<!DOCTYPE html>
         </div>
       </div>
     </div>
-    <script type="module" crossorigin src="/assets/index-DQwQ6CII.js"></script>
+    <script crossorigin src="/assets/index-DQwQ6CII.js"></script>
+    <script>
+      // Ensure the app loads after DOM is ready
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing Disney Pin Authenticator...');
+        if (typeof createDisneyPinApp === 'function') {
+          createDisneyPinApp();
+        } else {
+          console.error('createDisneyPinApp function not found');
+        }
+      });
+    </script>
   </body>
 </html>`;
 

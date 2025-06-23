@@ -111,6 +111,7 @@ html, body {
 .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
 .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
 .duration-300 { transition-duration: 300ms; }
+.duration-200 { transition-duration: 200ms; }
 .duration-100 { transition-duration: 100ms; }
 .ease-in-out { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
 .ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
@@ -118,6 +119,7 @@ html, body {
 .rounded-xl { border-radius: 0.75rem; }
 .rounded-full { border-radius: 9999px; }
 .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
 .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .border { border-width: 1px; }
 .border-2 { border-width: 2px; }
@@ -128,18 +130,57 @@ html, body {
 .overflow-hidden { overflow: hidden; }
 .leading-relaxed { line-height: 1.625; }
 .space-y-2 > * + * { margin-top: 0.5rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
 .focus\\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
 .focus\\:ring-2:focus { box-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); }
 .focus\\:ring-indigo-500:focus { --tw-ring-color: #6366f1; }
 .focus\\:ring-offset-2:focus { --tw-ring-offset-width: 2px; }
 .mr-1 { margin-right: 0.25rem; }
 .mr-2 { margin-right: 0.5rem; }
+.mr-4 { margin-right: 1rem; }
+.mt-2 { margin-top: 0.5rem; }
 .mt-3 { margin-top: 0.75rem; }
+.mt-5 { margin-top: 1.25rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+.ml-3 { margin-left: 0.75rem; }
+.my-8 { margin-top: 2rem; margin-bottom: 2rem; }
 .p-3 { padding: 0.75rem; }
 .p-4 { padding: 1rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
 .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
 .px-8 { padding-left: 2rem; padding-right: 2rem; }
+.h-1 { height: 0.25rem; }
 .h-1\.5 { height: 0.375rem; }
+.h-8 { height: 2rem; }
+.h-10 { height: 2.5rem; }
+.h-auto { height: auto; }
+.w-8 { width: 2rem; }
+.w-10 { width: 2.5rem; }
+.max-w-md { max-width: 28rem; }
+.flex-grow { flex: 1 1 0%; }
+.flex-shrink-0 { flex-shrink: 0; }
+.text-left { text-align: left; }
+.text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.bg-gray-300 { background-color: #d1d5db; }
+.bg-gray-800 { background-color: #1f2937; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-800 { color: #1f2937; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items: center; }
+.fade-in { animation: fadeIn 0.5s ease-in-out; }
+.transform { transform: var(--tw-transform); }
+.hover\\:scale-105:hover { transform: scale(1.05); }
+.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 /* Button styles */
 .bg-indigo-600 { background-color: #4f46e5; }
@@ -404,9 +445,9 @@ function createDisneyPinApp() {
 
   // Button click handler
   acknowledgeButton.addEventListener('click', function() {
-    // Store visit flag and navigate
+    // Store visit flag and navigate to overview
     localStorage.setItem('hasVisitedBefore', 'true');
-    window.location.href = '/overview';
+    showOverviewPage();
   });
 
   buttonContainer.appendChild(acknowledgeButton);
@@ -435,6 +476,221 @@ function createDisneyPinApp() {
   root.appendChild(app);
 
   console.log('Disney Pin Authenticator loaded successfully');
+}
+
+// Overview Page Function
+function showOverviewPage() {
+  const root = document.getElementById('root');
+  if (!root) return;
+
+  // Clear root and create overview page
+  root.innerHTML = '';
+
+  // Main container
+  const container = createElement('div', {
+    className: 'flex-grow flex flex-col items-center justify-center p-4 fade-in'
+  });
+
+  const contentWrapper = createElement('div', {
+    className: 'text-center max-w-md w-full'
+  });
+
+  // Step Progress Bar
+  const progressContainer = createElement('div', {
+    className: 'mb-6'
+  });
+
+  const progressBar = createElement('div', {
+    className: 'flex items-center justify-between mb-4'
+  });
+
+  // Progress steps
+  const steps = [
+    { number: 1, label: 'Start', active: true },
+    { number: 2, label: 'Photo', active: false },
+    { number: 3, label: 'Check', active: false },
+    { number: 4, label: 'Results', active: false }
+  ];
+
+  steps.forEach((step, index) => {
+    const stepContainer = createElement('div', {
+      className: 'flex flex-col items-center'
+    });
+
+    const stepCircle = createElement('div', {
+      className: step.active 
+        ? 'w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm'
+        : 'w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm'
+    }, step.number.toString());
+
+    const stepLabel = createElement('div', {
+      className: step.active ? 'text-sm font-medium text-indigo-600 mt-2' : 'text-sm text-gray-500 mt-2'
+    }, step.label);
+
+    stepContainer.appendChild(stepCircle);
+    stepContainer.appendChild(stepLabel);
+    progressBar.appendChild(stepContainer);
+
+    // Add connector line (except for last step)
+    if (index < steps.length - 1) {
+      const connector = createElement('div', {
+        className: 'flex-1 h-1 bg-gray-300 mx-2 mt-5'
+      });
+      progressBar.appendChild(connector);
+    }
+  });
+
+  progressContainer.appendChild(progressBar);
+
+  // Title Section
+  const titleSection = createElement('div', {
+    className: 'my-8',
+    style: 'margin-top: 17px;'
+  });
+
+  const title = createElement('h1', {
+    className: 'text-2xl font-bold text-gray-800 mb-2'
+  }, 'Disney Pin Checker');
+
+  const subtitle = createElement('p', {
+    className: 'text-lg text-gray-600 mb-6'
+  }, 'Find out if your Disney pin is real!');
+
+  titleSection.appendChild(title);
+  titleSection.appendChild(subtitle);
+
+  // Steps Section
+  const stepsSection = createElement('div', {
+    className: 'mb-8 text-center space-y-6'
+  });
+
+  const stepsTitle = createElement('h3', {
+    className: 'text-xl font-bold text-gray-800 mb-6'
+  }, "It's super easy!");
+
+  const stepsContainer = createElement('div', {
+    className: 'space-y-4'
+  });
+
+  // Step 1
+  const step1 = createElement('div', {
+    className: 'flex items-center text-left'
+  });
+
+  const step1Circle = createElement('div', {
+    className: 'w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0'
+  }, '1');
+
+  const step1Text = createElement('div');
+  const step1Content = createElement('span', {
+    className: 'text-lg font-semibold text-gray-800'
+  }, '📸 Take a photo of your Disney pin');
+
+  step1Text.appendChild(step1Content);
+  step1.appendChild(step1Circle);
+  step1.appendChild(step1Text);
+
+  // Step 2
+  const step2 = createElement('div', {
+    className: 'flex items-center text-left'
+  });
+
+  const step2Circle = createElement('div', {
+    className: 'w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0'
+  }, '2');
+
+  const step2Text = createElement('div');
+  const step2Content = createElement('span', {
+    className: 'text-lg font-semibold text-gray-800'
+  }, '🤖 Computer checks if it\'s real');
+
+  step2Text.appendChild(step2Content);
+  step2.appendChild(step2Circle);
+  step2.appendChild(step2Text);
+
+  // Step 3
+  const step3 = createElement('div', {
+    className: 'flex items-center text-left'
+  });
+
+  const step3Circle = createElement('div', {
+    className: 'w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold mr-4 flex-shrink-0'
+  }, '3');
+
+  const step3Text = createElement('div');
+  const step3Content = createElement('span', {
+    className: 'text-lg font-semibold text-gray-800'
+  }, '✨ Get your answer!');
+
+  step3Text.appendChild(step3Content);
+  step3.appendChild(step3Circle);
+  step3.appendChild(step3Text);
+
+  stepsContainer.appendChild(step1);
+  stepsContainer.appendChild(step2);
+  stepsContainer.appendChild(step3);
+
+  stepsSection.appendChild(stepsTitle);
+  stepsSection.appendChild(stepsContainer);
+
+  // Start Button
+  const startButton = createElement('button', {
+    className: 'w-full bg-indigo-600 text-white py-4 px-6 rounded-xl text-xl font-bold hover:bg-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center h-auto'
+  });
+
+  const buttonText = createElement('span', {}, 'Start Taking Photos!');
+  const buttonIcon = createElement('span', {
+    className: 'ml-3 text-2xl'
+  }, '📷');
+
+  startButton.appendChild(buttonText);
+  startButton.appendChild(buttonIcon);
+
+  // Start button click handler
+  startButton.addEventListener('click', function() {
+    // Navigate to camera page
+    showCameraPage();
+  });
+
+  // Assemble overview page
+  contentWrapper.appendChild(progressContainer);
+  contentWrapper.appendChild(titleSection);
+  contentWrapper.appendChild(stepsSection);
+  contentWrapper.appendChild(startButton);
+
+  container.appendChild(contentWrapper);
+  root.appendChild(container);
+
+  console.log('Overview page loaded successfully');
+}
+
+// Camera Page Function (placeholder)
+function showCameraPage() {
+  const root = document.getElementById('root');
+  if (!root) return;
+
+  root.innerHTML = '';
+  
+  const container = createElement('div', {
+    className: 'flex items-center justify-center min-h-screen bg-gradient-to-b from-indigo-50 to-indigo-100'
+  });
+
+  const message = createElement('div', {
+    className: 'text-center text-indigo-600'
+  });
+
+  const title = createElement('h1', {
+    className: 'text-2xl font-bold mb-4'
+  }, 'Camera Page');
+
+  const text = createElement('p', {}, 'Camera functionality will be implemented here.');
+
+  message.appendChild(title);
+  message.appendChild(text);
+  container.appendChild(message);
+  root.appendChild(container);
+
+  console.log('Camera page loaded successfully');
 }
 
 // Initialize when DOM is ready

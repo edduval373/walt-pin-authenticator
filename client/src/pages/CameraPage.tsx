@@ -1,24 +1,7 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import CameraView from "@/components/CameraView";
-import { RiCheckLine, RiCameraLine, RiArrowRightLine, RiInformationLine, RiArrowLeftLine, RiUploadLine, RiUpload2Line } from "react-icons/ri";
 import { Button } from "@/components/ui/button";
-import ImagePreviewModal from "@/components/ImagePreviewModal";
-import InfoModal from "@/components/InfoModal";
-import TransmissionLogViewer from "@/components/TransmissionLogViewer";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { NavigationContext } from "../App";
-import pinAuthLogo from "../assets/PinAuthLogo_1748957062189.png";
-import { transmissionLogger } from "@/lib/transmission-logger";
 import StepProgress from "@/components/StepProgress";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 // Define the video device interface
 interface VideoDevice {

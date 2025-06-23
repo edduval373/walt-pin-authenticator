@@ -448,7 +448,7 @@ if (document.readyState === 'loading') {
 fs.writeFileSync(path.join(assetsPath, 'index-DQwQ6CII.js'), mainJS);
 console.log('Created main JavaScript bundle');
 
-// Create complete index.html
+// Create embedded HTML with inline CSS and JavaScript for maximum compatibility
 const indexHTML = `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -456,28 +456,14 @@ const indexHTML = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Disney Pin Authenticator - W.A.L.T.</title>
     <meta name="description" content="Authenticate your Disney pins with advanced AI image recognition technology" />
-    <link rel="stylesheet" crossorigin href="/assets/index-DAgQPu_G.css">
+    <style>
+${mainCSS}
+    </style>
   </head>
   <body>
-    <div id="root">
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(to bottom, #eef2ff, #e0e7ff);">
-        <div style="text-align: center; color: #4f46e5;">
-          <h1>Disney Pin Authenticator</h1>
-          <p>Loading W.A.L.T. interface...</p>
-        </div>
-      </div>
-    </div>
-    <script crossorigin src="/assets/index-DQwQ6CII.js"></script>
+    <div id="root"></div>
     <script>
-      // Ensure the app loads after DOM is ready
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, initializing Disney Pin Authenticator...');
-        if (typeof createDisneyPinApp === 'function') {
-          createDisneyPinApp();
-        } else {
-          console.error('createDisneyPinApp function not found');
-        }
-      });
+${mainJS}
     </script>
   </body>
 </html>`;

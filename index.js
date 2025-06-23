@@ -118,12 +118,6 @@ app.use('/assets', express.static(path.join(__dirname, 'client/dist/assets'), {
   }
 }));
 
-// Also serve assets from root path for deployment compatibility
-app.use(express.static(path.join(__dirname, 'client/dist'), {
-  maxAge: '1y',
-  etag: false
-}));
-
 // Serve build files
 app.get('*', (req, res) => {
   console.log('Request for:', req.path);

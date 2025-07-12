@@ -255,13 +255,35 @@ app.use((req, res, next) => {
 
   // Set up web application routes AFTER ALL API routes
   // This ensures API routes are prioritized over the SPA routes
-  // Force Vite development server even in production deployment
-  // This is required because we skip the build step to avoid timeouts
-  const useViteDev = true; // Always use Vite dev server
-  if (useViteDev) {
-    await setupVite(app, server);
+  // Serve the built React app from client/dist
+  console.log('[server] Setting up static file serving from client/dist');
+  
+  // Import path module for proper path resolution
+  const path = await import('path');
+  const fs = await import('fs');
+  
+  // Serve static files from client/dist
+  const distPath = path.resolve(process.cwd(), 'client/dist');
+  console.log('[server] Static files path:', distPath);
+  
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+    console.log('[server] Static files middleware configured');
+    
+    // Serve index.html for all non-API routes
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/') || req.path.startsWith('/mobile-upload') || req.path.startsWith('/health')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+      }
+      
+      const indexPath = path.resolve(distPath, 'index.html');
+      console.log('[server] Serving index.html from:', indexPath);
+      res.sendFile(indexPath);
+    });
   } else {
-    serveStatic(app);
+    console.error('[server] ERROR: client/dist directory not found at:', distPath);
+    // Fallback to Vite dev server
+    await setupVite(app, server);
   }
 
   // Use Railway's PORT environment variable in production, fallback to 5000 for development

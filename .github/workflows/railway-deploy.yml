@@ -25,12 +25,9 @@ jobs:
       - name: Build application
         run: npm run build
         
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-        
-      - name: Deploy to Railway
+      - name: Deploy to Railway using GitHub Integration
+        uses: railway-deploy/railway-deploy@v3
+        with:
+          service: ${{ secrets.RAILWAY_SERVICE_NAME }}
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
-          railway up

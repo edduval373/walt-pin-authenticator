@@ -46,12 +46,21 @@ The Railway CLI automatically uses the RAILWAY_TOKEN environment variable when s
 - Updated workflow to use `railway link --project` before deployment
 - This should resolve the "Project Token not found" error
 
+## Alternative Solution: Use Railway's GitHub Integration
+Instead of using the CLI, we're now using Railway's official GitHub Action.
+
 ## Required GitHub Secrets
 You need to add these secrets to your GitHub repository:
 1. `RAILWAY_TOKEN` - Your Railway API token
-2. `RAILWAY_PROJECT_ID` - Your Railway project ID
+2. `RAILWAY_SERVICE_NAME` - Your Railway service name (usually "web" or your app name)
 
-To get your Railway project ID:
-1. Go to your Railway project dashboard
-2. Look at the URL: `https://railway.app/project/YOUR_PROJECT_ID`
-3. Copy the project ID from the URL
+## Even Simpler Solution
+**Option 1: Let Railway handle it automatically**
+- Go to your Railway project dashboard
+- Connect your GitHub repository directly
+- Railway will automatically deploy when you push to main/master
+- No GitHub Actions needed - Railway handles everything
+
+**Option 2: Disable GitHub Actions temporarily**
+- Rename `.github/workflows/railway-deploy.yml` to `.github/workflows/railway-deploy.yml.disabled`
+- Let Railway's native GitHub integration handle deployments

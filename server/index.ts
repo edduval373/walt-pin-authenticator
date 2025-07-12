@@ -255,35 +255,76 @@ app.use((req, res, next) => {
 
   // Set up web application routes AFTER ALL API routes
   // This ensures API routes are prioritized over the SPA routes
-  // Serve the built React app from client/dist
-  console.log('[server] Setting up static file serving from client/dist');
   
   // Import path module for proper path resolution
   const path = await import('path');
   const fs = await import('fs');
   
-  // Serve static files from client/dist
-  const distPath = path.resolve(process.cwd(), 'client/dist');
-  console.log('[server] Static files path:', distPath);
+  // Check if we're in development or production
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  console.log(`[server] Environment: ${isDevelopment ? 'development' : 'production'}`);
   
-  if (fs.existsSync(distPath)) {
-    app.use(express.static(distPath));
-    console.log('[server] Static files middleware configured');
-    
-    // Serve index.html for all non-API routes
-    app.get('*', (req, res) => {
-      if (req.path.startsWith('/api/') || req.path.startsWith('/mobile-upload') || req.path.startsWith('/health')) {
-        return res.status(404).json({ error: 'API endpoint not found' });
-      }
-      
-      const indexPath = path.resolve(distPath, 'index.html');
-      console.log('[server] Serving index.html from:', indexPath);
-      res.sendFile(indexPath);
-    });
-  } else {
-    console.error('[server] ERROR: client/dist directory not found at:', distPath);
-    // Fallback to Vite dev server
+  if (isDevelopment) {
+    // Development: Use Vite dev server
+    console.log('[server] Setting up Vite dev server');
     await setupVite(app, server);
+  } else {
+    // Production: Serve built React app from client/dist
+    console.log('[server] Setting up static file serving from client/dist');
+    
+    const distPath = path.resolve(process.cwd(), 'client/dist');
+    console.log('[server] Static files path:', distPath);
+    
+    if (fs.existsSync(distPath)) {
+      // Serve static files with proper headers
+      app.use(express.static(distPath, {
+        maxAge: '1d',
+        etag: false,
+        setHeaders: (res, path) => {
+          if (path.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        }
+      }));
+      console.log('[server] Static files middleware configured');
+      
+      // Serve index.html for all non-API routes (SPA routing)
+      app.get('*', (req, res) => {
+        if (req.path.startsWith('/api/') || req.path.startsWith('/mobile-upload') || req.path.startsWith('/health')) {
+          return res.status(404).json({ error: 'API endpoint not found' });
+        }
+        
+        const indexPath = path.resolve(distPath, 'index.html');
+        console.log(`[server] Serving SPA route ${req.path} -> index.html`);
+        res.sendFile(indexPath, (err) => {
+          if (err) {
+            console.error('[server] Error serving index.html:', err);
+            res.status(500).send('Error loading application');
+          }
+        });
+      });
+    } else {
+      console.error('[server] ERROR: client/dist directory not found at:', distPath);
+      console.error('[server] Please run the build process first');
+      
+      // Serve a helpful error page instead of crashing
+      app.get('*', (req, res) => {
+        if (req.path.startsWith('/api/')) {
+          return res.status(404).json({ error: 'API endpoint not found' });
+        }
+        
+        res.status(500).send(`
+          <html>
+            <head><title>Build Required</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+              <h1>Application Not Built</h1>
+              <p>Please run the build process to generate the client application.</p>
+              <p>Run: <code>node build-production.js</code></p>
+            </body>
+          </html>
+        `);
+      });
+    }
   }
 
   // Use Railway's PORT environment variable in production, fallback to 5000 for development

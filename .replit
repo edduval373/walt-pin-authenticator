@@ -27,7 +27,7 @@ localPort = 8080
 externalPort = 8080
 
 [workflows]
-runButton = "Project"
+runButton = "Production Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -46,3 +46,12 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Production Server"
+author = 42450602
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=production npm start"

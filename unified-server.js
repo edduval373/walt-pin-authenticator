@@ -3,12 +3,14 @@
 /**
  * Unified Disney Pin Authenticator Server
  * Handles both development and production deployments
+ * Fixed to properly serve static files from client/dist
  */
 
 import express from 'express';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +23,19 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 // Configure middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// CRITICAL: Serve static files FIRST with proper configuration
+app.use(express.static(path.join(__dirname, 'client/dist'), {
+  index: false, // Don't auto-serve index.html for directories
+  setHeaders: (res, filePath) => {
+    // Ensure proper content types for static assets
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
 
 // Health check endpoint
 app.get('/healthz', (req, res) => {
@@ -103,8 +118,16 @@ app.post('/api/verify-pin', async (req, res) => {
   }
 });
 
-// Serve the complete React application
+// Serve the complete React application (only for HTML routes, not static assets)
 app.get('*', (req, res) => {
+  // Check if client/dist/index.html exists, if so, serve that instead
+  const indexPath = path.join(__dirname, 'client/dist/index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+    return;
+  }
+  
+  // Fallback to embedded HTML for development or when dist doesn't exist
   res.send(`
 <!DOCTYPE html>
 <html lang="en">

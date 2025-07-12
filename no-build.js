@@ -21,9 +21,9 @@ try {
   // Try simplified Vite build without timeout
   try {
     console.log('Attempting optimized build...');
-    execSync('timeout 30s npx vite build --outDir client/dist --emptyOutDir', { stdio: 'inherit' });
+    execSync('npx vite build --outDir client/dist --emptyOutDir', { stdio: 'inherit' });
   } catch (buildError) {
-    console.log('Vite build timed out or failed, using working development setup for production...');
+    console.log('Vite build failed, using working development setup for production...');
     
     // Copy the development setup that's working perfectly
     const devHTML = `<!DOCTYPE html>

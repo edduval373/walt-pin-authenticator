@@ -95,14 +95,14 @@ This is a mobile-first web application for Disney pin collectors that provides A
 - **Performance**: Response time monitoring and optimization
 
 ## Recent Changes
-- June 23, 2025: Fixed production deployment to match working development interface
-- Embedded complete React components directly in production server HTML
-- Eliminated build process complexity and port conflicts causing deployment failures
-- Production server now serves identical interface to development: beautiful camera with circular capture frame
-- Maintained all API endpoints and pin analysis functionality
-- Complete app flow preserved: intro → camera → processing → results
-- Camera interface includes professional styling, multi-angle capture, and W.A.L.T. branding
-- Deployment ready with working components served directly without static build dependencies
+- July 12, 2025: Fixed critical deployment issue causing blank screen at pinauth.com
+- Corrected unified-server.js to properly serve static files from client/dist
+- Created deploy-fix.js with proper static file serving configuration
+- Fixed package.json JSON syntax error that was preventing app startup
+- Static assets now served with correct content types (JavaScript/CSS)
+- Production deployment now serves actual React build files instead of embedded HTML
+- GitHub Actions deployment configured for automatic Railway deployment
+- Database connection established with PostgreSQL integration
 
 ## Changelog
 - June 23, 2025. Initial setup and working app restoration

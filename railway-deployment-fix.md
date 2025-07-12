@@ -25,9 +25,17 @@ The Railway CLI automatically uses the RAILWAY_TOKEN environment variable when s
 ## Status
 - ✅ Fixed GitHub Actions workflow
 - ✅ Updated authentication method for Railway CLI
+- ✅ Added proper build step to create client/dist files
 - ✅ Deployment should now work correctly
 
+## Railway Configuration Required
+**IMPORTANT**: Enable "Wait for CI" in Railway settings:
+- This ensures Railway waits for GitHub Actions to complete successfully
+- Prevents Railway from deploying before the build process finishes
+- Allows GitHub Actions to handle the deployment via Railway CLI
+
 ## Next Steps
-1. Commit and push the updated workflow file
-2. GitHub Actions will automatically deploy to Railway
-3. pinauth.com should receive the proper build files
+1. **Enable "Wait for CI" in Railway dashboard** (as shown in screenshot)
+2. Commit and push the updated workflow file
+3. GitHub Actions will build and deploy to Railway
+4. pinauth.com should receive the proper build files

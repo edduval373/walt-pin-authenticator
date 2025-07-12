@@ -108,6 +108,7 @@ This is a mobile-first web application for Disney pin collectors that provides A
 - Fixed GitHub Actions Railway CLI authentication issue (using environment variable method)
 - Resolved development server import issue preventing real Disney Pin Authenticator from loading
 - Added proper build step to GitHub Actions workflow to ensure client/dist files are created
+- Identified need to enable "Wait for CI" setting in Railway for proper GitHub Actions integration
 
 ## Changelog
 - June 23, 2025. Initial setup and working app restoration

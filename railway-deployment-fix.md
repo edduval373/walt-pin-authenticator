@@ -35,7 +35,13 @@ The Railway CLI automatically uses the RAILWAY_TOKEN environment variable when s
 - Allows GitHub Actions to handle the deployment via Railway CLI
 
 ## Next Steps
-1. **Enable "Wait for CI" in Railway dashboard** (as shown in screenshot)
+1. **Enable "Wait for CI" in Railway dashboard** ✅ (Done)
 2. Commit and push the updated workflow file
 3. GitHub Actions will build and deploy to Railway
 4. pinauth.com should receive the proper build files
+
+## Latest Fix (July 12, 2025)
+- Removed specific service name from Railway deployment
+- Added railway.json configuration file
+- Simplified deployment command to just `railway up`
+- This should resolve the "Project Token not found" error

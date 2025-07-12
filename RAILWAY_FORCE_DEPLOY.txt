@@ -1,12 +1,2 @@
-DEPLOYMENT TRIGGER - June 23, 2025 19:52 UTC
-
-Restored working React app from June backup
-Fixed production build to serve real app instead of fake splash screen
-Production server serves working React build from client/dist
-
-Changes ready for deployment:
-- index.js: Clean production server serving React app
-- client/dist: Built React application with working components
-- no-build.js: Proper build script for React app compilation
-
-This deployment will serve the working React app, not the fake splash screen.
+FORCE DEPLOY TRIGGER: 2025-07-12T14:10:00Z
+Railway deployment with fixed build script

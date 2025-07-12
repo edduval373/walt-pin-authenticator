@@ -19,6 +19,12 @@ jobs:
         with:
           node-version: '18'
           
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build application
+        run: npm run build
+        
       - name: Install Railway CLI
         run: npm install -g @railway/cli
         
@@ -26,6 +32,4 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          echo $RAILWAY_TOKEN | railway login
-          railway link --project "PIM Authentication Library" --environment "Production"
           railway up --service pinauth-mobile-pin

@@ -6,17 +6,21 @@ GitHub Actions deployment to Railway is failing with authentication error:
 - Railway CLI command syntax has changed
 
 ## Solution
-Updated `.github/workflows/railway-deploy.yml` to use the correct Railway CLI authentication:
+Updated `.github/workflows/railway-deploy.yml` to use environment variable authentication:
 
 **Before:**
 ```bash
 railway login --token $RAILWAY_TOKEN
+railway link --project "PIM Authentication Library" --environment "Production"
+railway up --service pinauth-mobile-pin
 ```
 
 **After:**
 ```bash
-echo $RAILWAY_TOKEN | railway login
+railway up --service pinauth-mobile-pin
 ```
+
+The Railway CLI automatically uses the RAILWAY_TOKEN environment variable when set, eliminating the need for explicit login commands in CI/CD environments.
 
 ## Status
 - ✅ Fixed GitHub Actions workflow

@@ -105,8 +105,9 @@ This is a mobile-first web application for Disney pin collectors that provides A
 - Database connection established with PostgreSQL integration
 - Fixed Railway build failures with production-build.js script
 - Removed build verification step that was causing false deployment failures
-- Fixed GitHub Actions Railway CLI authentication issue (removed --token flag)
+- Fixed GitHub Actions Railway CLI authentication issue (using environment variable method)
 - Resolved development server import issue preventing real Disney Pin Authenticator from loading
+- Added proper build step to GitHub Actions workflow to ensure client/dist files are created
 
 ## Changelog
 - June 23, 2025. Initial setup and working app restoration

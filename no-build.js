@@ -18,38 +18,14 @@ try {
     fs.mkdirSync(distDir, { recursive: true });
   }
 
-  // Try simplified Vite build without timeout
+  // Run Vite build
+  console.log('Running Vite build...');
   try {
-    console.log('Attempting optimized build...');
     execSync('npx vite build --outDir client/dist --emptyOutDir', { stdio: 'inherit' });
+    console.log('✅ Vite build completed successfully');
   } catch (buildError) {
-    console.log('Vite build failed, using working development setup for production...');
-    
-    // Copy the development setup that's working perfectly
-    const devHTML = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Disney Pin Authenticator</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>`;
-    
-    // Write the working HTML structure
-    fs.writeFileSync(path.join(distDir, 'index.html'), devHTML);
-    
-    // Create assets directory
-    const assetsDir = path.join(distDir, 'assets');
-    if (!fs.existsSync(assetsDir)) {
-      fs.mkdirSync(assetsDir, { recursive: true });
-    }
-    
-    console.log('✅ Development setup preserved for production');
+    console.error('❌ Vite build failed:', buildError.message);
+    process.exit(1);
   }
   
   // Verify deployment readiness

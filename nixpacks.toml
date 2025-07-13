@@ -1,8 +1,14 @@
 [variables]
 NODE_ENV = "production"
 
+[phases.setup]
+nixPkgs = ["nodejs_18", "npm-9_x"]
+
+[phases.install]
+cmd = "npm ci"
+
 [phases.build]
-cmd = "node build-railway.js"
+cmd = "npm run build"
 
 [start]
 cmd = "NODE_ENV=production node dist/index.js"

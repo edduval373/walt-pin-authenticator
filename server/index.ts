@@ -19,8 +19,24 @@ app.get('/healthz', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0',
     port: process.env.PORT || 5000,
-    env: process.env.NODE_ENV || 'development'
+    env: process.env.NODE_ENV || 'development',
+    uptime: process.uptime()
   });
+});
+
+// Add root health check as backup
+app.get('/', (req, res) => {
+  if (req.headers['user-agent']?.includes('railway')) {
+    // Railway's health check sometimes hits root
+    res.status(200).json({
+      status: 'healthy',
+      service: 'Disney Pin Authenticator',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    // Regular users get redirected to the app
+    res.redirect('/app');
+  }
 });
 
 // Increase JSON body size limit to handle larger image payloads (100MB)
@@ -208,33 +224,22 @@ app.use((req, res, next) => {
     next();
   });
 
-  // Add health check endpoint
+  // Additional health check endpoints for different access patterns
   app.get('/health', (req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      service: 'walt-pin-authenticator',
-      timestamp: new Date().toISOString(),
-      port: process.env.PORT || 5000
-    });
-  });
-
-  // Add Railway health check endpoint - add early to avoid middleware conflicts
-  app.get('/healthz', (req, res) => {
     res.status(200).json({
       status: 'healthy',
       service: 'Disney Pin Authenticator',
       timestamp: new Date().toISOString(),
-      version: '1.0.0',
-      port: process.env.PORT || 5000
+      version: '1.0.0'
     });
   });
 
-  // Add API health endpoint
   app.get('/api/health', (req, res) => {
     res.status(200).json({
       status: 'healthy',
+      service: 'Disney Pin Authenticator API',
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV
+      version: '1.0.0'
     });
   });
 

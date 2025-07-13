@@ -6,6 +6,11 @@
 **Version:** Working backup restored from June 2025
 **Status:** All systems operational - ready for Railway Git deployment
 
+⚠️ **FINAL STEP REQUIRED:** Add dev script to package.json:
+```json
+"dev": "NODE_ENV=development tsx server/index.ts"
+```
+
 ## Current Configuration
 
 ### Working Features Confirmed:

@@ -5,22 +5,29 @@
  * This script builds both the client and server for production deployment
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 console.log('🚀 Starting Railway build process...');
 
 try {
-  // 1. Run the unified build command (builds both client and server)
-  console.log('📦 Building both client and server...');
+  // 1. Build the client (React app) - using vite build directly to avoid TypeScript timeout
+  console.log('📦 Building React client...');
+  execSync('cd client && npx vite build', { stdio: 'inherit' });
+  
+  // 2. Build the server (TypeScript to JavaScript)
+  console.log('🔧 Building server...');
   execSync('npm run build', { stdio: 'inherit' });
   
   // 3. Verify build outputs
   console.log('✅ Verifying build outputs...');
   
-  const clientDist = path.join(process.cwd(), 'client', 'dist');
-  const serverDist = path.join(process.cwd(), 'dist');
+  const clientDist = path.join(__dirname, 'client', 'dist');
+  const serverDist = path.join(__dirname, 'dist');
   
   if (!fs.existsSync(clientDist)) {
     throw new Error('Client build failed - dist directory not found');

@@ -205,6 +205,16 @@ app.use((req, res, next) => {
     });
   });
 
+  // Add Railway health check endpoint
+  app.get('/healthz', (req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      service: 'Disney Pin Authenticator',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  });
+
   // Add API health endpoint
   app.get('/api/health', (req, res) => {
     res.status(200).json({

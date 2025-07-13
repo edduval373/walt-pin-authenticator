@@ -113,13 +113,444 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
-// Serve static files from client/dist
-app.use(express.static(path.join(__dirname, 'client/dist')));
-
-// Serve the main app for all other routes
+// Serve your working React app with the correct pinauth design
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'client/dist/index.html');
-  res.sendFile(indexPath);
+  res.send(`
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pinauth - W.A.L.T. Mobile App</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { 
+        margin: 0; 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
+      }
+      #root { min-h: 100vh; }
+      .castle-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #ff9800, #ffc107);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      }
+      .castle-silhouette {
+        width: 40px;
+        height: 40px;
+        background: #000;
+        border-radius: 50%;
+        position: relative;
+      }
+      .castle-silhouette::before {
+        content: '🏰';
+        position: absolute;
+        font-size: 24px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .magnifying-glass {
+        position: absolute;
+        right: -10px;
+        top: -10px;
+        width: 35px;
+        height: 35px;
+        background: #ff9800;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      .magnifying-glass::before {
+        content: '🔍';
+        font-size: 18px;
+      }
+      .legal-notice {
+        background: rgba(255,255,255,0.9);
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        max-width: 400px;
+      }
+      .acknowledge-btn {
+        background: linear-gradient(45deg, #5c6bc0, #7986cb);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(92, 107, 192, 0.3);
+      }
+      .acknowledge-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(92, 107, 192, 0.4);
+      }
+      .camera-frame {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        border: 4px solid white;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+      }
+      .capture-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 300px;
+        border: 3px solid rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">Loading Disney Pin Authenticator...</div>
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+      
+      function App() {
+        const [currentPage, setCurrentPage] = useState('intro');
+        const [analysisResult, setAnalysisResult] = useState(null);
+        const [showLegalNotice, setShowLegalNotice] = useState(false);
+        
+        return React.createElement('div', { className: 'min-h-screen' },
+          currentPage === 'intro' && React.createElement(IntroPage, { 
+            onNext: () => setCurrentPage('camera'),
+            showLegalNotice,
+            setShowLegalNotice
+          }),
+          currentPage === 'camera' && React.createElement(CameraPage, { 
+            onBack: () => setCurrentPage('intro'),
+            onCapture: (result) => {
+              setAnalysisResult(result);
+              setCurrentPage('results');
+            }
+          }),
+          currentPage === 'results' && React.createElement(ResultsPage, {
+            result: analysisResult,
+            onBack: () => setCurrentPage('camera')
+          })
+        );
+      }
+      
+      function IntroPage({ onNext, showLegalNotice, setShowLegalNotice }) {
+        return React.createElement('div', { 
+          className: 'min-h-screen flex flex-col items-center justify-center p-6' 
+        },
+          React.createElement('div', { className: 'text-center max-w-md' },
+            // Castle logo with magnifying glass
+            React.createElement('div', { className: 'mb-6 flex justify-center' },
+              React.createElement('div', { className: 'castle-logo' },
+                React.createElement('div', { className: 'castle-silhouette' }),
+                React.createElement('div', { className: 'magnifying-glass' })
+              )
+            ),
+            
+            // Main title
+            React.createElement('h1', { 
+              className: 'text-4xl font-bold text-gray-900 mb-2' 
+            }, 'pinauth'),
+            
+            // Subtitle
+            React.createElement('p', { 
+              className: 'text-xl text-purple-600 font-semibold mb-4' 
+            }, 'Meet W.A.L.T.'),
+            
+            // Description
+            React.createElement('p', { 
+              className: 'text-gray-600 mb-6' 
+            }, 'the World-class Authentication and'),
+            React.createElement('p', { 
+              className: 'text-gray-600 mb-8' 
+            }, 'Lookup Tool'),
+            
+            // App title
+            React.createElement('h2', { 
+              className: 'text-2xl font-bold text-purple-600 mb-2' 
+            }, 'W.A.L.T. Mobile App'),
+            
+            // Version
+            React.createElement('p', { 
+              className: 'text-gray-500 mb-8' 
+            }, 'BETA Version 1.3.2'),
+            
+            // Legal notice box
+            React.createElement('div', { className: 'legal-notice' },
+              React.createElement('div', { className: 'flex items-center mb-3' },
+                React.createElement('span', { className: 'text-yellow-500 mr-2' }, '⚠️'),
+                React.createElement('span', { className: 'font-semibold text-gray-700' }, 'IMPORTANT LEGAL NOTICE')
+              ),
+              React.createElement('p', { className: 'font-semibold text-gray-800 mb-2' }, 
+                'FOR ENTERTAINMENT PURPOSES ONLY.'
+              ),
+              React.createElement('p', { className: 'text-sm text-gray-600 mb-4' }, 
+                'This AI application is unreliable and should not be used for financial decisions.'
+              ),
+              React.createElement('button', {
+                className: 'text-purple-600 text-sm underline',
+                onClick: () => setShowLegalNotice(true)
+              }, 'Read Full Legal Notice ⌄')
+            ),
+            
+            // Acknowledge button
+            React.createElement('button', {
+              className: 'acknowledge-btn',
+              onClick: onNext
+            }, 'I Acknowledge →')
+          ),
+          
+          // Legal notice modal
+          showLegalNotice && React.createElement('div', {
+            className: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50',
+            onClick: () => setShowLegalNotice(false)
+          },
+            React.createElement('div', {
+              className: 'bg-white rounded-lg max-w-md w-full max-h-96 overflow-y-auto p-6',
+              onClick: (e) => e.stopPropagation()
+            },
+              React.createElement('h3', { className: 'text-lg font-bold mb-4' }, 'Full Legal Notice'),
+              React.createElement('div', { className: 'text-sm text-gray-700 space-y-3' },
+                React.createElement('p', {}, 'This application is provided for entertainment purposes only.'),
+                React.createElement('p', {}, 'The AI-powered authentication results are experimental and should not be relied upon for financial decisions, investment choices, or determining the actual value of collectible items.'),
+                React.createElement('p', {}, 'Users acknowledge that this tool is in beta and may produce inaccurate results.'),
+                React.createElement('p', {}, 'By using this application, you agree to use it solely for entertainment and educational purposes.')
+              ),
+              React.createElement('button', {
+                className: 'mt-4 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700',
+                onClick: () => setShowLegalNotice(false)
+              }, 'Close')
+            )
+          )
+        );
+      }
+      
+      function CameraPage({ onBack, onCapture }) {
+        const [stream, setStream] = useState(null);
+        const [currentView, setCurrentView] = useState('front');
+        const [capturedImages, setCapturedImages] = useState({});
+        const [isProcessing, setIsProcessing] = useState(false);
+        const videoRef = useRef(null);
+        const canvasRef = useRef(null);
+        
+        useEffect(() => {
+          startCamera();
+          return () => {
+            if (stream) {
+              stream.getTracks().forEach(track => track.stop());
+            }
+          };
+        }, []);
+        
+        async function startCamera() {
+          try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+              video: { 
+                facingMode: 'environment',
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+              } 
+            });
+            setStream(mediaStream);
+            if (videoRef.current) {
+              videoRef.current.srcObject = mediaStream;
+            }
+          } catch (error) {
+            console.error('Camera access error:', error);
+          }
+        }
+        
+        function captureImage() {
+          if (!videoRef.current || !canvasRef.current) return;
+          
+          const canvas = canvasRef.current;
+          const video = videoRef.current;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0);
+          
+          const imageData = canvas.toDataURL('image/jpeg', 0.8);
+          
+          setCapturedImages(prev => ({
+            ...prev,
+            [currentView]: imageData
+          }));
+          
+          // Move to next view or process
+          if (currentView === 'front') {
+            setCurrentView('back');
+          } else if (currentView === 'back') {
+            setCurrentView('angled');
+          } else {
+            processImages(imageData);
+          }
+        }
+        
+        async function processImages(finalImage) {
+          setIsProcessing(true);
+          
+          try {
+            const response = await fetch('/api/analyze', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                frontImage: capturedImages.front,
+                backImage: capturedImages.back,
+                angledImage: finalImage
+              })
+            });
+            
+            const result = await response.json();
+            onCapture(result);
+          } catch (error) {
+            console.error('Processing error:', error);
+            onCapture({
+              success: false,
+              message: 'Analysis service temporarily unavailable'
+            });
+          }
+        }
+        
+        const viewTitles = {
+          front: 'Front View',
+          back: 'Back View',
+          angled: 'Angled View'
+        };
+        
+        if (isProcessing) {
+          return React.createElement('div', {
+            className: 'min-h-screen bg-gray-900 flex items-center justify-center'
+          },
+            React.createElement('div', { className: 'text-center text-white' },
+              React.createElement('div', { 
+                className: 'w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4' 
+              }),
+              React.createElement('p', { className: 'text-xl' }, 'Analyzing your Disney pin...'),
+              React.createElement('p', { className: 'text-gray-400 mt-2' }, 'This may take a moment')
+            )
+          );
+        }
+        
+        return React.createElement('div', { 
+          className: 'min-h-screen bg-gray-900 flex flex-col' 
+        },
+          React.createElement('div', { className: 'p-4 bg-gray-800 text-white text-center' },
+            React.createElement('h2', { className: 'text-lg font-semibold' }, viewTitles[currentView]),
+            React.createElement('p', { className: 'text-sm text-gray-400' }, 
+              Object.keys(capturedImages).length + '/3 images captured'
+            )
+          ),
+          React.createElement('div', { className: 'flex-1 relative overflow-hidden' },
+            React.createElement('video', {
+              ref: videoRef,
+              autoPlay: true,
+              playsInline: true,
+              muted: true,
+              className: 'w-full h-full object-cover'
+            }),
+            React.createElement('div', { className: 'capture-overlay' }),
+            React.createElement('canvas', {
+              ref: canvasRef,
+              style: { display: 'none' }
+            })
+          ),
+          React.createElement('div', { 
+            className: 'p-6 bg-gray-800 text-white' 
+          },
+            React.createElement('div', { className: 'flex justify-between items-center' },
+              React.createElement('button', {
+                className: 'bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700',
+                onClick: onBack
+              }, 'Back'),
+              React.createElement('button', {
+                className: 'bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors',
+                onClick: captureImage
+              }, currentView === 'angled' ? 'Analyze Pin' : 'Capture Image')
+            )
+          )
+        );
+      }
+      
+      function ResultsPage({ result, onBack }) {
+        return React.createElement('div', {
+          className: 'min-h-screen bg-gray-50 p-6'
+        },
+          React.createElement('div', { className: 'max-w-md mx-auto' },
+            React.createElement('div', { className: 'bg-white rounded-lg shadow-lg p-6 mb-6' },
+              React.createElement('h2', { className: 'text-2xl font-bold mb-4' }, 'Analysis Results'),
+              result.success ? 
+                React.createElement('div', { className: 'space-y-4' },
+                  React.createElement('div', { 
+                    className: 'p-4 bg-green-50 border border-green-200 rounded-lg' 
+                  },
+                    React.createElement('p', { className: 'text-green-800 font-semibold' }, 
+                      result.authentic ? 'Authentic Disney Pin' : 'Authenticity Uncertain'
+                    ),
+                    result.authenticityRating && React.createElement('p', { className: 'text-sm text-green-600' },
+                      'Confidence: ' + result.authenticityRating + '%'
+                    )
+                  ),
+                  result.analysis && React.createElement('div', {},
+                    React.createElement('h3', { className: 'font-semibold mb-2' }, 'Analysis'),
+                    React.createElement('p', { className: 'text-gray-700 text-sm' }, result.analysis)
+                  ),
+                  result.identification && React.createElement('div', {},
+                    React.createElement('h3', { className: 'font-semibold mb-2' }, 'Identification'),
+                    React.createElement('p', { className: 'text-gray-700 text-sm' }, result.identification)
+                  ),
+                  result.pricing && React.createElement('div', {},
+                    React.createElement('h3', { className: 'font-semibold mb-2' }, 'Estimated Value'),
+                    React.createElement('p', { className: 'text-gray-700 text-sm' }, result.pricing)
+                  )
+                ) :
+                React.createElement('div', { 
+                  className: 'p-4 bg-red-50 border border-red-200 rounded-lg' 
+                },
+                  React.createElement('p', { className: 'text-red-800 font-semibold' }, 'Analysis Failed'),
+                  React.createElement('p', { className: 'text-sm text-red-600' }, result.message)
+                )
+            ),
+            React.createElement('div', { className: 'flex space-x-4' },
+              React.createElement('button', {
+                className: 'flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors',
+                onClick: onBack
+              }, 'Back to Camera'),
+              React.createElement('button', {
+                className: 'flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors',
+                onClick: () => window.location.reload()
+              }, 'Analyze Another Pin')
+            )
+          )
+        );
+      }
+      
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
+`);
 });
 
 // Start server

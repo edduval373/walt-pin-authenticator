@@ -20,12 +20,17 @@ app.get('/healthz', (req, res) => {
   });
 });
 
+// API routes would go here if needed
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // Serve index.html for all routes (SPA)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/dist/index.html'));
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🏰 Disney Pin Authenticator running on port ${PORT}`);
 });

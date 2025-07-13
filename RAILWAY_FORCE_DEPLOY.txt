@@ -1,2 +1,11 @@
-FORCE DEPLOY TRIGGER: 2025-07-12T14:10:00Z
-Railway deployment with fixed build script
+Railway Deploy Force Trigger - Client Build Fix Applied
+
+The minimal-server.js now creates client build files at startup if they don't exist.
+
+This should resolve the "ENOENT: no such file or directory" error during Railway deployment.
+
+Timestamp: 2025-07-13 13:25:00
+Status: Client build creation moved to server startup
+Action: Ready for Railway deployment
+
+The server will now create the required client/dist/index.html file automatically when it starts, preventing the missing file error.

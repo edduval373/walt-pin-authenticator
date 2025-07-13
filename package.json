@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node production-build.cjs",
     "start": "node server.js",
-    "dev": "npm start"
+    "dev": "NODE_ENV=development npx tsx server/index.ts"
   },
   "dependencies": {
     "@expo/cli": "^0.24.15",

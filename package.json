@@ -4,10 +4,9 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
-    "start": "NODE_ENV=production node build-production.js && NODE_ENV=production tsx server/index.ts",
-    "build": "node build-production.js",
-    "build:client": "cd client && npm run build"
+    "build": "node production-build.cjs",
+    "start": "node server.js",
+    "dev": "npm start"
   },
   "dependencies": {
     "@expo/cli": "^0.24.15",

@@ -9,9 +9,8 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -34,7 +33,7 @@ export const pins = pgTable("pins", {
 });
 
 export const insertPinSchema = createInsertSchema(pins)
-  .omit({ id: true, createdAt: true });
+  .omit({ id: true, createdAt: true, feedbackSubmittedAt: true });
 
 export type InsertPin = z.infer<typeof insertPinSchema>;
 export type Pin = typeof pins.$inferSelect;
@@ -69,7 +68,7 @@ export const userFeedback = pgTable("user_feedback", {
 });
 
 export const insertUserFeedbackSchema = createInsertSchema(userFeedback)
-  .pick({ analysisId: true, pinId: true, userAgreement: true, feedbackComment: true });
+  .omit({ id: true, submittedAt: true });
 
 export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
 export type UserFeedback = typeof userFeedback.$inferSelect;

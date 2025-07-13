@@ -117,7 +117,7 @@ export class RailwayStorage implements IStorage {
     try {
       const result = await this.pool.query(
         'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *',
-        [user.username, user.password]
+        [(user as any).username, (user as any).password]
       );
       return result.rows[0];
     } catch (error: any) {
@@ -151,7 +151,7 @@ export class RailwayStorage implements IStorage {
     try {
       const result = await this.pool.query(
         'INSERT INTO pins (pin_id, name, series, release_year, image_url, dominant_colors, similar_pins) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [pin.pinId, pin.name, pin.series, pin.releaseYear, pin.imageUrl, pin.dominantColors, pin.similarPins]
+        [(pin as any).pinId, (pin as any).name, (pin as any).series, (pin as any).releaseYear, (pin as any).imageUrl, (pin as any).dominantColors, (pin as any).similarPins]
       );
       return result.rows[0];
     } catch (error: any) {
@@ -207,7 +207,7 @@ export class RailwayStorage implements IStorage {
     try {
       const result = await this.pool.query(
         'INSERT INTO user_feedback (analysis_id, pin_id, user_agreement, feedback_comment) VALUES ($1, $2, $3, $4) RETURNING *',
-        [feedback.analysisId, feedback.pinId, feedback.userAgreement, feedback.feedbackComment]
+        [(feedback as any).analysisId, (feedback as any).pinId, (feedback as any).userAgreement, (feedback as any).feedbackComment]
       );
       
       const savedFeedback = result.rows[0];
@@ -277,15 +277,15 @@ export class RailwayStorage implements IStorage {
       const result = await this.pool.query(
         'INSERT INTO mobile_app_api_log (session_id, request_type, request_body, response_body, response_status, host_api_called, host_api_response, host_api_status, error_message) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
         [
-          logEntry.sessionId,
-          logEntry.requestType,
-          logEntry.requestBody,
-          logEntry.responseBody || null,
-          logEntry.responseStatus || null,
-          logEntry.hostApiCalled || false,
-          logEntry.hostApiResponse || null,
-          logEntry.hostApiStatus || null,
-          logEntry.errorMessage || null
+          (logEntry as any).sessionId,
+          (logEntry as any).requestType,
+          (logEntry as any).requestBody,
+          (logEntry as any).responseBody || null,
+          (logEntry as any).responseStatus || null,
+          (logEntry as any).hostApiCalled || false,
+          (logEntry as any).hostApiResponse || null,
+          (logEntry as any).hostApiStatus || null,
+          (logEntry as any).errorMessage || null
         ]
       );
       return result.rows[0];

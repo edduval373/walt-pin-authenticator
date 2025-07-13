@@ -70,7 +70,40 @@ if (!checkExists(serverIndex)) {
   process.exit(1);
 }
 
+// Step 4: Copy client build to expected location for production
+console.log('\n🔧 Setting up production static files...');
+const publicDir = path.join(__dirname, 'dist', 'public');
+if (!fs.existsSync(path.join(__dirname, 'dist'))) {
+  fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
+}
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
+// Copy client build to dist/public for production serving
+function copyDirectory(src, dest) {
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    
+    if (entry.isDirectory()) {
+      copyDirectory(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
+copyDirectory(clientDist, publicDir);
+console.log(`✅ Client files copied to ${publicDir}`);
+
 console.log('\n✅ Build completed successfully!');
 console.log(`📁 Client: ${clientDist}`);
 console.log(`📁 Server: ${serverDist}`);
+console.log(`📁 Production static: ${publicDir}`);
 console.log('🚀 Ready for Railway deployment!');

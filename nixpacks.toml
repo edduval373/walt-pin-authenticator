@@ -1,5 +1,5 @@
 [variables]
-NODE_ENV = "production"
+NODE_ENV = "development"
 
 [start]
-cmd = "NODE_ENV=production node dist/index.js"
+cmd = "npm run dev"

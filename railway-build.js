@@ -12,12 +12,8 @@ const path = require('path');
 console.log('🚀 Starting Railway build process...');
 
 try {
-  // 1. Build the client (React app)
-  console.log('📦 Building React client...');
-  execSync('cd client && npm run build', { stdio: 'inherit' });
-  
-  // 2. Build the server (TypeScript to JavaScript)
-  console.log('🔧 Building server...');
+  // 1. Run the unified build command (builds both client and server)
+  console.log('📦 Building both client and server...');
   execSync('npm run build', { stdio: 'inherit' });
   
   // 3. Verify build outputs

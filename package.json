@@ -4,12 +4,13 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "node production-build.cjs",
-    "start": "node server.js",
-    "dev": "npm start"
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@expo/cli": "^0.24.15",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@radix-ui/react-accordion": "^1.2.4",

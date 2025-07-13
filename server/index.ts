@@ -10,6 +10,19 @@ import mobileApiRouter from "./mobile-api";
 import { generateMobileApiDocs } from "./mobile-docs";
 
 const app = express();
+
+// Add Railway health check endpoint FIRST - before any middleware
+app.get('/healthz', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    service: 'Disney Pin Authenticator',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    port: process.env.PORT || 5000,
+    env: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Increase JSON body size limit to handle larger image payloads (100MB)
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: false, limit: '100mb' }));
@@ -205,13 +218,14 @@ app.use((req, res, next) => {
     });
   });
 
-  // Add Railway health check endpoint
+  // Add Railway health check endpoint - add early to avoid middleware conflicts
   app.get('/healthz', (req, res) => {
     res.status(200).json({
       status: 'healthy',
       service: 'Disney Pin Authenticator',
       timestamp: new Date().toISOString(),
-      version: '1.0.0'
+      version: '1.0.0',
+      port: process.env.PORT || 5000
     });
   });
 

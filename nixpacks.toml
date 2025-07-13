@@ -2,7 +2,7 @@
 NODE_ENV = "production"
 
 [phases.build]
-cmd = "node simple-railway-build.js"
+cmd = "node fast-react-build.js"
 
 [start]
-cmd = "NODE_ENV=production node minimal-server.js"
+cmd = "NODE_ENV=production node dist/index.js"

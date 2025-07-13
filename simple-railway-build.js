@@ -15,14 +15,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 console.log('🚀 Starting simple Railway build process...');
 
 try {
-  // 1. Ensure client build exists and create Railway-compatible version
+  // 1. Build the React application properly
   const clientDist = path.join(__dirname, 'client', 'dist');
   
-  // Always create fresh client build for Railway deployment
-  console.log('🔧 Creating Railway client build...');
-  fs.mkdirSync(clientDist, { recursive: true });
-  
-  // Create proper pinauth W.A.L.T. interface
+  console.log('🔧 Building React application...');
+  try {
+    // Build the React app
+    execSync('cd client && npm run build', { stdio: 'inherit' });
+    console.log('✅ React build completed successfully');
+  } catch (error) {
+    console.log('⚠️ React build failed, creating fallback...');
+    fs.mkdirSync(clientDist, { recursive: true });
+    
+    // Create fallback only if React build fails
   const indexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -229,8 +234,9 @@ try {
 </body>
 </html>`;
   
-  fs.writeFileSync(path.join(clientDist, 'index.html'), indexHtml);
-  console.log('✅ Railway client build created successfully');
+    fs.writeFileSync(path.join(clientDist, 'index.html'), indexHtml);
+    console.log('✅ Fallback client build created');
+  }
   
   // 2. Build the server (TypeScript to JavaScript)
   console.log('🔧 Building server...');

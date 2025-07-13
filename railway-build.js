@@ -1,53 +1,44 @@
+#!/usr/bin/env node
+
 /**
- * Railway-specific build script that ensures deployment success
+ * Railway Build Script for Disney Pin Authenticator
+ * This script builds both the client and server for production deployment
  */
 
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+console.log('🚀 Starting Railway build process...');
 
-console.log('🚀 Building for Railway deployment...');
-
-// Ensure client/dist directory exists
-const distDir = path.join(__dirname, 'client', 'dist');
-if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir, { recursive: true });
-}
-
-// Build the React app without TypeScript compilation issues
 try {
-  // Build with Vite using the root-level vite.config.ts
-  console.log('Building React app with Vite...');
-  execSync('npx vite build --mode production', { stdio: 'inherit' });
+  // 1. Build the client (React app)
+  console.log('📦 Building React client...');
+  execSync('cd client && npm run build', { stdio: 'inherit' });
   
-  console.log('✅ React app built successfully for Railway!');
+  // 2. Build the server (TypeScript to JavaScript)
+  console.log('🔧 Building server...');
+  execSync('npm run build', { stdio: 'inherit' });
   
-  // Check where the build files actually ended up
-  const distPublicPath = path.join(__dirname, 'dist', 'public', 'index.html');
-  const clientDistPath = path.join(__dirname, 'client', 'dist', 'index.html');
+  // 3. Verify build outputs
+  console.log('✅ Verifying build outputs...');
   
-  if (fs.existsSync(distPublicPath)) {
-    console.log('✅ Build files found in dist/public');
-    // Move files from dist/public to client/dist for Railway
-    if (!fs.existsSync(path.join(__dirname, 'client', 'dist'))) {
-      fs.mkdirSync(path.join(__dirname, 'client', 'dist'), { recursive: true });
-    }
-    execSync('cp -r dist/public/* client/dist/', { stdio: 'inherit' });
-    console.log('✅ Build files moved to client/dist');
-  } else if (fs.existsSync(clientDistPath)) {
-    console.log('✅ Build files found in client/dist');
-  } else {
-    console.error('❌ Build verification failed: index.html missing in both locations');
-    process.exit(1);
+  const clientDist = path.join(process.cwd(), 'client', 'dist');
+  const serverDist = path.join(process.cwd(), 'dist');
+  
+  if (!fs.existsSync(clientDist)) {
+    throw new Error('Client build failed - dist directory not found');
   }
   
+  if (!fs.existsSync(serverDist)) {
+    throw new Error('Server build failed - dist directory not found');
+  }
+  
+  console.log('✅ Railway build completed successfully!');
+  console.log('📁 Client build: client/dist/');
+  console.log('📁 Server build: dist/');
+
 } catch (error) {
-  console.error('❌ Build failed:', error.message);
+  console.error('❌ Railway build failed:', error.message);
   process.exit(1);
 }
-
-console.log('🎉 Railway build completed successfully!');

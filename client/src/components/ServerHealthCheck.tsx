@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
+// Simple icon replacements to avoid lucide-react bundle bloat
+const Loader2Icon = () => <span className="animate-spin">⟳</span>
+const RefreshCwIcon = () => <span>🔄</span>
+const AlertCircleIcon = () => <span>⚠️</span>
+const CheckCircleIcon = () => <span>✅</span>
 import { transmissionLogger } from "@/lib/transmission-logger";
 
 interface ServerHealthCheckProps {

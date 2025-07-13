@@ -19,15 +19,9 @@ try {
   const clientDist = path.join(__dirname, 'client', 'dist');
   
   console.log('🔧 Building React application...');
-  try {
-    // Build the React app
-    execSync('cd client && npm run build', { stdio: 'inherit' });
-    console.log('✅ React build completed successfully');
-  } catch (error) {
-    console.log('⚠️ React build failed, creating fallback...');
-    fs.mkdirSync(clientDist, { recursive: true });
-    
-    // Create fallback only if React build fails
+  // Build the React app (now works without timeout!)
+  execSync('cd client && npm run build', { stdio: 'inherit' });
+  console.log('✅ React build completed successfully');
   const indexHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -234,9 +228,7 @@ try {
 </body>
 </html>`;
   
-    fs.writeFileSync(path.join(clientDist, 'index.html'), indexHtml);
-    console.log('✅ Fallback client build created');
-  }
+  // React build is now working, no fallback needed
   
   // 2. Build the server (TypeScript to JavaScript)
   console.log('🔧 Building server...');

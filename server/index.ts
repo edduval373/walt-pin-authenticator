@@ -12,6 +12,7 @@ import { generateMobileApiDocs } from "./mobile-docs";
 const app = express();
 
 // Add Railway health check endpoint FIRST - before any middleware
+// Railway health check - always return 200 to prevent timeout
 app.get('/healthz', (req, res) => {
   res.status(200).json({
     status: 'healthy',

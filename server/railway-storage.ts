@@ -4,7 +4,7 @@ import {
   type InsertUser, type InsertPin, type InsertAnalysis, type InsertUserFeedback, type InsertMobileAppApiLog
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { log } from "./vite";
+import { log } from "./vite-backup";
 
 // Railway database storage implementation
 export class RailwayStorage implements IStorage {

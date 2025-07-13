@@ -5,7 +5,7 @@ import { z } from "zod";
 import multer from "multer";
 import fetch from "node-fetch";
 import FormData from "form-data";
-import { log } from "./vite";
+import { log } from "./vite-backup";
 
 // Set up multer for file uploads
 const storage_multer = multer.memoryStorage();

@@ -1,4 +1,4 @@
-import { log } from './vite';
+import { log } from './vite-backup';
 import fetch from 'node-fetch';
 
 // Railway API access

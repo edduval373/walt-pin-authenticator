@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npm start",
+    "startCommand": "NODE_ENV=production node minimal-server.js",
     "healthcheckPath": "/healthz",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",

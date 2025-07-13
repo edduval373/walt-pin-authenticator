@@ -5,4 +5,4 @@ NODE_ENV = "production"
 cmd = "node simple-railway-build.js"
 
 [start]
-cmd = "npm start"
+cmd = "NODE_ENV=production node minimal-server.js"

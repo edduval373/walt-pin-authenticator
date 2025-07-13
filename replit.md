@@ -94,6 +94,23 @@ This is a mobile-first web application for Disney pin collectors that provides A
 - **Error Handling**: Comprehensive error logging and user-friendly error messages
 - **Performance**: Response time monitoring and optimization
 
+## Mobile App Architecture
+
+### Expo React Native App
+- **Location**: `mobile-app/` directory
+- **Framework**: Expo 50.0.0 with React Native 0.73.6
+- **Navigation**: React Navigation with Stack Navigator
+- **Screens**: 5 complete screens (Splash, Overview, Camera, Processing, Results)
+- **Features**: Camera integration, photo selection, API connectivity
+- **Deployment**: Ready for Expo Application Services (EAS) or web deployment
+
+### App Configuration
+- **Bundle ID**: com.walt.disneypinauthenticator
+- **App Name**: Disney Pin Authenticator
+- **Permissions**: Camera and photo library access configured
+- **Assets**: Complete icon set, splash screen, and adaptive icons
+- **API Integration**: Connected to master.pinauth.com service
+
 ## Recent Changes
 - July 12, 2025: Fixed critical deployment issue causing blank screen at pinauth.com
 - Corrected unified-server.js to properly serve static files from client/dist

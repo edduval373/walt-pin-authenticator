@@ -2,4 +2,4 @@
 NODE_ENV = "development"
 
 [start]
-cmd = "npm run dev"
+cmd = "PORT=$PORT npm run dev"

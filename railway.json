@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "npm run dev",
+    "startCommand": "PORT=$PORT npm run dev",
     "healthcheckPath": "/healthz",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",

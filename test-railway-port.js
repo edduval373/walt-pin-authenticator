@@ -4,22 +4,67 @@
  * Test Railway port configuration
  */
 
+import http from 'http';
+
 console.log('🔍 Testing Railway port configuration...');
-console.log('NODE_ENV:', process.env.NODE_ENV || 'development');
-console.log('PORT:', process.env.PORT || 'not set');
+console.log('Environment variables:');
+console.log('PORT:', process.env.PORT);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
-// Test the exact port Railway would use
-const port = process.env.PORT || 8080;
-console.log('Expected port:', port);
+// Test the ports Railway might use
+const possiblePorts = [
+  process.env.PORT,
+  5000,
+  8080,
+  3000
+].filter(Boolean);
 
-// Check if port is being used
-const { execSync } = require('child_process');
-
-try {
-  const result = execSync(`netstat -tlnp | grep :${port}`, { encoding: 'utf8' });
-  console.log('Port status:', result.trim());
-} catch (e) {
-  console.log('Port not in use');
+async function testPort(port) {
+  return new Promise((resolve) => {
+    const req = http.request({
+      hostname: 'localhost',
+      port: port,
+      path: '/healthz',
+      method: 'GET'
+    }, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', () => {
+        resolve({
+          port,
+          success: true,
+          status: res.statusCode,
+          body: body.substring(0, 100)
+        });
+      });
+    });
+    
+    req.on('error', (e) => {
+      resolve({
+        port,
+        success: false,
+        error: e.message
+      });
+    });
+    
+    req.setTimeout(3000, () => {
+      req.destroy();
+      resolve({
+        port,
+        success: false,
+        error: 'timeout'
+      });
+    });
+    
+    req.end();
+  });
 }
 
-console.log('✅ Railway port test completed');
+async function testAllPorts() {
+  for (const port of possiblePorts) {
+    const result = await testPort(port);
+    console.log(`Port ${port}:`, result);
+  }
+}
+
+testAllPorts();

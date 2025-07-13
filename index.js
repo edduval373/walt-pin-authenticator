@@ -292,7 +292,7 @@ app.get('*', (req, res) => {
           setIsProcessing(true);
           
           try {
-            const response = await fetch('/api/verify-pin', {
+            const response = await fetch('/api/analyze', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

@@ -7,7 +7,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Creating production build for Railway...');
+console.log('🚀 Creating production build for deployment...');
 
 // Ensure client/dist exists
 if (!fs.existsSync('client/dist')) {

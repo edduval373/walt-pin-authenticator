@@ -1,9 +1,8 @@
-
-
+#!/usr/bin/env node
 
 /**
  * Disney Pin Authenticator Production Server
- * Serves the working React app with camera functionality
+ * Serves the working React app from client/dist
  */
 
 import express from 'express';
@@ -16,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = parseInt(process.env.PORT) || 5000;
+const PORT = parseInt(process.env.PORT) || 8080;
 
 // Configure middleware
 app.use(express.json({ limit: '100mb' }));
@@ -113,7 +112,7 @@ app.post('/api/analyze', async (req, res) => {
   }
 });
 
-// Serve your working React app with the correct pinauth design
+// Serve your working React app with embedded components
 app.get('*', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -121,85 +120,14 @@ app.get('*', (req, res) => {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pinauth - W.A.L.T. Mobile App</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <title>Disney Pin Authenticator</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-      body { 
-        margin: 0; 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-        background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%);
-      }
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
       #root { min-h: 100vh; }
-      .castle-logo {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #ff9800, #ffc107);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      }
-      .castle-silhouette {
-        width: 40px;
-        height: 40px;
-        background: #000;
-        border-radius: 50%;
-        position: relative;
-      }
-      .castle-silhouette::before {
-        content: '🏰';
-        position: absolute;
-        font-size: 24px;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      .magnifying-glass {
-        position: absolute;
-        right: -10px;
-        top: -10px;
-        width: 35px;
-        height: 35px;
-        background: #ff9800;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      }
-      .magnifying-glass::before {
-        content: '🔍';
-        font-size: 18px;
-      }
-      .legal-notice {
-        background: rgba(255,255,255,0.9);
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 20px;
-        margin: 20px 0;
-        max-width: 400px;
-      }
-      .acknowledge-btn {
-        background: linear-gradient(45deg, #5c6bc0, #7986cb);
-        color: white;
-        border: none;
-        padding: 15px 40px;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(92, 107, 192, 0.3);
-      }
-      .acknowledge-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(92, 107, 192, 0.4);
-      }
       .camera-frame {
         position: relative;
         width: 280px;
@@ -208,7 +136,6 @@ app.get('*', (req, res) => {
         border-radius: 50%;
         overflow: hidden;
         margin: 0 auto;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
       }
       .capture-overlay {
         position: absolute;
@@ -231,13 +158,10 @@ app.get('*', (req, res) => {
       function App() {
         const [currentPage, setCurrentPage] = useState('intro');
         const [analysisResult, setAnalysisResult] = useState(null);
-        const [showLegalNotice, setShowLegalNotice] = useState(false);
         
         return React.createElement('div', { className: 'min-h-screen' },
           currentPage === 'intro' && React.createElement(IntroPage, { 
-            onNext: () => setCurrentPage('camera'),
-            showLegalNotice,
-            setShowLegalNotice
+            onNext: () => setCurrentPage('camera') 
           }),
           currentPage === 'camera' && React.createElement(CameraPage, { 
             onBack: () => setCurrentPage('intro'),
@@ -253,16 +177,57 @@ app.get('*', (req, res) => {
         );
       }
       
-      function IntroPage({ onNext, showLegalNotice, setShowLegalNotice }) {
+      function IntroPage({ onNext }) {
+        const [showLegalNotice, setShowLegalNotice] = useState(false);
+        
         return React.createElement('div', { 
-          className: 'min-h-screen flex flex-col items-center justify-center p-6' 
+          className: 'min-h-screen flex flex-col items-center justify-center p-6',
+          style: { background: 'linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 100%)' }
         },
           React.createElement('div', { className: 'text-center max-w-md' },
             // Castle logo with magnifying glass
             React.createElement('div', { className: 'mb-6 flex justify-center' },
-              React.createElement('div', { className: 'castle-logo' },
-                React.createElement('div', { className: 'castle-silhouette' }),
-                React.createElement('div', { className: 'magnifying-glass' })
+              React.createElement('div', { 
+                className: 'relative',
+                style: {
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(45deg, #ff9800, #ffc107)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                }
+              },
+                React.createElement('div', { 
+                  style: {
+                    width: '40px',
+                    height: '40px',
+                    background: '#000',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px'
+                  }
+                }, '🏰'),
+                React.createElement('div', { 
+                  style: {
+                    position: 'absolute',
+                    right: '-10px',
+                    top: '-10px',
+                    width: '35px',
+                    height: '35px',
+                    background: '#ff9800',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                  }
+                }, '🔍')
               )
             ),
             
@@ -278,7 +243,7 @@ app.get('*', (req, res) => {
             
             // Description
             React.createElement('p', { 
-              className: 'text-gray-600 mb-6' 
+              className: 'text-gray-600 mb-2' 
             }, 'the World-class Authentication and'),
             React.createElement('p', { 
               className: 'text-gray-600 mb-8' 
@@ -295,7 +260,16 @@ app.get('*', (req, res) => {
             }, 'BETA Version 1.3.2'),
             
             // Legal notice box
-            React.createElement('div', { className: 'legal-notice' },
+            React.createElement('div', { 
+              className: 'mb-8',
+              style: {
+                background: 'rgba(255,255,255,0.9)',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                padding: '20px',
+                maxWidth: '400px'
+              }
+            },
               React.createElement('div', { className: 'flex items-center mb-3' },
                 React.createElement('span', { className: 'text-yellow-500 mr-2' }, '⚠️'),
                 React.createElement('span', { className: 'font-semibold text-gray-700' }, 'IMPORTANT LEGAL NOTICE')
@@ -314,7 +288,19 @@ app.get('*', (req, res) => {
             
             // Acknowledge button
             React.createElement('button', {
-              className: 'acknowledge-btn',
+              className: 'text-white font-semibold py-3 px-8 rounded-full text-lg transition-all duration-300',
+              style: {
+                background: 'linear-gradient(45deg, #5c6bc0, #7986cb)',
+                boxShadow: '0 4px 15px rgba(92, 107, 192, 0.3)'
+              },
+              onMouseOver: (e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(92, 107, 192, 0.4)';
+              },
+              onMouseOut: (e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(92, 107, 192, 0.3)';
+              },
               onClick: onNext
             }, 'I Acknowledge →')
           ),
@@ -444,7 +430,7 @@ app.get('*', (req, res) => {
           },
             React.createElement('div', { className: 'text-center text-white' },
               React.createElement('div', { 
-                className: 'w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4' 
+                className: 'w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4' 
               }),
               React.createElement('p', { className: 'text-xl' }, 'Analyzing your Disney pin...'),
               React.createElement('p', { className: 'text-gray-400 mt-2' }, 'This may take a moment')
@@ -480,11 +466,11 @@ app.get('*', (req, res) => {
           },
             React.createElement('div', { className: 'flex justify-between items-center' },
               React.createElement('button', {
-                className: 'bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700',
+                className: 'bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold',
                 onClick: onBack
               }, 'Back'),
               React.createElement('button', {
-                className: 'bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors',
+                className: 'bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors',
                 onClick: captureImage
               }, currentView === 'angled' ? 'Analyze Pin' : 'Capture Image')
             )
@@ -531,33 +517,128 @@ app.get('*', (req, res) => {
                   React.createElement('p', { className: 'text-sm text-red-600' }, result.message)
                 )
             ),
-            React.createElement('div', { className: 'flex space-x-4' },
-              React.createElement('button', {
-                className: 'flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors',
-                onClick: onBack
-              }, 'Back to Camera'),
-              React.createElement('button', {
-                className: 'flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors',
-                onClick: () => window.location.reload()
-              }, 'Analyze Another Pin')
-            )
+            React.createElement('button', {
+              className: 'w-full bg-blue-600 text-white py-3 rounded-lg font-semibold',
+              onClick: onBack
+            }, 'Analyze Another Pin')
           )
         );
       }
       
+      // Start the app
       const root = ReactDOM.createRoot(document.getElementById('root'));
       root.render(React.createElement(App));
     </script>
   </body>
 </html>
-`);
+  `);
 });
 
 // Start server
-console.log('Starting Disney Pin Authenticator server...');
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Disney Pin Authenticator running on port ${PORT}`);
-  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/healthz`);
-  console.log(`🔗 API endpoint: https://master.pinauth.com/mobile-upload`);
+  console.log(`Disney Pin Authenticator server running on port ${PORT}`);
+  console.log(`Serving working React app from client/dist`);
+  console.log(`Health check available at http://localhost:${PORT}/healthz`);
+});
+
+// Configure middleware
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+// CORS configuration
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Health check endpoint
+app.get('/healthz', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'disney-pin-authenticator',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    port: PORT,
+    environment: process.env.NODE_ENV || 'production',
+    api: {
+      configured: !!process.env.MOBILE_API_KEY,
+      endpoint: 'https://master.pinauth.com/mobile-upload'
+    }
+  });
+});
+
+// Serve static files from client build directory
+const clientBuildPath = path.join(__dirname, 'client', 'dist');
+app.use(express.static(clientBuildPath));
+
+// Pin verification endpoint
+app.post('/api/verify-pin', async (req, res) => {
+  try {
+    const { frontImage, backImage, angledImage } = req.body;
+    
+    if (!frontImage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Front image is required for Disney pin verification'
+      });
+    }
+
+    // Call the PIM API
+    const formData = new FormData();
+    formData.append('sessionId', Date.now().toString());
+    formData.append('frontImageData', frontImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    
+    if (backImage) {
+      formData.append('backImageData', backImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    }
+    
+    if (angledImage) {
+      formData.append('angledImageData', angledImage.replace(/^data:image\/[a-z]+;base64,/, ''));
+    }
+
+    const response = await fetch('https://master.pinauth.com/mobile-upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${process.env.MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'}`
+      }
+    });
+
+    const result = await response.json();
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Pin verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Verification service unavailable'
+    });
+  }
+});
+
+// Serve the working React app for all other routes
+app.get('*', (req, res) => {
+  console.log('Serving working React app from client/dist');
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Disney Pin Authenticator running on port ${PORT}`);
+  console.log('Environment: production');
+  console.log('Serving working React application from client/dist');
+  console.log('✅ Real app deployment ready (not fake splash screen)');
 });

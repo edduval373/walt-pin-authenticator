@@ -34,7 +34,7 @@ export default function ApiConnectionTest() {
         toast({
           title: "API Connection Test Successful",
           description: `Connected to ${data.testedEndpoint} endpoint`,
-          variant: "success"
+          variant: "default"
         });
       } else {
         toast({

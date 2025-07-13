@@ -1,4 +1,4 @@
-import { log } from "./vite-backup";
+import { log } from "./vite";
 
 // Force override environment variables before any configuration
 process.env.PIM_API_URL = "https://master.pinauth.com/mobile-upload";

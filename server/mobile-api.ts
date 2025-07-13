@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { log } from './vite-backup';
+import { log } from './vite';
 import fetch from 'node-fetch';
 import { API_KEY } from './config';
 

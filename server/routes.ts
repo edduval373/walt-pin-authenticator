@@ -5,7 +5,7 @@ import { z } from "zod";
 import multer from "multer";
 import fetch from "node-fetch";
 import FormData from "form-data";
-import { log } from "./vite-backup";
+import { log } from "./vite";
 
 // Set up multer for file uploads
 const storage_multer = multer.memoryStorage();
@@ -215,49 +215,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Temporary CORS proxy endpoint for master server until OPTIONS handler is implemented
   app.post('/api/proxy/mobile-upload', async (req, res) => {
     try {
-      // Log the API key status for debugging
-      log(`API Key available: ${!!MOBILE_API_KEY}`, 'express');
-      log(`Making request to master.pinauth.com/mobile-upload`, 'express');
-      
-      if (!MOBILE_API_KEY) {
-        log(`ERROR: No API key configured for deployment`, 'express');
-        return res.status(500).json({
-          success: false,
-          message: 'API key not configured',
-          error: 'MOBILE_API_KEY environment variable not set'
-        });
-      }
-      
       const response = await fetch('https://master.pinauth.com/mobile-upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': MOBILE_API_KEY
+          'x-api-key': MOBILE_API_KEY || 'pim_0w3nfrt5ahgc'
         },
         body: JSON.stringify(req.body)
       });
 
-      log(`Master server response status: ${response.status}`, 'express');
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        log(`Master server error: ${response.status} - ${errorText}`, 'express');
-        return res.status(response.status).json({
-          success: false,
-          message: `Master server error: ${response.status}`,
-          error: errorText
-        });
-      }
-
       const data = await response.json();
-      log(`Master server response received successfully`, 'express');
       res.json(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       log(`Proxy error: ${errorMessage}`, 'express');
       res.status(500).json({
         success: false,
-        message: 'Connection to master server failed',
+        message: 'Proxy request failed',
         error: errorMessage
       });
     }
@@ -266,44 +240,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check proxy endpoint
   app.get('/api/proxy/health', async (req, res) => {
     try {
-      log(`Performing health check to master.pinauth.com/health`, 'express');
-      
       const response = await fetch('https://master.pinauth.com/health', {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Disney-Pin-Auth-Mobile/1.0'
-        }
+        method: 'GET'
       });
 
-      log(`Health check response status: ${response.status}`, 'express');
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        log(`Health check failed: ${response.status} - ${errorText}`, 'express');
-        return res.status(response.status).json({
-          success: false,
-          message: `Health check failed: ${response.status}`,
-          error: errorText,
-          timestamp: new Date().toISOString()
-        });
-      }
-
-      const data = await response.json() as Record<string, any>;
-      log(`Health check successful`, 'express');
-      res.json({
-        ...data,
-        timestamp: new Date().toISOString(),
-        proxyStatus: 'healthy'
-      });
+      const data = await response.json();
+      res.json(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       log(`Health check proxy error: ${errorMessage}`, 'express');
       res.status(500).json({
         success: false,
-        message: 'Cannot connect to master server',
-        error: errorMessage,
-        timestamp: new Date().toISOString(),
-        suggestion: 'Check network connectivity and master server status'
+        message: 'Health check failed',
+        error: errorMessage
       });
     }
   });

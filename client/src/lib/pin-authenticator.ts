@@ -11,19 +11,12 @@ export interface AnalysisFactor {
 
 export interface AnalysisResult {
   pinId: string;
-  sessionId?: string;
   confidence: number;
   factors: AnalysisFactor[];
   colorMatchPercentage: number;
   databaseMatchCount: number;
   imageQualityScore: number;
   authenticityScore?: number; // Score on scale of 0-100
-  authenticityRating?: number; // Alias for authenticityScore
-  authentic?: boolean;
-  analysis?: string;
-  identification?: string;
-  pricing?: string;
-  timestamp?: string;
   pimStandardHtml?: {
     front?: string;
     back?: string;
@@ -31,18 +24,6 @@ export interface AnalysisResult {
   };
   // Raw analysis report from PIM Standard API (exact, unmodified)
   rawAnalysisReport?: string;
-  
-  // PIM Standard API response
-  pimStandardResponse?: {
-    success: boolean;
-    message: string;
-    sessionId: string;
-    id: number;
-    characters: string | null;
-    analysis: string | null;
-    identification: string | null;
-    pricing: string | null;
-  };
   
   // New properties from PIM Mobile API structure
   result?: {

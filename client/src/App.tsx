@@ -123,18 +123,6 @@ function App() {
                     isOpen={isInfoModalOpen} 
                     onClose={() => setIsInfoModalOpen(false)}
                   />
-                </>
-              )}
-            </div>
-            <Toaster />
-          </NavigationContext.Provider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-}
-
-export default App;
                   <Toaster />
                 </>
               )}

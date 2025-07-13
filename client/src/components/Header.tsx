@@ -64,7 +64,7 @@ export default function Header({ onInfoClick }: HeaderProps) {
       <div className="w-full px-3 py-1 flex items-center justify-between relative">
         <div className="flex items-center">
           <button 
-            onClick={() => window.location.href = window.location.origin}
+            onClick={showSplashScreen}
             className="hover:bg-white hover:bg-opacity-20 transition rounded-lg p-1"
             aria-label="Return to Splash Screen"
           >

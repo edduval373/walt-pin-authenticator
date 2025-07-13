@@ -1,4 +1,4 @@
-import { log } from './vite-backup';
+import { log } from './vite';
 import fetch from 'node-fetch';
 
 // Railway API access
@@ -126,7 +126,7 @@ export async function getProjectServices(projectId: string) {
     }
 
     const data = await response.json();
-    return (data as any).data?.project?.services?.edges.map((edge: any) => edge.node) || [];
+    return data.data?.project?.services?.edges.map(edge => edge.node) || [];
 
   } catch (error: any) {
     log(`Railway API Error: ${error.message}`, 'express');
@@ -177,7 +177,7 @@ export async function getServiceDomains(serviceId: string) {
     }
 
     const data = await response.json();
-    return (data as any).data?.service?.domains?.edges.map((edge: any) => edge.node) || [];
+    return data.data?.service?.domains?.edges.map(edge => edge.node) || [];
 
   } catch (error: any) {
     log(`Railway API Error: ${error.message}`, 'express');

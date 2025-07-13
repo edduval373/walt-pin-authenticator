@@ -113,6 +113,9 @@ This is a mobile-first web application for Disney pin collectors that provides A
 
 ## Recent Changes
 - July 13, 2025: FINAL RAILWAY DEPLOYMENT READY - All issues resolved
+- July 13, 2025: Fixed INVALID_STAT error by adding /healthz endpoint for Railway
+- July 13, 2025: Restored working Disney Pin Authenticator app from backup
+- July 13, 2025: Health check endpoints working correctly (/health and /healthz)
 - Fixed all TypeScript compilation errors with proper type assertions
 - Resolved client/package.json JSON formatting preventing Railway deployment
 - Created comprehensive static build system (final-railway-deploy.cjs)

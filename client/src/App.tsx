@@ -9,12 +9,12 @@ import InfoModal from "@/components/InfoModal";
 import SplashScreen from "@/components/SplashScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-// Lazy load components to reduce bundle size
-const NotFound = lazy(() => import("@/pages/not-found"));
-const IntroPage = lazy(() => import("@/pages/IntroPage"));
-const CameraPage = lazy(() => import("@/pages/CameraPage"));
-const ProcessingPage = lazy(() => import("@/pages/ProcessingPage"));
-const ResultsPage = lazy(() => import("@/pages/ResultsPage"));
+// Import components directly (temporarily remove lazy loading)
+import NotFound from "@/pages/not-found";
+import IntroPage from "@/pages/IntroPage";
+import CameraPage from "@/pages/CameraPage";
+import ProcessingPage from "@/pages/ProcessingPage";
+import ResultsPage from "@/pages/ResultsPage";
 const TestPortalPage = lazy(() => import("@/pages/TestPortalPage"));
 const RealApiTestPage = lazy(() => import("@/pages/RealApiTestPage"));
 const ProductionApiPage = lazy(() => import("@/pages/ProductionApiPage"));
@@ -54,10 +54,8 @@ const LoadingFallback = ({ error }: { error?: boolean }) => (
 );
 
 function Router() {
-  const [location, setLocation] = useLocation();
-
   return (
-    <Suspense fallback={<LoadingFallback />}>
+    <div>
       <Switch>
         <Route path="/" component={IntroPage} />
         <Route path="/camera" component={CameraPage} />
@@ -73,7 +71,7 @@ function Router() {
         <Route path="/instructions" component={InstructionsPage} />
         <Route component={NotFound} />
       </Switch>
-    </Suspense>
+    </div>
   );
 }
 

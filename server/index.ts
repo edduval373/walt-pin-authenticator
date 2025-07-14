@@ -26,7 +26,7 @@ app.get('/healthz', (req, res) => {
 });
 
 // Add root health check as backup
-app.get('/', (req, res) => {
+app.get('/', (req, res, next) => {
   if (req.headers['user-agent']?.includes('railway')) {
     // Railway's health check sometimes hits root
     res.status(200).json({
@@ -35,8 +35,8 @@ app.get('/', (req, res) => {
       timestamp: new Date().toISOString()
     });
   } else {
-    // Regular users get redirected to the app
-    res.redirect('/app');
+    // Regular users should get the React app, not redirect
+    next();
   }
 });
 

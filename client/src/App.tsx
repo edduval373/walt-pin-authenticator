@@ -21,6 +21,8 @@ const ProductionApiPage = lazy(() => import("@/pages/ProductionApiPage"));
 const ApiTester = lazy(() => import("@/components/ApiTester"));
 const ApiConnectionTestPage = lazy(() => import("@/pages/ApiConnectionTestPage"));
 const TextApiTestPage = lazy(() => import("@/pages/TextApiTestPage"));
+const ProcessOverviewPage = lazy(() => import("@/pages/ProcessOverviewPage"));
+const InstructionsPage = lazy(() => import("@/pages/InstructionsPage"));
 
 // Create context for navigation actions
 export const NavigationContext = React.createContext({
@@ -53,7 +55,7 @@ const LoadingFallback = ({ error }: { error?: boolean }) => (
 
 function Router() {
   const [location, setLocation] = useLocation();
-  
+
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
@@ -67,6 +69,8 @@ function Router() {
         <Route path="/api-test" component={ApiTester} />
         <Route path="/connection-test" component={ApiConnectionTestPage} />
         <Route path="/text-test" component={TextApiTestPage} />
+        <Route path="/overview" component={ProcessOverviewPage} />
+        <Route path="/instructions" component={InstructionsPage} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -82,7 +86,7 @@ function App() {
   const goBack = () => {
     // This will handle navigation backwards
     const currentPath = window.location.pathname;
-    
+
     if (currentPath === '/camera') {
       // When on camera page, show splash screen instead of just navigating to intro
       setShowSplash(true);
@@ -94,7 +98,7 @@ function App() {
       setLocation('/');
     }
   };
-  
+
   const showSplashScreen = () => {
     setShowSplash(true);
   };

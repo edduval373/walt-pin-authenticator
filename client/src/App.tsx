@@ -83,6 +83,11 @@ function App() {
   const [_, setLocation] = useLocation();
   const [location] = useLocation();
 
+  // Debug location changes
+  useEffect(() => {
+    console.log('App.tsx - Current location:', location);
+  }, [location]);
+
   // Navigation functions for context
   const goBack = () => {
     // This will handle navigation backwards

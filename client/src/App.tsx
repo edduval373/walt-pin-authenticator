@@ -81,6 +81,7 @@ function App() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [_, setLocation] = useLocation();
+  const [location] = useLocation();
 
   // Navigation functions for context
   const goBack = () => {
@@ -119,7 +120,9 @@ function App() {
                 <SplashScreen onComplete={() => setShowSplash(false)} />
               ) : (
                 <>
-                  <Header onInfoClick={() => setIsInfoModalOpen(true)} />
+                  {location !== '/camera' && (
+                    <Header onInfoClick={() => setIsInfoModalOpen(true)} />
+                  )}
                   <main className="flex-grow transition-all duration-300">
                     <Router />
                   </main>

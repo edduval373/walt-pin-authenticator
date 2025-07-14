@@ -14,20 +14,28 @@ const app = express();
 // Add Railway health check endpoint FIRST - before any middleware
 // Railway health check - always return 200 to prevent timeout
 app.get('/healthz', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    service: 'Disney Pin Authenticator',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    port: process.env.PORT || '5000',
-    env: process.env.NODE_ENV || 'development',
-    uptime: process.uptime()
-  });
+  try {
+    res.status(200).json({
+      status: 'healthy',
+      service: 'Disney Pin Authenticator',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      port: process.env.PORT || '5000',
+      env: process.env.NODE_ENV || 'production',
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Health check failed',
+      error: error.message
+    });
+  }
 });
 
 // Add root health check as backup
 app.get('/', (req, res, next) => {
-  if (req.headers['user-agent']?.includes('railway')) {
+  if (req.headers['user-agent']?.includes('railway') || req.headers['user-agent']?.includes('healthcheck')) {
     // Railway's health check sometimes hits root
     res.status(200).json({
       status: 'healthy',
@@ -301,5 +309,8 @@ app.use((req, res, next) => {
     log(`Railway PORT env var: ${process.env.PORT}`);
     log(`Listening on host: 0.0.0.0`);
     log(`Health check available at: http://0.0.0.0:${port}/healthz`);
+    
+    // Signal that the server is ready
+    process.send?.('ready');
   });
 })();

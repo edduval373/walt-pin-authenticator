@@ -1,11 +1,14 @@
 [variables]
-NODE_ENV = "development"
+NODE_ENV = "production"
 
 [phases.setup]
-nixPkgs = ["nodejs_18"]
+nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmd = "npm ci"
 
+[phases.build]
+cmd = "npm run build"
+
 [start]
-cmd = "PORT=$PORT npm run dev"
+cmd = "npm start"

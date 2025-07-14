@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { RiMickeyLine, RiCameraLine, RiScan2Line, RiPercentLine, RiInformationLine, RiArrowRightLine } from "react-icons/ri";
+import { RiCameraLine, RiArrowDownLine, RiArrowUpLine } from "react-icons/ri";
 import StepProgress from "@/components/StepProgress";
 
 export default function IntroPage() {
   const [_, setLocation] = useLocation();
+  const [isLegalExpanded, setIsLegalExpanded] = useState(false);
 
   const handleGetStarted = () => {
     // Mark that user has visited the site before
@@ -65,13 +66,51 @@ export default function IntroPage() {
           </div>
         </div>
         
+        {/* Legal Acknowledgment Section */}
+        <div className="mb-6 text-left">
+          <button
+            onClick={() => setIsLegalExpanded(!isLegalExpanded)}
+            className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-700">
+              Important Legal Notice
+            </span>
+            {isLegalExpanded ? (
+              <RiArrowUpLine className="text-gray-500" />
+            ) : (
+              <RiArrowDownLine className="text-gray-500" />
+            )}
+          </button>
+          
+          {isLegalExpanded && (
+            <div className="mt-3 p-4 bg-gray-50 rounded-lg text-xs text-gray-600 leading-relaxed">
+              <p className="mb-3">
+                <strong>Disney Pin Authentication Service</strong>
+              </p>
+              <p className="mb-3">
+                This service provides authentication analysis for Disney collectible pins. Results are for informational purposes only and should not be considered as definitive proof of authenticity for commercial transactions.
+              </p>
+              <p className="mb-3">
+                <strong>Disclaimer:</strong> The W.A.L.T. (World-class Authentication and Lookup Tool) system uses advanced AI technology to analyze pin characteristics, but authentication accuracy may vary. Users should consult professional appraisers for high-value items.
+              </p>
+              <p className="mb-3">
+                <strong>Privacy:</strong> Images submitted are processed securely and are not stored permanently. Analysis data may be used to improve service accuracy.
+              </p>
+              <p className="mb-3">
+                <strong>Terms:</strong> By using this service, you acknowledge that results are estimates and that the service providers are not liable for any decisions made based on these results.
+              </p>
+              <p>
+                Disney and all related characters and elements are trademarks of The Walt Disney Company. This service is not affiliated with or endorsed by The Walt Disney Company.
+              </p>
+            </div>
+          )}
+        </div>
 
-        
         <Button
           onClick={handleGetStarted}
           className="w-full bg-indigo-600 text-white py-4 px-6 rounded-xl text-xl font-bold hover:bg-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center h-auto"
         >
-          Start Taking Photos! <RiCameraLine className="ml-3 text-2xl" />
+          I Acknowledge - Start Taking Photos! <RiCameraLine className="ml-3 text-2xl" />
         </Button>
       </div>
     </div>

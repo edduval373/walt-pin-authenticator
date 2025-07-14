@@ -33,37 +33,31 @@ if (!fs.existsSync(distPath)) {
     }
     
     console.log('✅ Build completed. Starting server...');
-    startServer();
+    startServer().catch(error => {
+      console.error('❌ Failed to start server:', error);
+      process.exit(1);
+    });
   });
 } else {
   console.log('✅ Built files found. Starting server...');
-  startServer();
-}
-
-function startServer() {
-  const serverProcess = spawn('node', ['dist/index.js'], {
-    stdio: 'inherit',
-    env: { ...process.env, NODE_ENV: 'production' }
-  });
-
-  serverProcess.on('error', (error) => {
+  startServer().catch(error => {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
   });
+}
 
-  serverProcess.on('close', (code) => {
-    console.log(`🔚 Server process exited with code ${code}`);
-    process.exit(code);
-  });
-
-  // Handle graceful shutdown
-  process.on('SIGTERM', () => {
-    console.log('🛑 Received SIGTERM. Shutting down gracefully...');
-    serverProcess.kill('SIGTERM');
-  });
-
-  process.on('SIGINT', () => {
-    console.log('🛑 Received SIGINT. Shutting down gracefully...');
-    serverProcess.kill('SIGINT');
-  });
+async function startServer() {
+  // Start the server directly without spawning a new process
+  console.log('✅ Starting server directly...');
+  
+  try {
+    // Set environment variables
+    process.env.NODE_ENV = 'production';
+    
+    // Import and run the server using dynamic import
+    await import('./dist/index.js');
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
 }

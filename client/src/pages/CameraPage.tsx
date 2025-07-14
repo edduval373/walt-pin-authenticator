@@ -946,7 +946,7 @@ export default function CameraPage() {
           {/* Center - Step Progress */}
           <div className="flex-1 flex justify-center">
             <StepProgress 
-              currentStep={2} 
+              currentStep={1} 
               totalSteps={4} 
               stepNames={stepNames}
             />

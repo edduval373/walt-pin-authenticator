@@ -1,3 +1,1 @@
-RAILWAY_DEPLOYMENT_TRIGGER=$(date)
-# This file can be committed to trigger Railway deployment
-# App ready for deployment at pinauth.com
+Railway deployment trigger

@@ -19,7 +19,7 @@ app.get('/healthz', (req, res) => {
     service: 'Disney Pin Authenticator',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    port: process.env.PORT || 5000,
+    port: process.env.PORT || '5000',
     env: process.env.NODE_ENV || 'development',
     uptime: process.uptime()
   });
@@ -292,11 +292,14 @@ app.use((req, res, next) => {
   }
 
   // Use Railway's PORT environment variable in production, fallback to 5000 for development
-  const port = process.env.PORT || 5000;
+  const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
     host: "0.0.0.0",
   }, () => {
     log(`serving on port ${port}`);
+    log(`Railway PORT env var: ${process.env.PORT}`);
+    log(`Listening on host: 0.0.0.0`);
+    log(`Health check available at: http://0.0.0.0:${port}/healthz`);
   });
 })();

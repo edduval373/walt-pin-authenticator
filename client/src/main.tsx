@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import App from "./App.simple";
+import App from "./App.minimal";
 import "./index.css";
 import "./assets/analysis-styles.css";
 import "./assets/verification-report.css";

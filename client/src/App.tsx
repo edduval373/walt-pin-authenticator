@@ -80,8 +80,7 @@ function Router() {
 function App() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [_, setLocation] = useLocation();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Debug location changes
   useEffect(() => {

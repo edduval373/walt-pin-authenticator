@@ -9,12 +9,12 @@ import InfoModal from "@/components/InfoModal";
 import SplashScreen from "@/components/SplashScreen";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-// Import components directly (temporarily remove lazy loading)
-import NotFound from "@/pages/not-found";
-import IntroPage from "@/pages/IntroPage";
-import CameraPage from "@/pages/CameraPage";
-import ProcessingPage from "@/pages/ProcessingPage";
-import ResultsPage from "@/pages/ResultsPage";
+// Lazy load components to reduce bundle size
+const NotFound = lazy(() => import("@/pages/not-found"));
+const IntroPage = lazy(() => import("@/pages/IntroPage"));
+const CameraPage = lazy(() => import("@/pages/CameraPage"));
+const ProcessingPage = lazy(() => import("@/pages/ProcessingPage"));
+const ResultsPage = lazy(() => import("@/pages/ResultsPage"));
 const TestPortalPage = lazy(() => import("@/pages/TestPortalPage"));
 const RealApiTestPage = lazy(() => import("@/pages/RealApiTestPage"));
 const ProductionApiPage = lazy(() => import("@/pages/ProductionApiPage"));
@@ -54,8 +54,10 @@ const LoadingFallback = ({ error }: { error?: boolean }) => (
 );
 
 function Router() {
+  const [location, setLocation] = useLocation();
+
   return (
-    <div>
+    <Suspense fallback={<LoadingFallback />}>
       <Switch>
         <Route path="/" component={IntroPage} />
         <Route path="/camera" component={CameraPage} />
@@ -71,19 +73,14 @@ function Router() {
         <Route path="/instructions" component={InstructionsPage} />
         <Route component={NotFound} />
       </Switch>
-    </div>
+    </Suspense>
   );
 }
 
 function App() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [location, setLocation] = useLocation();
-
-  // Debug location changes
-  useEffect(() => {
-    console.log('App.tsx - Current location:', location);
-  }, [location]);
+  const [_, setLocation] = useLocation();
 
   // Navigation functions for context
   const goBack = () => {
@@ -122,9 +119,7 @@ function App() {
                 <SplashScreen onComplete={() => setShowSplash(false)} />
               ) : (
                 <>
-                  {location !== '/camera' && (
-                    <Header onInfoClick={() => setIsInfoModalOpen(true)} />
-                  )}
+                  <Header onInfoClick={() => setIsInfoModalOpen(true)} />
                   <main className="flex-grow transition-all duration-300">
                     <Router />
                   </main>

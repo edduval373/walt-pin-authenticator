@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RiArrowLeftLine, RiCamera2Line, RiHistoryLine, RiStarLine, RiCheckboxCircleLine, RiCloseCircleLine, RiRefreshLine, RiShieldCheckLine, RiShieldLine } from "react-icons/ri";
+import { RiArrowLeftLine, RiCamera2Line, RiHistoryLine, RiStarLine, RiCheckboxCircleLine, RiCloseCircleLine, RiRefreshLine, RiShieldCheckLine, RiShieldLine, RiThumbUpFill, RiThumbDownFill } from "react-icons/ri";
 import ApiRequestLogger from "@/components/ApiRequestLogger";
 import StepProgress from "@/components/StepProgress";
-
+import FeedbackModal from "@/components/FeedbackModal";
 
 import { AnalysisResult } from "@/lib/pin-authenticator";
 import VerificationReport from "@/components/VerificationReport";
@@ -23,7 +23,9 @@ export default function ResultsPage() {
   const [showApiLogs, setShowApiLogs] = useState(false);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
-
+  const [userFeedback, setUserFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'agree' | 'disagree'>('agree');
   
   // Get analysis result from sessionStorage
   const analysisResultJson = sessionStorage.getItem('analysisResult');
@@ -81,7 +83,19 @@ export default function ResultsPage() {
 
 
 
-
+  // Function to handle user feedback
+  const handleFeedback = (feedback: 'positive' | 'negative') => {
+    setUserFeedback(feedback);
+    
+    // Set feedback type for modal
+    setFeedbackType(feedback === 'positive' ? 'agree' : 'disagree');
+    
+    // Open feedback modal for comment collection
+    setShowFeedbackModal(true);
+    
+    // Log the feedback for analytics
+    console.log(`User feedback: ${feedback} for analysis rating ${rating.text}`);
+  };
   
   // Function to remove white background from pin image
   const handleRemoveBackground = async () => {
@@ -420,7 +434,43 @@ export default function ResultsPage() {
               <div className="text-sm text-gray-700 mt-1 font-bold">{rating.description}</div>
             </div>
 
-
+            {/* User Feedback Section */}
+            <div className="border-t border-indigo-200 pt-4 mb-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center">Do you agree with this analysis?</h3>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => handleFeedback('positive')}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    userFeedback === 'positive'
+                      ? 'bg-green-500 text-white shadow-lg scale-105'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200 hover:scale-105'
+                  }`}
+                >
+                  <RiThumbUpFill className="text-xl" />
+                  <span className="text-sm">Yes</span>
+                </button>
+                <button
+                  onClick={() => handleFeedback('negative')}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                    userFeedback === 'negative'
+                      ? 'bg-red-500 text-white shadow-lg scale-105'
+                      : 'bg-red-100 text-red-700 hover:bg-red-200 hover:scale-105'
+                  }`}
+                >
+                  <RiThumbDownFill className="text-xl" />
+                  <span className="text-sm">No</span>
+                </button>
+              </div>
+              {userFeedback && (
+                <div className="text-center mt-2">
+                  <p className="text-xs text-gray-600">
+                    {userFeedback === 'positive' 
+                      ? 'Thank you for your feedback!' 
+                      : 'Thank you! We\'ll use this to improve our analysis.'}
+                  </p>
+                </div>
+              )}
+            </div>
 
 
           </div>
@@ -544,7 +594,18 @@ export default function ResultsPage() {
         </Tabs>
       </div>
 
-
+      {/* Feedback Modal for collecting user comments */}
+      {showFeedbackModal && result && serverResponse && (
+        <FeedbackModal
+          isOpen={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+          analysisId={Date.now()} // Generate unique analysis ID
+          pinId={serverResponse.sessionId || `pin_${Date.now()}`}
+          analysisRating={rating.value}
+          analysisText={serverResponse.analysis || 'No analysis text available'}
+          initialFeedback={userFeedback ?? undefined}
+        />
+      )}
     </div>
   );
 }

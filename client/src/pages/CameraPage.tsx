@@ -919,9 +919,6 @@ export default function CameraPage() {
 
   return (
     <div className="flex-grow flex flex-col h-full fade-in">
-      {/* Custom Header with Logo */}
-      <CustomHeader />
-      
       {/* Step Progress with Camera Controls on Same Row */}
       <div className="bg-white shadow-sm">
         <div className="flex justify-between items-center px-4 py-2">
@@ -949,7 +946,7 @@ export default function CameraPage() {
           {/* Center - Step Progress */}
           <div className="flex-1 flex justify-center">
             <StepProgress 
-              currentStep={1} 
+              currentStep={2} 
               totalSteps={4} 
               stepNames={stepNames}
             />

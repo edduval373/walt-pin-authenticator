@@ -1,0 +1,5 @@
+Railway rebuild trigger - Health check conflict resolved
+Build version: 1.0.1
+Date: July 15, 2025
+Fix: Removed HEALTH_CHECK_URL environment variable conflict
+Status: Ready for deployment with proper health check configuration

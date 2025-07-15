@@ -1,1 +1,2 @@
 Railway deployment fix - Removed HEALTH_CHECK_URL conflict
+RAILWAY_DEPLOYMENT_TRIGGER=1752572623

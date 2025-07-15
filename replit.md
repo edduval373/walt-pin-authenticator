@@ -112,6 +112,8 @@ This is a mobile-first web application for Disney pin collectors that provides A
 - **API Integration**: Connected to master.pinauth.com service
 
 ## Recent Changes
+- July 15, 2025: FIXED RAILWAY START COMMAND - Added explicit startCommand to railway.json and Procfile
+- July 15, 2025: Updated nixpacks.toml and railway.json to force Railway to use start-production.cjs
 - July 15, 2025: FIXED RAILWAY HEALTH CHECK CONFLICT - Removed HEALTH_CHECK_URL environment variable interference
 - July 15, 2025: Updated start-production.cjs to delete conflicting environment variables for Railway deployment
 - July 14, 2025: FIXED ES MODULE STARTUP SCRIPT - Resolved Railway deployment startup issues

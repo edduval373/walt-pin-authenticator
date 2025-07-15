@@ -12,3 +12,7 @@ cmd = "npm run build"
 
 [start]
 cmd = "node start-production.cjs"
+
+[staticAssets]
+# Force Railway to use our custom start command
+staticAssets = false

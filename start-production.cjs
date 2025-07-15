@@ -18,7 +18,7 @@ delete process.env.HEALTH_CHECK_URL;
 console.log('🚀 Starting Disney Pin Authenticator in production mode...');
 console.log(`📡 PORT: ${process.env.PORT || 'not set'}`);
 console.log(`🌍 NODE_ENV: ${process.env.NODE_ENV}`);
-console.log('🔧 Build: v1.0.1 - Health check conflict resolved');
+console.log('🔧 Build: v1.0.2 - Railway start command fixed');
 
 // Check if built files exist
 const distPath = path.join(__dirname, 'dist', 'index.js');

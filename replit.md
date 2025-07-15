@@ -112,6 +112,8 @@ This is a mobile-first web application for Disney pin collectors that provides A
 - **API Integration**: Connected to master.pinauth.com service
 
 ## Recent Changes
+- July 15, 2025: FIXED PIM API URL CONFIGURATION - Updated server to use correct production API URL
+- July 15, 2025: Fixed environment variable conflicts between Replit and Railway deployments
 - July 15, 2025: FIXED RAILWAY START COMMAND - Added explicit startCommand to railway.json and Procfile
 - July 15, 2025: Updated nixpacks.toml and railway.json to force Railway to use start-production.cjs
 - July 15, 2025: FIXED RAILWAY HEALTH CHECK CONFLICT - Removed HEALTH_CHECK_URL environment variable interference

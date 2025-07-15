@@ -14,6 +14,8 @@ process.env.NODE_ENV = 'production';
 
 // Remove conflicting environment variables for Railway deployment
 delete process.env.HEALTH_CHECK_URL;
+// Ensure production API URL is set correctly
+process.env.PIM_API_URL = "https://master.pinauth.com";
 
 console.log('🚀 Starting Disney Pin Authenticator in production mode...');
 console.log(`📡 PORT: ${process.env.PORT || 'not set'}`);

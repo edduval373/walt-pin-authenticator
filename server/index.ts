@@ -1,7 +1,11 @@
 // Server startup - override environment variables to use correct URLs
 // Force override Replit secrets that may have outdated URLs
-process.env.PIM_API_URL = "https://master.pinauth.com";
-process.env.HEALTH_CHECK_URL = "https://master.pinauth.com/health";
+if (process.env.NODE_ENV === 'production') {
+  process.env.PIM_API_URL = "https://master.pinauth.com";
+  delete process.env.HEALTH_CHECK_URL; // Remove for Railway
+} else {
+  process.env.PIM_API_URL = "https://master.pinauth.com";
+}
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";

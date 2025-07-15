@@ -12,6 +12,9 @@ const { spawn } = require('child_process');
 // Set production environment
 process.env.NODE_ENV = 'production';
 
+// Remove conflicting environment variables for Railway deployment
+delete process.env.HEALTH_CHECK_URL;
+
 console.log('🚀 Starting Disney Pin Authenticator in production mode...');
 console.log(`📡 PORT: ${process.env.PORT || 'not set'}`);
 console.log(`🌍 NODE_ENV: ${process.env.NODE_ENV}`);

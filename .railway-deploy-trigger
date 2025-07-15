@@ -1,1 +1,1 @@
-Railway deployment trigger - Fixed ES module startup script
+Railway deployment fix - Removed HEALTH_CHECK_URL conflict
